@@ -14,6 +14,7 @@ from scanner.dynamic_universe import (
     dynamic_bse_group_a_codes,
     merge_bse_universe,
     merge_nse_universe,
+    universe_source_status,
 )
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.market_calendar import equity_market_session_status
@@ -251,6 +252,7 @@ def _attach_bse_group(frame: pd.DataFrame, group_a_codes: set[str] | None) -> pd
 def _cached_scan(limit_per_exchange: int) -> tuple[pd.DataFrame, dict[str, int | float | str]]:
     nse = merge_nse_universe()
     bse = merge_bse_universe()
+    source_status = universe_source_status()
     nse_ordered = list(dict.fromkeys(NSE_CANDIDATES + nse))
     bse_ordered = list(dict.fromkeys(BSE_CANDIDATES + bse))
     candidates = [(symbol, "NSE") for symbol in nse_ordered] + [
@@ -268,6 +270,24 @@ def _cached_scan(limit_per_exchange: int) -> tuple[pd.DataFrame, dict[str, int |
     )
     stats["nse_universe_available"] = len(nse)
     stats["bse_universe_available"] = len(bse)
+    for exchange, merged, curated in (
+        ("NSE", nse, NSE_CANDIDATES),
+        ("BSE", bse, BSE_CANDIDATES),
+    ):
+        source = source_status.get(exchange, {})
+        prefix = exchange.lower()
+        stats[f"{prefix}_universe_source"] = str(source.get("source", "source unavailable"))
+        stats[f"{prefix}_official_source_status"] = str(
+            source.get("official_source_status", "unknown")
+        )
+        stats[f"{prefix}_source_symbols"] = int(source.get("source_symbols", 0))
+        stats[f"{exchange.lower()}_curated_symbols"] = len(curated)
+        stats[f"{prefix}_curated_additions"] = int(source.get("curated_additions", 0))
+        stats[f"{prefix}_merged_symbols"] = len(merged)
+        stats[f"{prefix}_cache_age_seconds"] = float(source.get("cache_age_seconds", 0))
+        reason = str(source.get("reason", ""))
+        if reason:
+            stats[f"{prefix}_fallback_reason"] = reason
     stats["coverage_note"] = (
         "Universe is sourced from dynamic exchange lists with curated fallback. "
         "The selected scan limit may exclude symbols; quote failures are counted as unavailable. "
@@ -370,10 +390,29 @@ def show() -> None:
     c4.metric("Failed batches", int(stats["failed_batches"]))
     st.caption(
         f"Scan completed {stats['scan_completed_at']} · {stats['elapsed_seconds']} s · "
-        f"Dynamic universe: NSE {stats['nse_universe_available']}, "
-        f"BSE {stats['bse_universe_available']}. "
+        f"Universe sources: NSE {stats.get('nse_universe_source', 'unknown')} "
+        f"(official: {stats.get('nse_source_symbols', 0)}; "
+        f"curated additions: {stats.get('nse_curated_additions', 0)}; "
+        f"merged: {stats['nse_universe_available']}; "
+        f"cache age: {stats.get('nse_cache_age_seconds', 0):.0f}s), BSE "
+        f"{stats.get('bse_universe_source', 'unknown')} "
+        f"(official: {stats.get('bse_source_symbols', 0)}; "
+        f"curated additions: {stats.get('bse_curated_additions', 0)}; "
+        f"merged: {stats['bse_universe_available']}; "
+        f"cache age: {stats.get('bse_cache_age_seconds', 0):.0f}s). "
         f"Scanned NSE {stats['nse_candidates']} and BSE {stats['bse_candidates']} symbols."
     )
+    fallback_exchanges = [
+        exchange
+        for exchange in ("NSE", "BSE")
+        if stats.get(f"{exchange.lower()}_official_source_status") == "source unavailable"
+    ]
+    if fallback_exchanges:
+        details = " · ".join(
+            f"{exchange}: {stats.get(f'{exchange.lower()}_fallback_reason', 'source unavailable')}"
+            for exchange in fallback_exchanges
+        )
+        st.warning(f"Curated fallback is active for {', '.join(fallback_exchanges)}. {details}")
     st.caption(
         f"BSE Group A verified: {stats.get('bse_group_a_verified', 0)} · "
         f"Group source: {stats.get('bse_group_a_source', 'Unavailable')}"

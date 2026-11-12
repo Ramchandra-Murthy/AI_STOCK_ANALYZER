@@ -20,6 +20,7 @@ from indicators.trend import detect_trend
 from scanner.dynamic_universe import (
     merge_bse_universe,
     merge_nse_universe,
+    universe_source_status,
     yahoo_symbol_for_bse_code,
 )
 from services.market_data_status import describe_daily_history
@@ -480,6 +481,7 @@ def market_scan(
         candidates["BSE"] = merge_bse_universe()
     if not candidates:
         raise ValueError(f"Unsupported exchange filter: {exchange_filter}")
+    universe_provenance = universe_source_status()
     timings["universe_build_seconds"] = time.perf_counter() - universe_started
     coverage = {
         exchange: {
@@ -534,6 +536,9 @@ def market_scan(
     if not movers:
         empty = pd.DataFrame()
         empty.attrs["scanner_coverage"] = coverage
+        empty.attrs["scanner_universe_provenance"] = {
+            exchange: universe_provenance[exchange] for exchange in candidates
+        }
         timings["cpu_seconds"] = time.process_time() - cpu_started
         timings["total_seconds"] = time.perf_counter() - scan_started
         empty.attrs["scanner_timings"] = timings
@@ -566,6 +571,9 @@ def market_scan(
     if not analysis_tickers:
         empty = pd.DataFrame()
         empty.attrs["scanner_coverage"] = coverage
+        empty.attrs["scanner_universe_provenance"] = {
+            exchange: universe_provenance[exchange] for exchange in candidates
+        }
         timings["cpu_seconds"] = time.process_time() - cpu_started
         timings["total_seconds"] = time.perf_counter() - scan_started
         empty.attrs["scanner_timings"] = timings
@@ -580,6 +588,9 @@ def market_scan(
                 coverage[exchange]["analysis_download_failed"] = 1
         empty = pd.DataFrame()
         empty.attrs["scanner_coverage"] = coverage
+        empty.attrs["scanner_universe_provenance"] = {
+            exchange: universe_provenance[exchange] for exchange in candidates
+        }
         timings["cpu_seconds"] = time.process_time() - cpu_started
         timings["total_seconds"] = time.perf_counter() - scan_started
         empty.attrs["scanner_timings"] = timings
@@ -615,6 +626,9 @@ def market_scan(
     df = pd.DataFrame(rows)
     if df.empty:
         df.attrs["scanner_coverage"] = coverage
+        df.attrs["scanner_universe_provenance"] = {
+            exchange: universe_provenance[exchange] for exchange in candidates
+        }
         timings["cpu_seconds"] = time.process_time() - cpu_started
         timings["total_seconds"] = time.perf_counter() - scan_started
         df.attrs["scanner_timings"] = timings
@@ -627,6 +641,9 @@ def market_scan(
         coverage[exchange]["duplicate_rows_removed"] = duplicate_rows_removed
         coverage[exchange]["final_rows"] = int((result["Exchange"] == exchange).sum())
     result.attrs["scanner_coverage"] = coverage
+    result.attrs["scanner_universe_provenance"] = {
+        exchange: universe_provenance[exchange] for exchange in candidates
+    }
     timings["cpu_seconds"] = time.process_time() - cpu_started
     timings["total_seconds"] = time.perf_counter() - scan_started
     result.attrs["scanner_timings"] = timings

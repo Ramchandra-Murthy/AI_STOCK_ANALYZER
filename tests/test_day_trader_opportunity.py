@@ -133,6 +133,42 @@ def test_all_caps_uses_complete_dynamic_exchange_universe(monkeypatch):
     ]
 
 
+def test_day_trader_scan_carries_official_universe_provenance(monkeypatch):
+    import scanner.day_trader_opportunity as scanner
+
+    provenance = {
+        "source": "cached official exchange source",
+        "official_source_status": "available",
+        "source_symbols": 20,
+        "curated_additions": 3,
+        "merged_symbols": 23,
+        "cache_age_seconds": 45,
+        "reason": "",
+    }
+    monkeypatch.setattr(scanner, "select_day_trader_universe", lambda *_args: [])
+    monkeypatch.setattr(
+        scanner,
+        "universe_source_status",
+        lambda: {"NSE": provenance, "BSE": {"source": "unused"}},
+    )
+
+    result = scanner.scan_day_trader_opportunities(exchange_category="NSE", cap_category="All caps")
+
+    assert result.empty
+    assert result.attrs["scan_stats"]["universe_provenance"] == {"NSE": provenance}
+
+
+def test_day_trader_named_cap_basket_is_labeled_as_research_subset(monkeypatch):
+    import scanner.day_trader_opportunity as scanner
+
+    monkeypatch.setattr(scanner, "select_day_trader_universe", lambda *_args: [])
+    result = scanner.scan_day_trader_opportunities(
+        exchange_category="NSE", cap_category="Large cap"
+    )
+
+    assert "not full exchange coverage" in result.attrs["scan_stats"]["universe_description"]
+
+
 def test_score_combines_opportunity_and_setup_scores():
     rows = pd.DataFrame(
         [

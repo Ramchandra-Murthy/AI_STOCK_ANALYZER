@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 from scanner import dynamic_universe
 
 
@@ -117,6 +119,10 @@ def test_dynamic_nse_fallback_is_cached_until_universe_ttl_expires(monkeypatch):
     assert dynamic_universe.dynamic_nse_symbols() == dynamic_universe.NSE_CANDIDATES
     assert dynamic_universe.dynamic_nse_symbols() == dynamic_universe.NSE_CANDIDATES
     assert calls == ["NSE"]
+    status = dynamic_universe.universe_source_status()["NSE"]
+    assert status["source"] == "cached curated fallback"
+    assert status["official_source_status"] == "source unavailable"
+    assert status["reason"] == "OSError: NSE unavailable"
 
     now[0] += dynamic_universe.CACHE_TTL_SECONDS
     assert dynamic_universe.dynamic_nse_symbols() == dynamic_universe.NSE_CANDIDATES
@@ -138,7 +144,107 @@ def test_dynamic_bse_fallback_is_cached_until_universe_ttl_expires(monkeypatch):
     assert dynamic_universe.dynamic_bse_symbols() == dynamic_universe.BSE_CANDIDATES
     assert dynamic_universe.dynamic_bse_symbols() == dynamic_universe.BSE_CANDIDATES
     assert calls == ["BSE"]
+    status = dynamic_universe.universe_source_status()["BSE"]
+    assert status["source"] == "cached curated fallback"
+    assert status["official_source_status"] == "source unavailable"
+    assert status["reason"] == "OSError: BSE unavailable"
 
     now[0] += dynamic_universe.CACHE_TTL_SECONDS
     assert dynamic_universe.dynamic_bse_symbols() == dynamic_universe.BSE_CANDIDATES
     assert calls == ["BSE", "BSE"]
+
+
+@pytest.mark.parametrize(
+    ("exchange", "loader_name", "cache_name", "symbols"),
+    [
+        ("NSE", "_download_nse_equity_list", "_cached_nse_symbols", ["LIVE_NSE"]),
+        ("BSE", "_download_bse_equity_list", "_cached_bse_symbols", ["500325"]),
+    ],
+)
+def test_dynamic_universe_reports_official_and_cached_source(
+    monkeypatch, exchange, loader_name, cache_name, symbols
+):
+    now = [100.0]
+    calls = []
+    monkeypatch.setattr(dynamic_universe, "time", type("Clock", (), {"time": lambda: now[0]}))
+    monkeypatch.setattr(dynamic_universe, cache_name, None)
+    monkeypatch.setitem(
+        dynamic_universe._universe_source_status,
+        exchange,
+        {"source": "not loaded", "reason": "", "official_source_status": "not loaded"},
+    )
+    monkeypatch.setattr(dynamic_universe, loader_name, lambda: calls.append(exchange) or symbols)
+
+    fetch = (
+        dynamic_universe.dynamic_nse_symbols
+        if exchange == "NSE"
+        else dynamic_universe.dynamic_bse_symbols
+    )
+    assert fetch() == symbols
+    assert dynamic_universe.universe_source_status()[exchange]["source"] == (
+        "official live exchange source"
+    )
+    now[0] += 30
+    assert fetch() == symbols
+    status = dynamic_universe.universe_source_status()[exchange]
+    assert status["source"] == "cached official exchange source"
+    assert status["source_symbols"] == len(symbols)
+    assert status["cache_age_seconds"] == 30
+    assert calls == [exchange]
+
+    now[0] += dynamic_universe.CACHE_TTL_SECONDS
+    assert fetch() == symbols
+    assert dynamic_universe.universe_source_status()[exchange]["source"] == (
+        "official live exchange source"
+    )
+    assert calls == [exchange, exchange]
+
+
+@pytest.mark.parametrize(
+    ("exchange", "cache_name", "loader_name", "fallback"),
+    [
+        ("NSE", "_cached_nse_symbols", "_download_nse_equity_list", "NSE_CANDIDATES"),
+        ("BSE", "_cached_bse_symbols", "_download_bse_equity_list", "BSE_CANDIDATES"),
+    ],
+)
+def test_empty_official_response_uses_labeled_curated_fallback(
+    monkeypatch, exchange, cache_name, loader_name, fallback
+):
+    monkeypatch.setattr(dynamic_universe, cache_name, None)
+    monkeypatch.setattr(dynamic_universe, loader_name, lambda: [])
+    monkeypatch.setitem(
+        dynamic_universe._universe_source_status,
+        exchange,
+        {"source": "not loaded", "reason": "", "official_source_status": "not loaded"},
+    )
+
+    fetch = (
+        dynamic_universe.dynamic_nse_symbols
+        if exchange == "NSE"
+        else dynamic_universe.dynamic_bse_symbols
+    )
+    assert fetch() == getattr(dynamic_universe, fallback)
+    status = dynamic_universe.universe_source_status()[exchange]
+    assert status["source"] == "curated fallback"
+    assert status["official_source_status"] == "source unavailable"
+    assert status["source_symbols"] == 0
+    assert status["reason"] == "live source returned an empty symbol list"
+
+
+def test_merge_reports_official_count_curated_additions_and_final_count(monkeypatch):
+    live_symbols = ["RELIANCE", "LIVE_ONLY"]
+    monkeypatch.setattr(dynamic_universe, "_cached_nse_symbols", None)
+    monkeypatch.setattr(dynamic_universe, "_download_nse_equity_list", lambda: live_symbols)
+    monkeypatch.setitem(
+        dynamic_universe._universe_source_status,
+        "NSE",
+        {"source": "not loaded", "reason": "", "official_source_status": "not loaded"},
+    )
+
+    merged = dynamic_universe.merge_nse_universe(["CUSTOM_SYMBOL"])
+    status = dynamic_universe.universe_source_status()["NSE"]
+    expected_additions = len(set(dynamic_universe.NSE_CANDIDATES) - set(live_symbols))
+    assert status["source_symbols"] == len(live_symbols)
+    assert status["curated_additions"] == expected_additions
+    assert status["merged_symbols"] == len(merged)
+    assert "CUSTOM_SYMBOL" in merged

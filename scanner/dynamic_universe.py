@@ -23,6 +23,43 @@ _cached_nse_symbols: tuple[float, list[str]] | None = None
 _cached_bse_symbols: tuple[float, list[str]] | None = None
 _cached_bse_group_a: tuple[float, set[str]] | None = None
 _bse_yahoo_symbol_map: dict[str, str] = {}
+_universe_source_status: dict[str, dict[str, str | int | float]] = {
+    "NSE": {
+        "source": "source unavailable",
+        "reason": "",
+        "official_source_status": "not loaded",
+    },
+    "BSE": {
+        "source": "source unavailable",
+        "reason": "",
+        "official_source_status": "not loaded",
+    },
+}
+
+
+def _record_universe_source(
+    exchange: str,
+    *,
+    source: str,
+    origin: str,
+    source_symbols: int,
+    cache_age_seconds: float,
+    reason: str = "",
+) -> None:
+    """Record current list provenance while keeping provider and fallback status distinct."""
+    _universe_source_status[exchange] = {
+        "source": source,
+        "origin": origin,
+        "official_source_status": ("available" if origin == "official" else "source unavailable"),
+        "source_symbols": source_symbols if origin == "official" else 0,
+        "cache_age_seconds": round(max(0.0, cache_age_seconds), 1),
+        "reason": reason,
+    }
+
+
+def universe_source_status() -> dict[str, dict[str, str | int | float]]:
+    """Return the latest exchange-list source and coverage counts."""
+    return {exchange: dict(status) for exchange, status in _universe_source_status.items()}
 
 
 def _download_nse_equity_list() -> list[str]:
@@ -208,6 +245,20 @@ def dynamic_nse_symbols() -> list[str]:
 
     now = time.time()
     if _cached_nse_symbols and now - _cached_nse_symbols[0] < CACHE_TTL_SECONDS:
+        prior = _universe_source_status["NSE"]
+        origin = str(prior.get("origin", "unavailable"))
+        _record_universe_source(
+            "NSE",
+            source=(
+                "cached official exchange source"
+                if origin == "official"
+                else "cached curated fallback"
+            ),
+            origin=origin,
+            source_symbols=int(prior.get("source_symbols", 0)),
+            cache_age_seconds=now - _cached_nse_symbols[0],
+            reason=str(prior.get("reason", "")),
+        )
         return _cached_nse_symbols[1]
 
     fallback_reason = "live source returned an empty symbol list"
@@ -215,12 +266,27 @@ def dynamic_nse_symbols() -> list[str]:
         symbols = _download_nse_equity_list()
         if symbols:
             _cached_nse_symbols = (now, symbols)
+            _record_universe_source(
+                "NSE",
+                source="official live exchange source",
+                origin="official",
+                source_symbols=len(symbols),
+                cache_age_seconds=0,
+            )
             return symbols
     except Exception as exc:
         fallback_reason = f"{type(exc).__name__}: {exc}"
 
     fallback = list(NSE_CANDIDATES)
     _cached_nse_symbols = (now, fallback)
+    _record_universe_source(
+        "NSE",
+        source="curated fallback",
+        origin="curated",
+        source_symbols=0,
+        cache_age_seconds=0,
+        reason=fallback_reason,
+    )
     logging.warning(
         "NSE universe fallback=curated reason=%s fallback_symbols=%d",
         fallback_reason,
@@ -235,6 +301,20 @@ def dynamic_bse_symbols() -> list[str]:
 
     now = time.time()
     if _cached_bse_symbols and now - _cached_bse_symbols[0] < CACHE_TTL_SECONDS:
+        prior = _universe_source_status["BSE"]
+        origin = str(prior.get("origin", "unavailable"))
+        _record_universe_source(
+            "BSE",
+            source=(
+                "cached official exchange source"
+                if origin == "official"
+                else "cached curated fallback"
+            ),
+            origin=origin,
+            source_symbols=int(prior.get("source_symbols", 0)),
+            cache_age_seconds=now - _cached_bse_symbols[0],
+            reason=str(prior.get("reason", "")),
+        )
         logging.debug(
             "BSE universe source=cache symbols=%d",
             len(_cached_bse_symbols[1]),
@@ -245,6 +325,13 @@ def dynamic_bse_symbols() -> list[str]:
         symbols = _download_bse_equity_list()
         if symbols:
             _cached_bse_symbols = (now, symbols)
+            _record_universe_source(
+                "BSE",
+                source="official live exchange source",
+                origin="official",
+                source_symbols=len(symbols),
+                cache_age_seconds=0,
+            )
             logging.info(
                 "BSE universe source=live symbols=%d curated_fallback_symbols=%d",
                 len(symbols),
@@ -257,6 +344,14 @@ def dynamic_bse_symbols() -> list[str]:
 
     fallback = list(BSE_CANDIDATES)
     _cached_bse_symbols = (now, fallback)
+    _record_universe_source(
+        "BSE",
+        source="curated fallback",
+        origin="curated",
+        source_symbols=0,
+        cache_age_seconds=0,
+        reason=fallback_reason,
+    )
     logging.warning(
         "BSE universe fallback=curated reason=%s fallback_symbols=%d",
         fallback_reason,
@@ -266,21 +361,31 @@ def dynamic_bse_symbols() -> list[str]:
 
 
 def merge_nse_universe(extra_symbols: list[str] | None = None) -> list[str]:
-    """Merge the live NSE list with curated symbols so known names are never lost."""
-    symbols = set(dynamic_nse_symbols())
+    """Merge the official or fallback NSE list with curated and caller symbols."""
+    source_symbols = set(dynamic_nse_symbols())
+    symbols = set(source_symbols)
     symbols.update(NSE_CANDIDATES)
     if extra_symbols:
         symbols.update(symbol.strip().upper() for symbol in extra_symbols if symbol.strip())
-    return sorted(symbols)
+    result = sorted(symbols)
+    _universe_source_status["NSE"].update(
+        curated_additions=len(set(NSE_CANDIDATES) - source_symbols), merged_symbols=len(result)
+    )
+    return result
 
 
 def merge_bse_universe(extra_symbols: list[str] | None = None) -> list[str]:
-    """Merge the live BSE list with curated symbols so known names are never lost."""
-    symbols = set(dynamic_bse_symbols())
+    """Merge the official or fallback BSE list with curated and caller symbols."""
+    source_symbols = set(dynamic_bse_symbols())
+    symbols = set(source_symbols)
     symbols.update(BSE_CANDIDATES)
     if extra_symbols:
         symbols.update(symbol.strip().upper() for symbol in extra_symbols if symbol.strip())
-    return sorted(symbols)
+    result = sorted(symbols)
+    _universe_source_status["BSE"].update(
+        curated_additions=len(set(BSE_CANDIDATES) - source_symbols), merged_symbols=len(result)
+    )
+    return result
 
 
 def passes_liquidity_filter(latest_price: float, average_volume: float) -> bool:

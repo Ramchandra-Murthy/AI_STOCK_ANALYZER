@@ -25,6 +25,30 @@ def test_market_scan_uses_only_requested_exchange(monkeypatch) -> None:
     monkeypatch.setattr(market_scanner, "merge_bse_universe", lambda: ["500325"])
     monkeypatch.setattr(
         market_scanner,
+        "universe_source_status",
+        lambda: {
+            "NSE": {
+                "source": "official live exchange source",
+                "official_source_status": "available",
+                "source_symbols": 10,
+                "curated_additions": 2,
+                "merged_symbols": 12,
+                "cache_age_seconds": 0,
+                "reason": "",
+            },
+            "BSE": {
+                "source": "cached curated fallback",
+                "official_source_status": "source unavailable",
+                "source_symbols": 0,
+                "curated_additions": 0,
+                "merged_symbols": 3,
+                "cache_age_seconds": 120,
+                "reason": "BSE unavailable",
+            },
+        },
+    )
+    monkeypatch.setattr(
+        market_scanner,
         "_batch_change_screen",
         lambda candidates, coverage=None: calls.append(candidates) or [],
     )
@@ -32,6 +56,10 @@ def test_market_scan_uses_only_requested_exchange(monkeypatch) -> None:
     result = market_scanner.market_scan("BSE")
 
     assert result.empty
+    assert result.attrs["scanner_universe_provenance"]["BSE"]["source"] == (
+        "cached curated fallback"
+    )
+    assert result.attrs["scanner_universe_provenance"]["BSE"]["reason"] == "BSE unavailable"
     assert calls == [{"BSE": ["500325"]}]
 
 

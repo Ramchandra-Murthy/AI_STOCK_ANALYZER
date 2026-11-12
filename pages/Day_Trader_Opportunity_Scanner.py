@@ -26,6 +26,7 @@ from services.intraday_auto_refresh import (
     refresh_label,
     seconds_until_first_scan,
 )
+
 from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_exchange_summary import exchange_summary
 from services.intraday_health import assess_scan_health
@@ -68,6 +69,25 @@ from services.intraday_trade_analytics import (
 )
 from services.intraday_trade_journal import add_trade, journal_frame, journal_summary
 from services.market_status import describe_market_status
+
+
+def _show_universe_provenance(scan_stats: dict) -> None:
+    """Show whether the day-trader scan used official lists or a curated basket."""
+    st.caption(str(scan_stats.get("universe_description", "Universe source unavailable.")))
+    for exchange, provenance in scan_stats.get("universe_provenance", {}).items():
+        st.caption(
+            f"{exchange}: {provenance.get('source', 'source unavailable')} · official "
+            f"symbols: {provenance.get('source_symbols', 0)} · curated additions: "
+            f"{provenance.get('curated_additions', 0)} · merged: "
+            f"{provenance.get('merged_symbols', 0)} · cache age: "
+            f"{provenance.get('cache_age_seconds', 0)}s"
+        )
+        reason = str(provenance.get("reason", ""))
+        if provenance.get("official_source_status") == "source unavailable":
+            st.warning(
+                f"{exchange} official source unavailable; curated fallback is active. {reason}"
+            )
+
 
 # fmt: off
 
@@ -809,6 +829,7 @@ elif raw_results.empty:
         "the cause is missing intraday data or the selected filters."
     )
     if scan_stats:
+        _show_universe_provenance(scan_stats)
         diagnostics = {
             "Candidate universe": scan_stats.get("candidate_count", 0),
             "Universe symbols accounted for": scan_stats.get("attempted_count", 0),
@@ -852,6 +873,7 @@ else:
     results = raw_results.copy()
     scan_stats = st.session_state.get("intraday_scan_stats", {})
     if scan_stats:
+        _show_universe_provenance(scan_stats)
         st.caption(
             f"Universe: {scan_stats.get('candidate_count', 0)} symbols • "
             f"{scan_stats.get('usable_data_count', 0)} usable "
