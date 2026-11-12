@@ -118,3 +118,29 @@ def test_market_cap_uses_shared_metadata_service(monkeypatch):
 
     assert market_movers._market_cap("TEST.NS") == 123.0
     assert calls == [("TEST.NS", {"cache_ttl_seconds": market_movers.CAP_CACHE_TTL_SECONDS})]
+
+
+def test_bse_group_uses_official_codes_and_preserves_nse():
+    from modules.market_movers import _attach_bse_group
+
+    frame = pd.DataFrame(
+        {
+            "Ticker": ["500325.BO", "532540.BO", "RELIANCE.NS"],
+            "Exchange": ["BSE", "BSE", "NSE"],
+        }
+    )
+    result = _attach_bse_group(frame, {"500325"})
+    assert result["BSE Group"].tolist() == ["A", "Other", "N/A"]
+
+
+def test_bse_group_unavailable_is_not_misclassified():
+    from modules.market_movers import _attach_bse_group
+
+    frame = pd.DataFrame(
+        {
+            "Ticker": ["500325.BO", "RELIANCE.NS"],
+            "Exchange": ["BSE", "NSE"],
+        }
+    )
+    result = _attach_bse_group(frame, None)
+    assert result["BSE Group"].tolist() == ["Unverified", "N/A"]
