@@ -210,15 +210,23 @@ def dynamic_nse_symbols() -> list[str]:
     if _cached_nse_symbols and now - _cached_nse_symbols[0] < CACHE_TTL_SECONDS:
         return _cached_nse_symbols[1]
 
+    fallback_reason = "live source returned an empty symbol list"
     try:
         symbols = _download_nse_equity_list()
         if symbols:
             _cached_nse_symbols = (now, symbols)
             return symbols
-    except Exception:
-        pass
+    except Exception as exc:
+        fallback_reason = f"{type(exc).__name__}: {exc}"
 
-    return list(NSE_CANDIDATES)
+    fallback = list(NSE_CANDIDATES)
+    _cached_nse_symbols = (now, fallback)
+    logging.warning(
+        "NSE universe fallback=curated reason=%s fallback_symbols=%d",
+        fallback_reason,
+        len(fallback),
+    )
+    return fallback
 
 
 def dynamic_bse_symbols() -> list[str]:
@@ -248,6 +256,7 @@ def dynamic_bse_symbols() -> list[str]:
         fallback_reason = f"{type(exc).__name__}: {exc}"
 
     fallback = list(BSE_CANDIDATES)
+    _cached_bse_symbols = (now, fallback)
     logging.warning(
         "BSE universe fallback=curated reason=%s fallback_symbols=%d",
         fallback_reason,
