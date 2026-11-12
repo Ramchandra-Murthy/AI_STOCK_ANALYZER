@@ -6,6 +6,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from services.intraday_risk_planning import (
+    MAX_INTRADAY_CAPITAL,
+    MAX_INTRADAY_LOSS_PER_TRADE,
+)
+
 
 @dataclass(frozen=True)
 class PositionSize:
@@ -31,14 +36,14 @@ def calculate_position_size(
     side: str = "LONG",
 ) -> PositionSize:
     """Calculate a capped quantity from risk and capital constraints."""
-    capital = max(0.0, float(capital))
+    capital = min(MAX_INTRADAY_CAPITAL, max(0.0, float(capital)))
     risk_percent = max(0.0, float(risk_percent))
     entry = float(entry)
     stop_loss = float(stop_loss)
     target = float(target)
     normalized_side = side.upper()
 
-    risk_amount = capital * risk_percent / 100.0
+    risk_amount = min(MAX_INTRADAY_LOSS_PER_TRADE, capital * risk_percent / 100.0)
     risk_per_share = abs(entry - stop_loss)
     risk_quantity = int(risk_amount // risk_per_share) if risk_per_share > 0 else 0
     capital_quantity = int(capital // entry) if entry > 0 else 0
