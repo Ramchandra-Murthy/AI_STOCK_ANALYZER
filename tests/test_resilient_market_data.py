@@ -493,8 +493,7 @@ def test_company_name_negative_cache_can_be_disabled(monkeypatch) -> None:
 
     for _ in range(2):
         assert (
-            market_data.get_company_name("UNKNOWN.NS", negative_cache_ttl_seconds=0)
-            == "UNKNOWN.NS"
+            market_data.get_company_name("UNKNOWN.NS", negative_cache_ttl_seconds=0) == "UNKNOWN.NS"
         )
 
     assert calls == ["UNKNOWN.NS", "UNKNOWN.NS"]
@@ -883,6 +882,7 @@ def test_metadata_provider_exceptions_are_not_negative_cached(monkeypatch) -> No
     assert calls == ["TIMEOUT.NS"] * 4
     assert "TIMEOUT.NS" not in market_data._NEGATIVE_METADATA_CACHE
     assert "TIMEOUT.NS" not in market_data._COMPANY_NAME_NEGATIVE_CACHE
+
 
 def test_negative_metadata_cache_is_thread_safe(monkeypatch) -> None:
     market_data.clear_market_metadata_cache()
