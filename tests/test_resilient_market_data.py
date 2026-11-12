@@ -706,10 +706,12 @@ def test_provider_circuit_exponential_cooldown_is_capped(monkeypatch) -> None:
     clock = [100.0]
     monkeypatch.setattr(market_data, "monotonic", lambda: clock[0])
 
-    for expected_cooldown in (30.0, 60.0, 120.0, 240.0, 300.0, 300.0):
-        market_data._provider_circuit_record_failure()
-        market_data._provider_circuit_record_failure()
-        market_data._provider_circuit_record_failure()
+    market_data._provider_circuit_record_failure()
+    market_data._provider_circuit_record_failure()
+    market_data._provider_circuit_record_failure()
+
+    expected_cooldown = market_data.PROVIDER_CIRCUIT_COOLDOWN_SECONDS
+    for _ in range(6):
         stats = market_data.provider_circuit_breaker_stats()
         assert stats["state"] == "open"
         assert stats["cooldown_seconds"] == expected_cooldown
@@ -717,10 +719,11 @@ def test_provider_circuit_exponential_cooldown_is_capped(monkeypatch) -> None:
         clock[0] += expected_cooldown
         assert market_data._provider_circuit_allows_request() is True
         market_data._provider_circuit_record_failure()
-        stats = market_data.provider_circuit_breaker_stats()
-        assert stats["state"] == "open"
-        assert stats["cooldown_seconds"] == min(
+
+        expected_cooldown = min(
             expected_cooldown * 2,
             market_data.PROVIDER_CIRCUIT_MAX_COOLDOWN_SECONDS,
         )
-        market_data._reset_provider_circuit_breaker()
+        stats = market_data.provider_circuit_breaker_stats()
+        assert stats["state"] == "open"
+        assert stats["cooldown_seconds"] == expected_cooldown
