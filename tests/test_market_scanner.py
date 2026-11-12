@@ -628,7 +628,7 @@ def test_broad_market_download_uses_shared_service_and_preserves_ticker_columns(
 
     assert calls[0][0] == list(frames)
     assert calls[0][1]["interval"] == "1d"
-    assert calls[0][1]["recover_missing"] is True
+    assert calls[0][1]["recover_missing"] is False
     assert isinstance(history.columns, pd.MultiIndex)
     assert set(history.columns.get_level_values(0)) == set(frames)
     assert market_scanner._extract_series(history, "RELIANCE.NS", "Close").tolist() == [
