@@ -10,7 +10,11 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import streamlit as st
 
-from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
+from scanner.dynamic_universe import (
+    dynamic_bse_group_a_codes,
+    merge_bse_universe,
+    merge_nse_universe,
+)
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.market_calendar import equity_market_session_status
 from services.resilient_market_data import download_symbol_frames, get_market_cap
@@ -171,6 +175,7 @@ def _scan_batches(
                         "Quote Status": _quote_freshness(observed_at),
                         "Market cap (₹)": None,
                         "Market-cap class": "Unverified",
+                        "BSE Group": "N/A" if exchange == "NSE" else "Unverified",
                     }
                 )
 
@@ -222,6 +227,23 @@ def _classify_market_caps(frame: pd.DataFrame) -> pd.DataFrame:
     return result
 
 
+def _attach_bse_group(frame: pd.DataFrame, group_a_codes: set[str] | None) -> pd.DataFrame:
+    """Attach verified BSE Group A membership, preserving unknown source status."""
+    result = frame.copy()
+    if result.empty:
+        return result
+    result["BSE Group"] = "N/A"
+    bse_mask = result["Exchange"].eq("BSE")
+    if group_a_codes is None:
+        result.loc[bse_mask, "BSE Group"] = "Unverified"
+    else:
+        codes = result.loc[bse_mask, "Ticker"].astype(str).str.removesuffix(".BO")
+        result.loc[bse_mask, "BSE Group"] = codes.map(
+            lambda code: "A" if code in group_a_codes else "Other"
+        )
+    return result
+
+
 @st.cache_data(ttl=SCAN_CACHE_TTL_SECONDS, show_spinner=False)
 def _cached_scan(limit_per_exchange: int) -> tuple[pd.DataFrame, dict[str, int | float | str]]:
     nse = merge_nse_universe()
@@ -232,6 +254,12 @@ def _cached_scan(limit_per_exchange: int) -> tuple[pd.DataFrame, dict[str, int |
         (symbol, "BSE") for symbol in bse_ordered
     ]
     frame, stats = _scan_batches(candidates, limit_per_exchange)
+    group_a_codes = dynamic_bse_group_a_codes()
+    frame = _attach_bse_group(frame, group_a_codes)
+    stats["bse_group_a_source"] = "BSE official" if group_a_codes is not None else "Unavailable"
+    stats["bse_group_a_verified"] = (
+        int(frame["BSE Group"].eq("A").sum()) if not frame.empty else 0
+    )
     frame = _classify_market_caps(frame)
     stats["market_cap_lookups"] = min(300, len(frame))
     stats["market_cap_verified"] = (
@@ -243,7 +271,8 @@ def _cached_scan(limit_per_exchange: int) -> tuple[pd.DataFrame, dict[str, int |
         "Universe is sourced from dynamic exchange lists with curated fallback. "
         "The selected scan limit may exclude symbols; quote failures are counted as unavailable. "
         "Cap classes are estimated by market-cap rank among the metadata-verified scan shortlist, "
-        "not official AMFI classifications. Yahoo Finance data is not exchange-tick real time."
+        "not official AMFI classifications. BSE Group A uses the official security list; "
+        "unavailable source data is marked Unverified. Yahoo Finance is not tick-live."
     )
     return frame, stats
 
@@ -291,6 +320,7 @@ def show() -> None:
                 "Unverified",
             ],
         )
+        group_filter = st.selectbox("BSE Group", ["All", "A", "Other", "Unverified", "N/A"])
         mover_window = st.selectbox(
             "Rank by movement", ["Change 5m %", "Change 15m %", "Change 30m %"]
         )
@@ -329,6 +359,8 @@ def show() -> None:
         frame = frame.loc[frame["Exchange"] == exchange_filter]
     if cap_filter != "All":
         frame = frame.loc[frame["Market-cap class"] == cap_filter]
+    if group_filter != "All":
+        frame = frame.loc[frame["BSE Group"] == group_filter]
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Symbols requested", int(stats["candidate_count"]))
@@ -340,6 +372,10 @@ def show() -> None:
         f"Dynamic universe: NSE {stats['nse_universe_available']}, "
         f"BSE {stats['bse_universe_available']}. "
         f"Scanned NSE {stats['nse_candidates']} and BSE {stats['bse_candidates']} symbols."
+    )
+    st.caption(
+        f"BSE Group A verified: {stats.get('bse_group_a_verified', 0)} · "
+        f"Group source: {stats.get('bse_group_a_source', 'Unavailable')}"
     )
     st.info(str(stats["coverage_note"]))
     if "Quote Status" in frame:
