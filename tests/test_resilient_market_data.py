@@ -562,3 +562,37 @@ def test_download_symbol_frames_can_disable_recovery_with_zero_budget(monkeypatc
 
     assert missing == ["AAA.NS", "BBB.NS"]
     assert single_calls == []
+
+
+def test_cache_hit_does_not_extend_absolute_ttl(monkeypatch) -> None:
+    clock = [100.0]
+    provider_versions = [0]
+    calls: list[int] = []
+    monkeypatch.setattr(market_data, "monotonic", lambda: clock[0])
+
+    def fake_batch(tickers, **_kwargs):
+        version = provider_versions[0]
+        calls.append(version)
+        frame = _frame().copy()
+        frame["Close"] = frame["Close"] + version * 100
+        return pd.concat({ticker: frame for ticker in tickers}, axis=1)
+
+    monkeypatch.setattr(market_data, "_download_batch", fake_batch)
+
+    first, _ = market_data.download_symbol_frames(
+        ["AAA.NS"], period="1d", interval="1m", recover_missing=False, cache_ttl_seconds=5
+    )
+    provider_versions[0] = 1
+    clock[0] = 104.0
+    within_ttl, _ = market_data.download_symbol_frames(
+        ["AAA.NS"], period="1d", interval="1m", recover_missing=False, cache_ttl_seconds=5
+    )
+    clock[0] = 106.0
+    expired, _ = market_data.download_symbol_frames(
+        ["AAA.NS"], period="1d", interval="1m", recover_missing=False, cache_ttl_seconds=5
+    )
+
+    assert first["AAA.NS"]["Close"].iloc[-1] == 102.5
+    assert within_ttl["AAA.NS"]["Close"].iloc[-1] == 102.5
+    assert expired["AAA.NS"]["Close"].iloc[-1] == 202.5
+    assert calls == [0, 1]
