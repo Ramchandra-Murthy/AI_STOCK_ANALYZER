@@ -563,6 +563,7 @@ def test_download_symbol_frames_can_disable_recovery_with_zero_budget(monkeypatc
     assert missing == ["AAA.NS", "BBB.NS"]
     assert single_calls == []
 
+
 def test_cache_hit_does_not_extend_absolute_ttl(monkeypatch) -> None:
     clock = [100.0]
     provider_versions = [0]
