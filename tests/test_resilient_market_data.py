@@ -564,6 +564,39 @@ def test_download_symbol_frames_can_disable_recovery_with_zero_budget(monkeypatc
     assert single_calls == []
 
 
+def test_recovery_stops_at_time_budget(monkeypatch) -> None:
+    clock = [0.0]
+    calls: list[str] = []
+
+    def fake_batch(_tickers, **_kwargs):
+        return pd.DataFrame()
+
+    def fake_single(ticker, **_kwargs):
+        calls.append(ticker)
+        clock[0] += 3.0
+        return pd.DataFrame()
+
+    monkeypatch.setattr(market_data, "_download_batch", fake_batch)
+    monkeypatch.setattr(market_data, "perf_counter", lambda: clock[0])
+    monkeypatch.setattr(market_data, "_download_single", fake_single)
+
+    symbols = [f"S{i}.NS" for i in range(10)]
+    frames, missing = market_data.download_symbol_frames(
+        symbols,
+        period="1d",
+        interval="1m",
+        batch_size=10,
+        recover_missing=True,
+        max_recovery_symbols=10,
+        max_recovery_seconds=5.0,
+        retries=0,
+    )
+
+    assert frames == {}
+    assert calls == symbols[:2]
+    assert missing == symbols
+
+
 def test_cache_hit_does_not_extend_absolute_ttl(monkeypatch) -> None:
     clock = [100.0]
     provider_versions = [0]
