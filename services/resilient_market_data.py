@@ -526,7 +526,10 @@ def download_symbol_frames(
 
     missing = [ticker for ticker in symbols if ticker not in frames]
     if recover_missing:
-        recovery_limit = max(0, int(max_recovery_symbols if recovery_max_symbols is None else recovery_max_symbols))
+        recovery_limit = max(
+            0,
+            int(max_recovery_symbols if recovery_max_symbols is None else recovery_max_symbols),
+        )
         recovery_deadline = perf_counter() + max(0.0, float(max_recovery_seconds))
         for ticker in missing[:recovery_limit]:
             remaining = recovery_deadline - perf_counter()
@@ -565,7 +568,7 @@ def download_symbol_frames(
             f"cache_hits={cache_hits} cache_ttl={ttl:.0f}s "
             f"batch_workers={worker_count} provider_request_limit={MAX_PROVIDER_REQUESTS_IN_FLIGHT} "
             f"single_recovery_attempts={recovery_count} "
-            f"single_recovery_limit={max(0, int(max_recovery_symbols if recovery_max_symbols is None else recovery_max_symbols))} "
+            f"single_recovery_limit={recovery_limit} "
             f"recovery_budget={max(0.0, float(max_recovery_seconds)):.2f}s "
             f"batch_seconds={batch_seconds:.2f} "
             f"recovery_seconds={recovery_seconds:.2f} "
