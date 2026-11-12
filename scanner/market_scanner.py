@@ -22,6 +22,7 @@ from scanner.dynamic_universe import (
     merge_nse_universe,
     yahoo_symbol_for_bse_code,
 )
+from services.market_data_status import describe_daily_history
 from services.resilient_market_data import download_symbol_frames
 from services.scanner_trend_sort import sort_bullish_to_bearish
 from services.sector_mapping import sector_for_symbol
@@ -33,7 +34,6 @@ DISPLAY_COUNT = 20
 DOWNLOAD_CHUNK_SIZE = 100
 MAX_SCREEN_WORKERS = 2
 ANALYSIS_PERIOD = "1y"
-MAX_DAILY_DATA_AGE_DAYS = 4
 FAILED_TICKER_TTL_SECONDS = 5 * 60
 _failed_tickers_until: dict[str, float] = {}
 
@@ -113,19 +113,18 @@ def _format_last_data_date(index: pd.Index) -> str:
 
 
 def _daily_data_status(index: pd.Index, today: date | None = None) -> str:
-    """Classify daily candle freshness without treating an unknown timestamp as fresh."""
+    """Classify daily candle freshness using the supported NSE/BSE session calendar."""
     if not isinstance(index, pd.DatetimeIndex) or index.empty:
         return "UNKNOWN"
     latest = index.max()
     if pd.isna(latest):
         return "UNKNOWN"
-    latest_date = latest.date()
     current_date = today or datetime.now(ZoneInfo("Asia/Kolkata")).date()
-    if latest_date > current_date:
+    if latest.date() > current_date:
         return "FUTURE DATE"
-    if (current_date - latest_date).days > MAX_DAILY_DATA_AGE_DAYS:
-        return "STALE"
-    return "FRESH"
+    history = pd.DataFrame({"Close": [1.0]}, index=pd.DatetimeIndex([latest]))
+    status = describe_daily_history(history, today=current_date)["status"]
+    return {"RECENT": "FRESH", "STALE": "STALE"}.get(status, "UNKNOWN")
 
 
 def _download_shared_history(chunk: list[str], *, period: str, timeout: float) -> pd.DataFrame:

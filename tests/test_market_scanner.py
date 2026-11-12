@@ -380,9 +380,21 @@ def test_daily_data_status_handles_fresh_stale_unknown_and_future_dates() -> Non
     from scanner.market_scanner import _daily_data_status
 
     assert _daily_data_status(pd.DatetimeIndex(["2026-10-23"]), date(2026, 10, 25)) == "FRESH"
-    assert _daily_data_status(pd.DatetimeIndex(["2026-10-10"]), date(2026, 10, 25)) == "STALE"
+    assert _daily_data_status(pd.DatetimeIndex(["2026-10-09"]), date(2026, 10, 25)) == "STALE"
     assert _daily_data_status(pd.RangeIndex(2), date(2026, 10, 25)) == "UNKNOWN"
     assert _daily_data_status(pd.DatetimeIndex(["2026-10-26"]), date(2026, 10, 25)) == "FUTURE DATE"
+
+
+def test_daily_data_status_uses_trading_sessions_and_fails_closed_for_unknown_calendar() -> None:
+    from datetime import date
+
+    from scanner.market_scanner import _daily_data_status
+
+    # Oct 20 is an exchange holiday; the Friday candle is only three sessions old.
+    assert _daily_data_status(pd.DatetimeIndex(["2026-10-16"]), date(2026, 10, 22)) == "FRESH"
+    assert _daily_data_status(pd.DatetimeIndex(["2026-10-16"]), date(2026, 10, 28)) == "STALE"
+    assert _daily_data_status(pd.DatetimeIndex(["2026-12-31"]), date(2027, 1, 4)) == "UNKNOWN"
+    assert _daily_data_status(pd.DatetimeIndex(["2026-10-20"]), date(2026, 10, 21)) == "UNKNOWN"
 
 
 def test_market_scan_rejects_stale_analysis_history(monkeypatch) -> None:
