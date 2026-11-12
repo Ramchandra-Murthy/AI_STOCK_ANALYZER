@@ -4,11 +4,16 @@ from __future__ import annotations
 
 import pandas as pd
 
+DEFAULT_INTRADAY_CAPITAL = 10_000.0
+MAX_INTRADAY_CAPITAL = 10_000.0
+DEFAULT_INTRADAY_RISK_BUDGET = 500.0
+MAX_INTRADAY_LOSS_PER_TRADE = 500.0
+
 
 def risk_plan_frame(
     results: pd.DataFrame,
-    risk_budget: float = 1000.0,
-    capital_limit: float = 100000.0,
+    risk_budget: float = DEFAULT_INTRADAY_RISK_BUDGET,
+    capital_limit: float = DEFAULT_INTRADAY_CAPITAL,
 ) -> pd.DataFrame:
     """Add position-size and capital-use calculations to existing trade references."""
     if results is None or results.empty:
@@ -25,16 +30,16 @@ def risk_plan_frame(
         else:
             frame["Risk per share"] = pd.NA
 
-    frame["Risk budget"] = float(max(0.0, risk_budget))
-    frame["Capital limit"] = float(max(0.0, capital_limit))
+    bounded_risk_budget = min(MAX_INTRADAY_LOSS_PER_TRADE, max(0.0, float(risk_budget)))
+    bounded_capital_limit = min(MAX_INTRADAY_CAPITAL, max(0.0, float(capital_limit)))
+    frame["Risk budget"] = bounded_risk_budget
+    frame["Capital limit"] = bounded_capital_limit
     frame["Risk-based quantity"] = (
-        (frame["Risk budget"] / frame["Risk per share"].replace(0, pd.NA)).fillna(0).floordiv(1)
+        (bounded_risk_budget / frame["Risk per share"].replace(0, pd.NA)).fillna(0).floordiv(1)
     )
     entry = frame.get("Entry reference", frame.get("Price"))
     frame["Capital-based quantity"] = (
-        (float(max(0.0, capital_limit)) / pd.to_numeric(entry, errors="coerce"))
-        .fillna(0)
-        .floordiv(1)
+        (bounded_capital_limit / pd.to_numeric(entry, errors="coerce")).fillna(0).floordiv(1)
     )
     frame["Suggested quantity"] = frame[["Risk-based quantity", "Capital-based quantity"]].min(
         axis=1

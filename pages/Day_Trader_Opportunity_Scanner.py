@@ -37,7 +37,13 @@ from services.intraday_market_regime import classify_scan_regime
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
 from services.intraday_position_sizing import calculate_position_size
 from services.intraday_quality_dashboard import dashboard_summary
-from services.intraday_risk_planning import risk_plan_frame
+from services.intraday_risk_planning import (
+    DEFAULT_INTRADAY_CAPITAL,
+    DEFAULT_INTRADAY_RISK_BUDGET,
+    MAX_INTRADAY_CAPITAL,
+    MAX_INTRADAY_LOSS_PER_TRADE,
+    risk_plan_frame,
+)
 from services.intraday_scan_delta import snapshot_delta_frame
 from services.intraday_scan_snapshot import record_scan_snapshot, snapshot_frame
 from services.intraday_session import reset_intraday_session
@@ -927,15 +933,17 @@ else:
         risk_budget = st.number_input(
             "Risk budget per candidate (₹)",
             min_value=0.0,
-            value=1000.0,
+            max_value=MAX_INTRADAY_LOSS_PER_TRADE,
+            value=DEFAULT_INTRADAY_RISK_BUDGET,
             step=100.0,
         )
     with risk_right:
         capital_limit = st.number_input(
             "Capital limit per candidate (₹)",
             min_value=0.0,
-            value=100000.0,
-            step=5000.0,
+            max_value=MAX_INTRADAY_CAPITAL,
+            value=DEFAULT_INTRADAY_CAPITAL,
+            step=1000.0,
         )
     minimum_live_score = st.slider(
         "Minimum composite score",
@@ -969,16 +977,18 @@ else:
             sizing_capital = st.number_input(
                 "Sizing capital (₹)",
                 min_value=0.0,
-                value=100000.0,
-                step=5000.0,
+                max_value=MAX_INTRADAY_CAPITAL,
+                value=DEFAULT_INTRADAY_CAPITAL,
+                step=1000.0,
                 key="sizing_capital",
             )
             sizing_risk = st.number_input(
                 "Risk per trade (%)",
                 min_value=0.0,
-                max_value=100.0,
-                value=1.0,
+                max_value=5.0,
+                value=5.0,
                 step=0.25,
+                help="Capped at ₹500 per trade. At ₹10,000 capital, 5% equals ₹500.",
                 key="sizing_risk",
             )
         with size_mid:
