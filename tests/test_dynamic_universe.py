@@ -100,3 +100,46 @@ def test_dynamic_bse_group_a_codes_returns_none_when_source_unavailable(monkeypa
     monkeypatch.setattr(dynamic_universe, "urlopen", fail_urlopen)
 
     assert dynamic_universe.dynamic_bse_group_a_codes() is None
+
+
+def test_dynamic_nse_fallback_is_cached_until_universe_ttl_expires(monkeypatch):
+    now = [100.0]
+    calls = []
+
+    def fail_download():
+        calls.append("NSE")
+        raise OSError("NSE unavailable")
+
+    monkeypatch.setattr(dynamic_universe, "time", type("Clock", (), {"time": lambda: now[0]}))
+    monkeypatch.setattr(dynamic_universe, "_cached_nse_symbols", None)
+    monkeypatch.setattr(dynamic_universe, "_download_nse_equity_list", fail_download)
+
+    assert dynamic_universe.dynamic_nse_symbols() == dynamic_universe.NSE_CANDIDATES
+    assert dynamic_universe.dynamic_nse_symbols() == dynamic_universe.NSE_CANDIDATES
+    assert calls == ["NSE"]
+
+    now[0] += dynamic_universe.CACHE_TTL_SECONDS
+    assert dynamic_universe.dynamic_nse_symbols() == dynamic_universe.NSE_CANDIDATES
+    assert calls == ["NSE", "NSE"]
+
+
+def test_dynamic_bse_fallback_is_cached_until_universe_ttl_expires(monkeypatch):
+    now = [100.0]
+    calls = []
+
+    def fail_download():
+        calls.append("BSE")
+        raise OSError("BSE unavailable")
+
+    monkeypatch.setattr(dynamic_universe, "time", type("Clock", (), {"time": lambda: now[0]}))
+    monkeypatch.setattr(dynamic_universe, "_cached_bse_symbols", None)
+    monkeypatch.setattr(dynamic_universe, "_download_bse_equity_list", fail_download)
+
+    assert dynamic_universe.dynamic_bse_symbols() == dynamic_universe.BSE_CANDIDATES
+    assert dynamic_universe.dynamic_bse_symbols() == dynamic_universe.BSE_CANDIDATES
+    assert calls == ["BSE"]
+
+    now[0] += dynamic_universe.CACHE_TTL_SECONDS
+    assert dynamic_universe.dynamic_bse_symbols() == dynamic_universe.BSE_CANDIDATES
+    assert calls == ["BSE", "BSE"]
+
