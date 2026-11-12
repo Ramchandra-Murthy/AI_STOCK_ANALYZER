@@ -1,6 +1,12 @@
 import pandas as pd
 
-from modules.market_movers import _extract_frame, _ticker, _top_table, _window_change
+from modules.market_movers import (
+    _completed_market_mover_frame,
+    _extract_frame,
+    _ticker,
+    _top_table,
+    _window_change,
+)
 
 
 def test_ticker_normalization_preserves_exchange_suffix():
@@ -40,6 +46,66 @@ def test_extract_frame_handles_plain_ohlcv_data():
     result = _extract_frame(frame, "TEST.NS")
     assert set(result.columns) == {"Open", "High", "Low", "Close", "Volume"}
     assert result["Close"].tolist() == [11.0, 11.5]
+
+
+def test_market_movers_rejects_incomplete_future_duplicate_and_invalid_candles():
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    zone = ZoneInfo("Asia/Kolkata")
+    frame = pd.DataFrame(
+        {
+            "Open": [100, 100, 100, 100, 100, 100],
+            "High": [102, 102, 102, 102, 100, 102],
+            "Low": [99, 99, 99, 99, 99, 99],
+            "Close": [100, 101, 102, 103, 101, 100],
+            "Volume": [1000, 1100, 1200, 1300, 1400, 1500],
+        },
+        index=[
+            pd.Timestamp("2026-10-19 09:55", tz=zone),
+            pd.Timestamp("2026-10-19 09:55", tz=zone),
+            pd.Timestamp("2026-10-19 10:00", tz=zone),
+            pd.Timestamp("2026-10-19 10:05", tz=zone),
+            "invalid timestamp",
+            pd.Timestamp("2026-10-19 09:50", tz=zone),
+        ],
+    )
+    frame.iloc[5, frame.columns.get_loc("High")] = 98
+
+    result, rejected = _completed_market_mover_frame(
+        frame,
+        datetime(2026, 10, 19, 10, 2, 30, tzinfo=zone),
+    )
+
+    assert result["Close"].tolist() == [101.0]
+    assert rejected == {
+        "invalid_timestamps": 1,
+        "future_candles": 1,
+        "incomplete_candles": 1,
+        "duplicate_candles": 1,
+        "invalid_ohlcv": 1,
+        "stale_symbols": 0,
+    }
+
+
+def test_market_movers_rejects_stale_intraday_history_during_open_session():
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    zone = ZoneInfo("Asia/Kolkata")
+    index = pd.date_range("2026-10-19 09:15", periods=7, freq="5min", tz=zone)
+    frame = pd.DataFrame(
+        {"Open": 100, "High": 102, "Low": 99, "Close": 101, "Volume": 1000},
+        index=index,
+    )
+
+    result, rejected = _completed_market_mover_frame(
+        frame,
+        datetime(2026, 10, 19, 11, 0, tzinfo=zone),
+    )
+
+    assert result.empty
+    assert rejected["stale_symbols"] == 1
 
 
 def test_quote_freshness_marks_old_candle_stale_during_open_session():
