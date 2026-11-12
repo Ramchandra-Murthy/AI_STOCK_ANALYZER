@@ -73,7 +73,7 @@ SECTOR_BY_SYMBOL = {
     "SWIGGY": "Internet",
     "PAYTM": "Financial Technology",
     "JIOFIN": "Financials",
-    "LODHA": "Real Estate",,
+    "LODHA": "Real Estate",
 
     "HINDUNILVR": "Consumer",
     "KOTAKBANK": "Financials",
