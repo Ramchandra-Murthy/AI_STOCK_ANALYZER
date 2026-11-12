@@ -170,9 +170,7 @@ def test_market_movers_submits_exchange_universe_in_one_bounded_parallel_call(mo
 
     monkeypatch.setattr(market_movers, "download_symbol_frames", fake_download)
 
-    result, stats = market_movers._scan_batches(
-        [("AAA", "NSE"), ("BBB", "NSE"), ("CCC", "BSE")], 0
-    )
+    result, stats = market_movers._scan_batches([("AAA", "NSE"), ("BBB", "NSE"), ("CCC", "BSE")], 0)
 
     assert len(calls) == 1
     assert calls[0][0] == ["AAA.NS", "BBB.NS", "CCC.BO"]
