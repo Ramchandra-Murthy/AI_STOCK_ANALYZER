@@ -184,10 +184,11 @@ _MARKET_DATA_CACHE: OrderedDict[tuple[str, str, str, bool], tuple[float, pd.Data
     OrderedDict()
 )
 _METADATA_CACHE: dict[str, tuple[float, float]] = {}
-_NEGATIVE_METADATA_CACHE: dict[str, float] = {}
+_NEGATIVE_METADATA_CACHE_MAX_ENTRIES = 2000
+_NEGATIVE_METADATA_CACHE: OrderedDict[str, float] = OrderedDict()
 _METADATA_CACHE_LOCK = RLock()
 _COMPANY_NAME_CACHE: dict[str, tuple[float, str]] = {}
-_COMPANY_NAME_NEGATIVE_CACHE: dict[str, float] = {}
+_COMPANY_NAME_NEGATIVE_CACHE: OrderedDict[str, float] = OrderedDict()
 _COMPANY_NAME_CACHE_TTL_SECONDS = 24 * 60 * 60
 _RUNTIME_STATS_LOCK = RLock()
 _RUNTIME_STATS = {
@@ -201,6 +202,21 @@ _RUNTIME_STATS = {
 }
 DEFAULT_METADATA_CACHE_TTL_SECONDS = 1800.0
 NEGATIVE_METADATA_CACHE_TTL_SECONDS = 120.0
+
+
+
+def _store_negative_metadata_cache(
+    cache: OrderedDict[str, float],
+    symbol: str,
+    ttl_seconds: float,
+) -> None:
+    """Store a missing-metadata result with an expiry and a hard size bound."""
+    if ttl_seconds <= 0:
+        return
+    cache.pop(symbol, None)
+    cache[symbol] = monotonic() + ttl_seconds
+    while len(cache) > _NEGATIVE_METADATA_CACHE_MAX_ENTRIES:
+        cache.popitem(last=False)
 
 
 def _record_runtime_stat(name: str, amount: int | float = 1) -> None:
@@ -267,7 +283,7 @@ def get_market_cap(
     if not pd.notna(value) or value <= 0:
         if negative_ttl > 0:
             with _METADATA_CACHE_LOCK:
-                _NEGATIVE_METADATA_CACHE[symbol] = monotonic() + negative_ttl
+                _store_negative_metadata_cache(_NEGATIVE_METADATA_CACHE, symbol, negative_ttl)
         return None
 
     with _METADATA_CACHE_LOCK:
@@ -330,7 +346,7 @@ def get_company_name(
             if ttl > 0:
                 _COMPANY_NAME_CACHE[symbol] = (monotonic(), resolved)
         elif negative_ttl > 0:
-            _COMPANY_NAME_NEGATIVE_CACHE[symbol] = monotonic() + negative_ttl
+            _store_negative_metadata_cache(_COMPANY_NAME_NEGATIVE_CACHE, symbol, negative_ttl)
     return resolved
 
 
