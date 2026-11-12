@@ -17,6 +17,7 @@ from scanner.dynamic_universe import (
     universe_source_status,
 )
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from services.intraday_data_quality import completed_ohlcv_bars
 from services.market_calendar import equity_market_session_status
 from services.resilient_market_data import download_symbol_frames, get_market_cap
 
@@ -51,7 +52,6 @@ def _extract_frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
     if frame.empty or not required.issubset(frame.columns):
         return pd.DataFrame()
     frame = frame.loc[:, list(required)].apply(pd.to_numeric, errors="coerce")
-    frame = frame.dropna(subset=["Close"]).sort_index()
     return frame
 
 
@@ -59,58 +59,10 @@ def _completed_market_mover_frame(
     frame: pd.DataFrame, now: datetime
 ) -> tuple[pd.DataFrame, dict[str, int]]:
     """Reject unusable five-minute bars before price, breakout, or volume scoring."""
-    rejected = {
-        "invalid_timestamps": 0,
-        "future_candles": 0,
-        "incomplete_candles": 0,
-        "duplicate_candles": 0,
-        "invalid_ohlcv": 0,
-        "stale_symbols": 0,
-    }
-    if frame.empty:
-        return frame, rejected
-
     current = pd.Timestamp(now)
     current = current.tz_localize(IST) if current.tzinfo is None else current.tz_convert(IST)
-    records: dict[pd.Timestamp, dict[str, float]] = {}
-    for timestamp, row in frame.iterrows():
-        try:
-            start = pd.Timestamp(timestamp)
-            if pd.isna(start):
-                raise ValueError("invalid timestamp")
-            start = start.tz_localize(IST) if start.tzinfo is None else start.tz_convert(IST)
-        except (TypeError, ValueError, OverflowError):
-            rejected["invalid_timestamps"] += 1
-            continue
-        if start > current:
-            rejected["future_candles"] += 1
-            continue
-        if start + pd.Timedelta(minutes=5) > current:
-            rejected["incomplete_candles"] += 1
-            continue
-
-        values = pd.to_numeric(row, errors="coerce")
-        if not values.index.isin(["Open", "High", "Low", "Close", "Volume"]).all():
-            rejected["invalid_ohlcv"] += 1
-            continue
-        candle = {name: float(values[name]) for name in ("Open", "High", "Low", "Close", "Volume")}
-        if (
-            not all(
-                pd.notna(value) and value != float("inf") and value != float("-inf")
-                for value in candle.values()
-            )
-            or min(candle[name] for name in ("Open", "High", "Low", "Close")) <= 0
-            or candle["Volume"] < 0
-            or candle["High"] < max(candle["Open"], candle["Close"], candle["Low"])
-            or candle["Low"] > min(candle["Open"], candle["Close"], candle["High"])
-        ):
-            rejected["invalid_ohlcv"] += 1
-            continue
-        if start in records:
-            rejected["duplicate_candles"] += 1
-        records[start] = candle
-
-    completed = pd.DataFrame.from_dict(records, orient="index").sort_index()
+    completed, rejected = completed_ohlcv_bars(frame, current.to_pydatetime(), 5)
+    rejected["stale_symbols"] = 0
     session_status = equity_market_session_status(current.to_pydatetime())
     if not completed.empty and session_status in {"OPEN", "CALENDAR_UNAVAILABLE"}:
         age_seconds = (current - (completed.index[-1] + pd.Timedelta(minutes=5))).total_seconds()
@@ -180,8 +132,10 @@ def _scan_batches(
         "future_candles": 0,
         "incomplete_candles": 0,
         "duplicate_candles": 0,
+        "missing_ohlcv": 0,
         "invalid_ohlcv": 0,
         "stale_symbols": 0,
+        "missing_ohlcv_columns": 0,
     }
     missing_ohlcv_columns = 0
 
@@ -478,6 +432,7 @@ def show() -> None:
         "invalid timestamps": stats.get("rejected_invalid_timestamps", 0),
         "duplicate candles": stats.get("rejected_duplicate_candles", 0),
         "invalid OHLCV": stats.get("rejected_invalid_ohlcv", 0),
+        "missing OHLCV values": stats.get("rejected_missing_ohlcv", 0),
         "stale symbols": stats.get("rejected_stale_symbols", 0),
         "missing OHLCV columns": stats.get("missing_ohlcv_columns", 0),
     }

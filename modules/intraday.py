@@ -2004,9 +2004,26 @@ def show() -> None:
                 st.error(f"Scanner could not complete: {exc}")
     scan_results = st.session_state.get("unusual_activity_results")
     if scan_results is not None:
+        scan_stats = scan_results.attrs.get("scan_stats", {})
         st.caption(
             f"Last scan: {st.session_state.get('unusual_activity_scan_time', 'unknown')} · Exchange: {st.session_state.get('unusual_activity_scan_exchange', 'unknown')} · Basket: {st.session_state.get('unusual_activity_scan_category', 'unknown')} · Candidate universe is limited; not an exhaustive exchange-wide scan."
         )
+        rejected = {
+            "incomplete candles": scan_stats.get("incomplete_candles", 0),
+            "future candles": scan_stats.get("future_candles", 0),
+            "duplicate candles": scan_stats.get("duplicate_candles", 0),
+            "invalid timestamps": scan_stats.get("invalid_timestamps", 0),
+            "missing OHLCV values": scan_stats.get("missing_ohlcv", 0),
+            "invalid OHLCV": scan_stats.get("invalid_ohlcv", 0),
+            "stale symbols": scan_stats.get("stale_symbols", 0),
+            "missing OHLCV columns": scan_stats.get("missing_ohlcv_columns", 0),
+        }
+        rejected = {reason: count for reason, count in rejected.items() if count}
+        if rejected:
+            st.warning(
+                "Excluded provider data: "
+                + " · ".join(f"{reason}: {count}" for reason, count in rejected.items())
+            )
         if scan_results.empty:
             st.info(
                 "No candidates met the screening conditions, or the data provider returned insufficient data. Try again during market hours."
