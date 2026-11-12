@@ -138,6 +138,8 @@ def _scan_batches(
         "missing_ohlcv_columns": 0,
     }
     missing_ohlcv_columns = 0
+    provider_diagnostics: list[str] = []
+    missing_symbols: list[str] = []
 
     if tickers:
         try:
@@ -151,11 +153,15 @@ def _scan_batches(
                 retries=2,
                 recover_missing=True,
                 max_workers=4,
+                diagnostics=provider_diagnostics,
             )
         except Exception:
             frames, missing = {}, tickers
+            missing_symbols = list(tickers)
             failed_batches = batches
+            provider_diagnostics.append("market-data download raised an unexpected exception")
         else:
+            missing_symbols = list(missing)
             missing_set = set(missing)
             failed_batches = sum(
                 1
@@ -233,9 +239,39 @@ def _scan_batches(
         "nse_candidates": sum(exchange == "NSE" for _, exchange in selected),
         "bse_candidates": sum(exchange == "BSE" for _, exchange in selected),
         "missing_ohlcv_columns": missing_ohlcv_columns,
+        "missing_symbols": len(missing_symbols),
+        "provider_diagnostics": " · ".join(
+            item for item in provider_diagnostics if not item.startswith("download summary:")
+        )
+        or "No provider errors reported",
+        "market_data_cache_hits": _diagnostic_count(provider_diagnostics, "cache_hits"),
+        "market_data_cache_misses": _diagnostic_count(provider_diagnostics, "cache_misses"),
         **{f"rejected_{reason}": count for reason, count in rejected_counts.items()},
     }
+    stats["data_availability"] = (
+        "UNAVAILABLE"
+        if not tickers or not rows
+        else "PARTIAL" if missing_symbols or len(rows) < len(selected) else "AVAILABLE"
+    )
     return frame, stats
+
+
+def _diagnostic_count(diagnostics: list[str], key: str) -> int:
+    """Extract a numeric field from the shared market-data download summary."""
+    if key == "cache_misses":
+        requested = _diagnostic_count(diagnostics, "requested")
+        cache_hits = _diagnostic_count(diagnostics, "cache_hits")
+        return max(0, requested - cache_hits)
+    marker = f"{key}="
+    for line in diagnostics:
+        if not line.startswith("download summary:") or marker not in line:
+            continue
+        value = line.split(marker, 1)[1].split(maxsplit=1)[0]
+        try:
+            return int(value)
+        except ValueError:
+            return 0
+    return 0
 
 
 def _classify_market_caps(frame: pd.DataFrame) -> pd.DataFrame:
@@ -400,10 +436,28 @@ def show() -> None:
         )
         return
     frame, stats = st.session_state["market_movers_result"]
+    try:
+        scan_completed = datetime.strptime(
+            str(stats.get("scan_completed_at", "")), "%Y-%m-%d %H:%M:%S IST"
+        ).replace(tzinfo=IST)
+        snapshot_age_seconds = max(0, int((datetime.now(IST) - scan_completed).total_seconds()))
+    except ValueError:
+        snapshot_age_seconds = -1
+    stats["session_snapshot_age_seconds"] = snapshot_age_seconds
     if stats.get("limit_per_exchange") != limit:
         st.info(
             "The selected scan coverage differs from the last result. "
             "Click **Scan / refresh market movers** to rescan."
+        )
+    if snapshot_age_seconds >= 0:
+        state = (
+            "FRESH" if snapshot_age_seconds < SCAN_CACHE_TTL_SECONDS else "STALE SESSION SNAPSHOT"
+        )
+        st.caption(
+            f"Scan result: {state} · session snapshot age {snapshot_age_seconds}s; "
+            "refresh manually to fetch again. "
+            f"Market-data cache used during scan: {stats.get('market_data_cache_hits', 0)} hits, "
+            f"{stats.get('market_data_cache_misses', 0)} misses."
         )
 
     if frame.empty:
@@ -426,6 +480,13 @@ def show() -> None:
     c2.metric("Usable quotes", int(stats["usable_quotes"]))
     c3.metric("Market-cap verified", int(stats["market_cap_verified"]))
     c4.metric("Failed batches", int(stats["failed_batches"]))
+    st.caption(
+        f"Provider data availability: {stats.get('data_availability', 'UNKNOWN')} · "
+        f"missing symbols: {stats.get('missing_symbols', 0)} · "
+        f"usable quotes: {stats.get('usable_quotes', 0)} / {stats.get('candidate_count', 0)}"
+    )
+    if stats.get("provider_diagnostics") != "No provider errors reported":
+        st.warning(f"Market-data provider details: {stats['provider_diagnostics']}")
     rejected = {
         "incomplete candles": stats.get("rejected_incomplete_candles", 0),
         "future candles": stats.get("rejected_future_candles", 0),
