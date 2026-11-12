@@ -360,7 +360,6 @@ def get_company_name(
     return resolved
 
 
-
 def clear_company_name_cache() -> None:
     """Clear positive and negative company-name metadata caches."""
     with _METADATA_CACHE_LOCK:
