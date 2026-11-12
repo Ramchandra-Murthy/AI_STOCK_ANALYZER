@@ -542,8 +542,12 @@ def download_symbol_frames(
                 frames[ticker] = frame
 
     if ttl > 0:
-        for ticker, frame in frames.items():
-            _store_cached_frame(_cache_key(ticker, period, interval, auto_adjust), frame)
+        # Cache hits retain their original fetch timestamp. Only symbols that
+        # missed the cache during this call may refresh their cache entry.
+        for ticker in uncached_symbols:
+            frame = frames.get(ticker)
+            if frame is not None:
+                _store_cached_frame(_cache_key(ticker, period, interval, auto_adjust), frame)
 
     _record_runtime_stat("total_scan_seconds", perf_counter() - scan_started)
 
