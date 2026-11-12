@@ -356,9 +356,7 @@ def get_company_name(
             if ttl > 0:
                 _COMPANY_NAME_CACHE[symbol] = (monotonic(), resolved)
         elif negative_ttl > 0:
-            _store_negative_metadata_cache(
-                _COMPANY_NAME_NEGATIVE_CACHE, symbol, negative_ttl
-            )
+            _store_negative_metadata_cache(_COMPANY_NAME_NEGATIVE_CACHE, symbol, negative_ttl)
     return resolved
 
 
