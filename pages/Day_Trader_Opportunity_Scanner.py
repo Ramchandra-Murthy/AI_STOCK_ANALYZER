@@ -837,6 +837,15 @@ elif raw_results.empty:
             "Unmapped symbols": scan_stats.get("unmapped_symbol_count", 0),
             "Usable intraday data": scan_stats.get("usable_data_count", 0),
             "Stale candles rejected": scan_stats.get("stale_candle_count", 0),
+            "Incomplete candles excluded": scan_stats.get("incomplete_candle_count", 0),
+            "Future candles excluded": scan_stats.get("future_candle_count", 0),
+            "Duplicate candles removed": scan_stats.get("duplicate_candle_count", 0),
+            "Invalid timestamps rejected": scan_stats.get("invalid_timestamp_count", 0),
+            "Missing / non-finite OHLCV candles": scan_stats.get(
+                "missing_or_nonfinite_candle_count", 0
+            ),
+            "Missing OHLCV columns": scan_stats.get("missing_ohlcv_column_count", 0),
+            "Physically invalid OHLCV candles": scan_stats.get("invalid_ohlcv_count", 0),
             "Oldest accepted candle age (min)": scan_stats.get("max_candle_age_minutes", 0),
             "No usable intraday data": scan_stats.get("no_usable_data_count", 0),
             "Data coverage (%)": scan_stats.get("data_coverage_pct", 0),
@@ -874,6 +883,16 @@ else:
     scan_stats = st.session_state.get("intraday_scan_stats", {})
     if scan_stats:
         _show_universe_provenance(scan_stats)
+        st.caption(
+            "Candle checks: "
+            f"{scan_stats.get('incomplete_candle_count', 0)} incomplete excluded · "
+            f"{scan_stats.get('future_candle_count', 0)} future excluded · "
+            f"{scan_stats.get('duplicate_candle_count', 0)} duplicates removed · "
+            f"{scan_stats.get('invalid_timestamp_count', 0)} invalid timestamps · "
+            f"{scan_stats.get('missing_ohlcv_column_count', 0)} missing OHLCV columns · "
+            f"{scan_stats.get('missing_or_nonfinite_candle_count', 0)} missing/non-finite OHLCV · "
+            f"{scan_stats.get('invalid_ohlcv_count', 0)} invalid OHLCV"
+        )
         st.caption(
             f"Universe: {scan_stats.get('candidate_count', 0)} symbols • "
             f"{scan_stats.get('usable_data_count', 0)} usable "
