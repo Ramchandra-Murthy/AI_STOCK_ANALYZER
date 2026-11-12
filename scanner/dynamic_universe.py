@@ -125,7 +125,6 @@ def _download_bse_equity_list() -> list[str]:
     return parsed
 
 
-
 def dynamic_bse_group_a_codes() -> set[str] | None:
     """Return BSE's active Group A scrip codes, or None when the official source fails.
 
