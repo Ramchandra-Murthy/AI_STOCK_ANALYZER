@@ -355,9 +355,7 @@ def _analyze_history_frame(
 
         if signal.get("Status") != "OK":
             if outcome is not None:
-                outcome["analysis_signal_rejected"] = (
-                    outcome.get("analysis_signal_rejected", 0) + 1
-                )
+                outcome["analysis_signal_rejected"] = outcome.get("analysis_signal_rejected", 0) + 1
             return None
 
         last = df.iloc[-1]
