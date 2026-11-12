@@ -777,3 +777,143 @@ def test_provider_circuit_exponential_cooldown_is_capped(monkeypatch) -> None:
         stats = market_data.provider_circuit_breaker_stats()
         assert stats["state"] == "open"
         assert stats["cooldown_seconds"] == expected_cooldown
+
+
+def test_negative_metadata_cache_is_bounded_and_evicts_oldest(monkeypatch) -> None:
+    market_data.clear_market_metadata_cache()
+    market_data.clear_company_name_cache()
+    limit = market_data._NEGATIVE_METADATA_CACHE_MAX_ENTRIES
+    clock = [500.0]
+    calls: list[str] = []
+    monkeypatch.setattr(market_data, "monotonic", lambda: clock[0])
+
+    class FakeTicker:
+        def __init__(self, ticker: str, **_kwargs) -> None:
+            self.ticker = ticker
+
+        @property
+        def fast_info(self) -> dict[str, None]:
+            calls.append(self.ticker)
+            return {"market_cap": None}
+
+    monkeypatch.setattr(market_data.yf, "Ticker", FakeTicker)
+    for index in range(limit + 1):
+        assert market_data.get_market_cap(f"S{index}.NS", negative_cache_ttl_seconds=60) is None
+
+    assert len(market_data._NEGATIVE_METADATA_CACHE) == limit
+    assert "S0.NS" not in market_data._NEGATIVE_METADATA_CACHE
+    assert "S1.NS" in market_data._NEGATIVE_METADATA_CACHE
+    assert len(calls) == limit + 1
+
+
+def test_company_name_negative_cache_is_bounded_and_evicts_oldest(monkeypatch) -> None:
+    market_data.clear_company_name_cache()
+    limit = market_data._NEGATIVE_METADATA_CACHE_MAX_ENTRIES
+    calls: list[str] = []
+
+    class FakeTicker:
+        def __init__(self, ticker: str, **_kwargs) -> None:
+            self.ticker = ticker
+
+        def get_info(self) -> dict[str, str]:
+            calls.append(self.ticker)
+            return {}
+
+    monkeypatch.setattr(market_data.yf, "Ticker", FakeTicker)
+    for index in range(limit + 1):
+        assert market_data.get_company_name(f"S{index}.NS", negative_cache_ttl_seconds=60) == (
+            f"S{index}.NS"
+        )
+
+    assert len(market_data._COMPANY_NAME_NEGATIVE_CACHE) == limit
+    assert "S0.NS" not in market_data._COMPANY_NAME_NEGATIVE_CACHE
+    assert "S1.NS" in market_data._COMPANY_NAME_NEGATIVE_CACHE
+    assert len(calls) == limit + 1
+
+
+def test_metadata_cache_invalidation_clears_positive_and_negative_entries(monkeypatch) -> None:
+    class MissingTicker:
+        def __init__(self, ticker: str, **_kwargs) -> None:
+            self.ticker = ticker
+
+        @property
+        def fast_info(self) -> dict[str, None]:
+            return {"market_cap": None}
+
+        def get_info(self) -> dict[str, str]:
+            return {}
+
+    monkeypatch.setattr(market_data.yf, "Ticker", MissingTicker)
+    assert market_data.get_market_cap("MISS.NS") is None
+    assert market_data.get_company_name("MISS.NS") == "MISS.NS"
+    assert "MISS.NS" in market_data._NEGATIVE_METADATA_CACHE
+    assert "MISS.NS" in market_data._COMPANY_NAME_NEGATIVE_CACHE
+
+    market_data.clear_market_metadata_cache()
+    market_data.clear_company_name_cache()
+
+    assert "MISS.NS" not in market_data._NEGATIVE_METADATA_CACHE
+    assert "MISS.NS" not in market_data._COMPANY_NAME_NEGATIVE_CACHE
+
+
+def test_metadata_provider_exceptions_are_not_negative_cached(monkeypatch) -> None:
+    calls: list[str] = []
+
+    class FailingTicker:
+        def __init__(self, ticker: str, **_kwargs) -> None:
+            self.ticker = ticker
+
+        @property
+        def fast_info(self):
+            calls.append(self.ticker)
+            raise TimeoutError("provider timeout")
+
+        def get_info(self):
+            calls.append(self.ticker)
+            raise TimeoutError("provider timeout")
+
+    monkeypatch.setattr(market_data.yf, "Ticker", FailingTicker)
+    for _ in range(2):
+        assert market_data.get_market_cap("TIMEOUT.NS") is None
+        assert market_data.get_company_name("TIMEOUT.NS") == "TIMEOUT.NS"
+
+    assert calls == ["TIMEOUT.NS"] * 4
+    assert "TIMEOUT.NS" not in market_data._NEGATIVE_METADATA_CACHE
+    assert "TIMEOUT.NS" not in market_data._COMPANY_NAME_NEGATIVE_CACHE
+
+
+def test_negative_metadata_cache_is_thread_safe(monkeypatch) -> None:
+    market_data.clear_market_metadata_cache()
+    calls: list[str] = []
+    calls_lock = Lock()
+    provider_started = Event()
+    release_provider = Event()
+
+    class FakeTicker:
+        def __init__(self, ticker: str, **_kwargs) -> None:
+            self.ticker = ticker
+
+        @property
+        def fast_info(self) -> dict[str, None]:
+            with calls_lock:
+                calls.append(self.ticker)
+            provider_started.set()
+            assert release_provider.wait(timeout=3)
+            return {"market_cap": None}
+
+    monkeypatch.setattr(market_data.yf, "Ticker", FakeTicker)
+
+    def lookup():
+        return market_data.get_market_cap("THREAD.NS", negative_cache_ttl_seconds=60)
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        first = executor.submit(lookup)
+        assert provider_started.wait(timeout=2)
+        second = executor.submit(lookup)
+        # This API currently protects cache state but does not singleflight metadata reads.
+        release_provider.set()
+        assert first.result(timeout=3) is None
+        assert second.result(timeout=3) is None
+
+    assert calls in (["THREAD.NS"], ["THREAD.NS", "THREAD.NS"])
+    assert "THREAD.NS" in market_data._NEGATIVE_METADATA_CACHE
