@@ -22,9 +22,10 @@ SYMBOL_PATTERN = re.compile(r"^[A-Z0-9&.-]+$")
 
 _cached_nse_symbols: tuple[float, list[str]] | None = None
 _cached_bse_symbols: tuple[float, list[str]] | None = None
-_cached_bse_group_a: tuple[float, set[str]] | None = None
+_cached_bse_group_a: tuple[float, set[str] | None] | None = None
 _nse_universe_lock = Lock()
 _bse_universe_lock = Lock()
+_bse_group_a_lock = Lock()
 _bse_yahoo_symbol_map: dict[str, str] = {}
 _universe_source_status: dict[str, dict[str, str | int | float]] = {
     "NSE": {
@@ -165,7 +166,7 @@ def _download_bse_equity_list() -> list[str]:
     return parsed
 
 
-def dynamic_bse_group_a_codes() -> set[str] | None:
+def _dynamic_bse_group_a_codes_unlocked() -> set[str] | None:
     """Return BSE's active Group A scrip codes, or None when the official source fails.
 
     This uses BSE's own Group=A security-master filter. It deliberately does not
@@ -175,7 +176,8 @@ def dynamic_bse_group_a_codes() -> set[str] | None:
 
     now = time.time()
     if _cached_bse_group_a and now - _cached_bse_group_a[0] < CACHE_TTL_SECONDS:
-        return set(_cached_bse_group_a[1])
+        cached_codes = _cached_bse_group_a[1]
+        return set(cached_codes) if cached_codes else None
 
     query = urlencode(
         {
@@ -212,12 +214,19 @@ def dynamic_bse_group_a_codes() -> set[str] | None:
         if not codes:
             raise ValueError("BSE Group A response contained no active equity scrip codes")
     except Exception as exc:
+        _cached_bse_group_a = (time.time(), set())
         logging.warning("BSE Group A source unavailable: %s", exc)
         return None
 
     _cached_bse_group_a = (now, codes)
     logging.info("BSE Group A source=official active_scrip_codes=%d", len(codes))
     return set(codes)
+
+
+def dynamic_bse_group_a_codes() -> set[str] | None:
+    """Return cached BSE Group A codes with one in-flight refresh per process."""
+    with _bse_group_a_lock:
+        return _dynamic_bse_group_a_codes_unlocked()
 
 
 def yahoo_symbol_for_bse_code(code: str) -> str | None:
