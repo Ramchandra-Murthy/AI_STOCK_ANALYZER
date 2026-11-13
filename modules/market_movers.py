@@ -1,22 +1,31 @@
-"""Lightweight market-movers view backed by the shared market service."""
+"""Lightweight NSE+BSE market-movers view backed by the shared market service."""
 
 from __future__ import annotations
 
 import streamlit as st
 
-from services.market_service import get_top_movers
+from services.market_service import WATCHLIST, get_top_movers
+
+
+def _market_watchlist() -> dict[str, str]:
+    """Build a small, curated NSE+BSE list without downloading exchange universes."""
+    watchlist = dict(WATCHLIST)
+    for name, ticker in WATCHLIST.items():
+        bse_ticker = ticker.removesuffix(".NS") + ".BO"
+        watchlist[f"{name} (BSE)"] = bse_ticker
+    return watchlist
 
 
 def show() -> None:
-    """Display the top gainers and losers from the small curated NSE watchlist."""
+    """Display the top gainers and losers from a curated NSE+BSE watchlist."""
     st.title("Market Movers")
     st.caption(
-        "Top 10 gainers and losers from the curated NSE watchlist. "
+        "Top 10 gainers and losers from a curated list of 10 NSE and 10 BSE large-cap listings. "
         "Uses the shared Yahoo Finance quote cache; intraday quotes are indicative, not tick-live."
     )
 
     try:
-        gainers, losers = get_top_movers()
+        gainers, losers = get_top_movers(_market_watchlist())
     except Exception as exc:
         st.error(f"Market movers are temporarily unavailable: {exc}")
         return
