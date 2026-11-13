@@ -133,42 +133,6 @@ def test_all_caps_uses_complete_dynamic_exchange_universe(monkeypatch):
     ]
 
 
-def test_day_trader_scan_carries_official_universe_provenance(monkeypatch):
-    import scanner.day_trader_opportunity as scanner
-
-    provenance = {
-        "source": "cached official exchange source",
-        "official_source_status": "available",
-        "source_symbols": 20,
-        "curated_additions": 3,
-        "merged_symbols": 23,
-        "cache_age_seconds": 45,
-        "reason": "",
-    }
-    monkeypatch.setattr(scanner, "select_day_trader_universe", lambda *_args: [])
-    monkeypatch.setattr(
-        scanner,
-        "universe_source_status",
-        lambda: {"NSE": provenance, "BSE": {"source": "unused"}},
-    )
-
-    result = scanner.scan_day_trader_opportunities(exchange_category="NSE", cap_category="All caps")
-
-    assert result.empty
-    assert result.attrs["scan_stats"]["universe_provenance"] == {"NSE": provenance}
-
-
-def test_day_trader_named_cap_basket_is_labeled_as_research_subset(monkeypatch):
-    import scanner.day_trader_opportunity as scanner
-
-    monkeypatch.setattr(scanner, "select_day_trader_universe", lambda *_args: [])
-    result = scanner.scan_day_trader_opportunities(
-        exchange_category="NSE", cap_category="Large cap"
-    )
-
-    assert "not full exchange coverage" in result.attrs["scan_stats"]["universe_description"]
-
-
 def test_score_combines_opportunity_and_setup_scores():
     rows = pd.DataFrame(
         [
@@ -535,43 +499,44 @@ def test_coverage_diagnostics_handle_empty_universe():
     assert stats["no_usable_data_count"] == 0
 
 
-def test_chunk_download_uses_shared_market_data_service(monkeypatch):
+def test_chunk_download_retries_empty_response_then_succeeds(monkeypatch):
     import scanner.day_trader_opportunity as scanner
 
     calls = []
-    expected = pd.DataFrame({"Close": [100.0]}, index=pd.date_range("2026-11-10", periods=1))
+    expected = pd.DataFrame({"Close": [100.0]})
 
-    def fake_download(tickers, **kwargs):
-        calls.append((tickers, kwargs))
-        return {"ABC.NS": expected}, []
+    def fake_download(**kwargs):
+        calls.append(kwargs)
+        return pd.DataFrame() if len(calls) == 1 else expected
 
-    monkeypatch.setattr(scanner, "download_symbol_frames", fake_download)
+    monkeypatch.setattr(scanner.yf, "download", fake_download)
+    monkeypatch.setattr(scanner.time, "sleep", lambda _delay: None)
 
     result, attempts = scanner._download_chunk_with_retry(["ABC.NS"], "5m")
 
-    assert result[("ABC.NS", "Close")].tolist() == [100.0]
-    assert attempts == 1
-    assert calls[0][0] == ["ABC.NS"]
-    assert calls[0][1]["interval"] == "5m"
-    assert calls[0][1]["recover_missing"] is False
+    assert result.equals(expected)
+    assert attempts == 2
+    assert len(calls) == 2
+    assert calls[-1]["timeout"] == 15
 
 
-def test_chunk_download_reports_empty_when_shared_service_finds_no_frames(monkeypatch):
+def test_chunk_download_stops_after_bounded_failures(monkeypatch):
     import scanner.day_trader_opportunity as scanner
 
     calls = []
 
-    def fake_download(tickers, **kwargs):
-        calls.append(tickers)
-        return {}, ["ABC.NS"]
+    def fake_download(**_kwargs):
+        calls.append(True)
+        raise TimeoutError("provider timeout")
 
-    monkeypatch.setattr(scanner, "download_symbol_frames", fake_download)
+    monkeypatch.setattr(scanner.yf, "download", fake_download)
+    monkeypatch.setattr(scanner.time, "sleep", lambda _delay: None)
 
     result, attempts = scanner._download_chunk_with_retry(["ABC.NS"], "5m")
 
     assert result.empty
     assert attempts == scanner.CHUNK_DOWNLOAD_ATTEMPTS
-    assert calls == [["ABC.NS"]]
+    assert len(calls) == scanner.CHUNK_DOWNLOAD_ATTEMPTS
 
 
 def test_scan_provider_data_contract_detects_all_failed_chunks():
@@ -706,83 +671,12 @@ def test_freshness_limits_reflect_exchange_provider_delay():
     assert max_candle_age_minutes("BSE", "1m") == 25.0
 
 
-def test_candle_age_rejects_future_timestamps():
+def test_candle_age_clamps_future_timestamps_to_zero():
     from scanner.day_trader_opportunity import candle_age_minutes
 
     now = pd.Timestamp("2026-11-10 10:15:00", tz="Asia/Kolkata")
     future = pd.Timestamp("2026-11-10 10:16:00", tz="Asia/Kolkata")
-    assert candle_age_minutes(future, now) is None
-
-
-def test_completed_candle_frame_excludes_partial_future_duplicate_and_invalid_rows():
-    from scanner.day_trader_opportunity import _completed_candle_frame
-
-    index = [
-        "2026-11-10 10:00:00",
-        "2026-11-10 10:05:00",
-        "2026-11-10 10:05:00",
-        "2026-11-10 10:10:00",
-        "2026-11-10 10:15:00",
-        "2026-11-10 10:20:00",
-        "not-a-timestamp",
-    ]
-    frame = pd.DataFrame({"Close": range(len(index))}, index=index)
-    now = pd.Timestamp("2026-11-10 10:17:00", tz="Asia/Kolkata")
-
-    completed, counts = _completed_candle_frame(frame, "5m", now)
-
-    assert completed["Close"].tolist() == [0, 2, 3]
-    assert counts == {
-        "invalid_timestamp_count": 1,
-        "duplicate_candle_count": 1,
-        "incomplete_candle_count": 1,
-        "future_candle_count": 1,
-    }
-
-
-def test_completed_candle_frame_converts_aware_provider_timestamps_to_ist():
-    from scanner.day_trader_opportunity import _completed_candle_frame
-
-    frame = pd.DataFrame(
-        {"Close": [10.0]},
-        index=pd.DatetimeIndex(["2026-11-10 04:30:00"], tz="UTC"),
-    )
-    now = pd.Timestamp("2026-11-10 10:07:00", tz="Asia/Kolkata")
-
-    completed, counts = _completed_candle_frame(frame, "5m", now)
-
-    assert completed.index[0] == pd.Timestamp("2026-11-10 10:00:00", tz="Asia/Kolkata")
-    assert counts["invalid_timestamp_count"] == 0
-
-
-def test_frame_reports_missing_and_invalid_ohlcv_rows():
-    from scanner.day_trader_opportunity import _frame
-
-    history = pd.DataFrame(
-        {
-            "Open": [10.0, 10.0, 10.0, 10.0],
-            "High": [11.0, 11.0, 9.0, 11.0],
-            "Low": [9.0, 9.0, 9.0, 9.0],
-            "Close": [10.0, None, 10.0, 10.0],
-            "Volume": [100.0, 100.0, 100.0, float("inf")],
-        },
-        index=pd.date_range("2026-11-10 10:00", periods=4, freq="5min"),
-    )
-
-    result = _frame(history, "TEST.NS")
-
-    assert len(result) == 1
-    assert result.attrs["missing_or_nonfinite_candle_count"] == 2
-    assert result.attrs["invalid_ohlcv_count"] == 1
-
-
-def test_frame_reports_missing_ohlcv_columns():
-    from scanner.day_trader_opportunity import _frame
-
-    result = _frame(pd.DataFrame({"Close": [10.0]}), "TEST.NS")
-
-    assert result.empty
-    assert result.attrs["missing_ohlcv_column_count"] == 4
+    assert candle_age_minutes(future, now) == 0.0
 
 
 def test_completed_volume_bars_excludes_in_progress_five_minute_candle():

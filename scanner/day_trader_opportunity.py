@@ -8,10 +8,12 @@ to have a usable intraday quote.
 
 from __future__ import annotations
 
+import time
 from time import perf_counter
 from typing import Any
 
 import pandas as pd
+import yfinance as yf
 
 from scanner.day_trading_strategy import (
     analyze_day_trade_setup,
@@ -21,7 +23,6 @@ from scanner.day_trading_strategy import (
 from scanner.dynamic_universe import (
     merge_bse_universe,
     merge_nse_universe,
-    universe_source_status,
     yahoo_symbol_for_bse_code,
 )
 from scanner.surveillance import (
@@ -32,7 +33,6 @@ from scanner.surveillance import (
 from scanner.universe import bse_candidates_for_nse_symbols
 from scanner.unusual_activity import CAP_UNIVERSES
 from services.intraday_vwap_orb import vwap_orb_metrics
-from services.resilient_market_data import download_symbol_frames
 
 CHUNK_SIZE = 100
 CHUNK_DOWNLOAD_ATTEMPTS = 3
@@ -43,26 +43,32 @@ def _download_chunk_with_retry(
     tickers: list[str],
     interval: str,
 ) -> tuple[pd.DataFrame, int]:
-    """Download one chunk through the shared cache and bounded provider controls.
+    """Download one ticker chunk, retrying transient provider failures.
 
-    The shared service owns retries, concurrency limits, request timeouts and
-    cache reuse. Reassemble its per-symbol frames into yfinance's familiar
-    ticker-first MultiIndex shape for the existing analysis pipeline.
+    Retries are bounded and apply to both exceptions and empty provider
+    responses. The caller retains coverage diagnostics for chunks that fail
+    after the final attempt.
     """
-    frames, _missing = download_symbol_frames(
-        tickers,
-        period="1d",
-        interval=interval,
-        auto_adjust=False,
-        batch_size=max(1, len(tickers)),
-        timeout=15,
-        retries=CHUNK_DOWNLOAD_ATTEMPTS - 1,
-        recover_missing=False,
-    )
-    if not frames:
-        return pd.DataFrame(), CHUNK_DOWNLOAD_ATTEMPTS
-    history = pd.concat(frames, axis=1).sort_index()
-    return history, 1
+    for attempt in range(1, CHUNK_DOWNLOAD_ATTEMPTS + 1):
+        try:
+            history = yf.download(
+                tickers=tickers,
+                period="1d",
+                interval=interval,
+                progress=False,
+                auto_adjust=False,
+                group_by="ticker",
+                threads=True,
+                timeout=15,
+            )
+            if history is not None and not history.empty:
+                return history, attempt
+        except Exception:
+            if attempt == CHUNK_DOWNLOAD_ATTEMPTS:
+                return pd.DataFrame(), attempt
+        if attempt < CHUNK_DOWNLOAD_ATTEMPTS:
+            time.sleep(CHUNK_RETRY_BACKOFF_SECONDS[attempt - 1])
+    return pd.DataFrame(), CHUNK_DOWNLOAD_ATTEMPTS
 
 
 def summarize_day_trading_setup(strategy: dict[str, Any]) -> dict[str, Any]:
@@ -203,57 +209,9 @@ def candle_age_minutes(timestamp: object, now: object | None = None) -> float | 
             current_at = current_at.tz_localize("Asia/Kolkata")
         else:
             current_at = current_at.tz_convert("Asia/Kolkata")
-        age_minutes = (current_at - candle_at).total_seconds() / 60.0
-        return age_minutes if age_minutes >= 0 else None
+        return max(0.0, (current_at - candle_at).total_seconds() / 60.0)
     except (TypeError, ValueError, OverflowError):
         return None
-
-
-def _completed_candle_frame(
-    frame: pd.DataFrame,
-    interval: str,
-    now: object | None = None,
-) -> tuple[pd.DataFrame, dict[str, int]]:
-    """Keep unique, timestamped candles whose full interval has elapsed."""
-    interval_minutes = {"1m": 1, "5m": 5}.get(interval)
-    counts = {
-        "invalid_timestamp_count": 0,
-        "duplicate_candle_count": 0,
-        "incomplete_candle_count": 0,
-        "future_candle_count": 0,
-    }
-    if frame.empty or interval_minutes is None:
-        return frame.iloc[0:0].copy(), counts
-
-    current_at = pd.Timestamp.now(tz="Asia/Kolkata") if now is None else pd.Timestamp(now)
-    if current_at.tzinfo is None:
-        current_at = current_at.tz_localize("Asia/Kolkata")
-    else:
-        current_at = current_at.tz_convert("Asia/Kolkata")
-    try:
-        stamps = pd.DatetimeIndex(pd.to_datetime(frame.index, errors="coerce"))
-        if stamps.tz is None:
-            stamps = stamps.tz_localize("Asia/Kolkata", ambiguous="NaT", nonexistent="NaT")
-        else:
-            stamps = stamps.tz_convert("Asia/Kolkata")
-    except (TypeError, ValueError, OverflowError):
-        counts["invalid_timestamp_count"] = len(frame)
-        return frame.iloc[0:0].copy(), counts
-
-    counts["invalid_timestamp_count"] = int(stamps.isna().sum())
-    valid_stamp_mask = ~stamps.isna()
-    timestamped = frame.loc[valid_stamp_mask].copy()
-    timestamped.index = stamps[valid_stamp_mask]
-    counts["duplicate_candle_count"] = int(timestamped.index.duplicated(keep="last").sum())
-    timestamped = timestamped.loc[~timestamped.index.duplicated(keep="last")].sort_index(
-        kind="stable"
-    )
-
-    future = timestamped.index > current_at
-    completed = timestamped.index + pd.Timedelta(minutes=interval_minutes) <= current_at
-    counts["future_candle_count"] = int(future.sum())
-    counts["incomplete_candle_count"] = int((~future & ~completed).sum())
-    return timestamped.loc[completed].copy(), counts
 
 
 def _completed_volume_bars(
@@ -323,7 +281,6 @@ def _frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
 
     if isinstance(history.columns, pd.MultiIndex):
         data = pd.DataFrame()
-        incomplete_candidate = pd.DataFrame()
         for level in range(history.columns.nlevels):
             if ticker not in history.columns.get_level_values(level):
                 continue
@@ -331,28 +288,19 @@ def _frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
             if {"Open", "High", "Low", "Close", "Volume"}.issubset(candidate.columns):
                 data = candidate
                 break
-            incomplete_candidate = candidate
         if data.empty:
-            data = incomplete_candidate
-            if data.empty:
-                return pd.DataFrame()
+            return pd.DataFrame()
     else:
         data = history.copy()
 
     required = ["Open", "High", "Low", "Close", "Volume"]
     if not set(required).issubset(data.columns):
-        missing_columns = sorted(set(required) - set(data.columns))
-        empty = pd.DataFrame()
-        empty.attrs["missing_ohlcv_column_count"] = len(missing_columns)
-        return empty
+        return pd.DataFrame()
 
     data = data.loc[:, required].apply(pd.to_numeric, errors="coerce")
     data = data.replace([float("inf"), float("-inf")], float("nan"))
-    missing_or_nonfinite_count = int(data[required].isna().any(axis=1).sum())
-    data = data.dropna(subset=required).sort_index(kind="stable")
+    data = data.dropna(subset=required).sort_index()
     if data.empty:
-        data.attrs["missing_or_nonfinite_candle_count"] = missing_or_nonfinite_count
-        data.attrs["invalid_ohlcv_count"] = 0
         return data
 
     valid_prices = (data[["Open", "High", "Low", "Close"]] > 0).all(axis=1)
@@ -360,11 +308,8 @@ def _frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
     valid_ohlc = (data["High"] >= data[["Open", "Close", "Low"]].max(axis=1)) & (
         data["Low"] <= data[["Open", "Close", "High"]].min(axis=1)
     )
-    invalid_ohlcv_count = int((~(valid_prices & valid_volume & valid_ohlc)).sum())
     data = data.loc[valid_prices & valid_volume & valid_ohlc]
-    data.attrs["missing_or_nonfinite_candle_count"] = missing_or_nonfinite_count
-    data.attrs["invalid_ohlcv_count"] = invalid_ohlcv_count
-    return data
+    return data[~data.index.duplicated(keep="last")]
 
 
 def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
@@ -457,12 +402,10 @@ def scan_day_trader_opportunities(
         return pd.DataFrame()
 
     scan_started = perf_counter()
-    evaluation_time = pd.Timestamp.now(tz="Asia/Kolkata")
     download_seconds = 0.0
     analysis_seconds = 0.0
     universe = select_day_trader_universe(cap_category, exchange_category)
     exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
-    source_status = universe_source_status()
 
     # Use 5-minute candles for the default 5-minute scan. This cuts the Yahoo
     # payload substantially while preserving the requested 5-minute signal.
@@ -476,13 +419,6 @@ def scan_day_trader_opportunities(
         "mapped_symbol_count": 0,
         "usable_data_count": 0,
         "stale_candle_count": 0,
-        "incomplete_candle_count": 0,
-        "future_candle_count": 0,
-        "duplicate_candle_count": 0,
-        "invalid_timestamp_count": 0,
-        "missing_or_nonfinite_candle_count": 0,
-        "missing_ohlcv_column_count": 0,
-        "invalid_ohlcv_count": 0,
         "max_candle_age_minutes": 0.0,
         "strategy_count": 0,
         "download_failed_chunks": 0,
@@ -500,20 +436,6 @@ def scan_day_trader_opportunities(
         "exchange": exchange_category,
         "cap_category": cap_category,
         "exchange_diagnostics": {},
-        "universe_provenance": (
-            {
-                exchange: source_status[exchange]
-                for exchange in exchanges
-                if exchange in source_status
-            }
-            if cap_category == "All caps"
-            else {}
-        ),
-        "universe_description": (
-            "Dynamic official exchange lists merged with curated additions."
-            if cap_category == "All caps"
-            else f"Curated {cap_category} research subset; this is not full exchange coverage."
-        ),
     }
 
     for exchange in exchanges:
@@ -562,23 +484,11 @@ def scan_day_trader_opportunities(
             for ticker in chunk:
                 try:
                     data = _frame(history, ticker)
-                    scan_stats["missing_or_nonfinite_candle_count"] += int(
-                        data.attrs.get("missing_or_nonfinite_candle_count", 0)
-                    )
-                    scan_stats["missing_ohlcv_column_count"] += int(
-                        data.attrs.get("missing_ohlcv_column_count", 0)
-                    )
-                    scan_stats["invalid_ohlcv_count"] += int(
-                        data.attrs.get("invalid_ohlcv_count", 0)
-                    )
-                    data, candle_counts = _completed_candle_frame(data, interval, evaluation_time)
-                    for count_name, rejected_count in candle_counts.items():
-                        scan_stats[count_name] += rejected_count
                     if len(data) <= bars:
                         continue
 
                     latest_candle_at = data.index[-1]
-                    candle_age = candle_age_minutes(latest_candle_at, evaluation_time)
+                    candle_age = candle_age_minutes(latest_candle_at)
                     freshness_limit = max_candle_age_minutes(exchange, interval)
                     if candle_age is None or candle_age > freshness_limit:
                         scan_stats["stale_candle_count"] += 1
@@ -604,9 +514,7 @@ def scan_day_trader_opportunities(
                         continue
 
                     change = (price / prior - 1.0) * 100.0
-                    completed_volume = _completed_volume_bars(
-                        session["Volume"], interval, evaluation_time
-                    )
+                    completed_volume = _completed_volume_bars(session["Volume"], interval)
                     if len(completed_volume) < 6:
                         continue
                     baseline = float(
