@@ -993,3 +993,28 @@ def test_frame_rejects_invalid_ohlcv_rows():
 
     assert len(result) == 1
     assert result["Close"].tolist() == [102]
+
+
+def test_download_chunks_preserves_order_and_uses_all_chunks(monkeypatch):
+    import scanner.day_trader_opportunity as scanner
+
+    calls = []
+
+    def fake_download(chunk, interval):
+        calls.append((chunk, interval))
+        return pd.DataFrame({"Close": [100.0]}), 1
+
+    monkeypatch.setattr(scanner, "_download_chunk_with_retry", fake_download)
+    chunks = [["A.NS"], ["B.NS"], ["C.NS"]]
+
+    results = list(scanner._download_chunks(chunks, "5m"))
+
+    assert calls == [(chunk, "5m") for chunk in chunks]
+    assert len(results) == len(chunks)
+    assert all(not history.empty and attempts == 1 for history, attempts in results)
+
+
+def test_download_chunks_handles_empty_universe():
+    import scanner.day_trader_opportunity as scanner
+
+    assert list(scanner._download_chunks([], "5m")) == []
