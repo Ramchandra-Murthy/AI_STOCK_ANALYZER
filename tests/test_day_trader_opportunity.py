@@ -1011,7 +1011,10 @@ def test_download_chunks_preserves_order_and_uses_all_chunks(monkeypatch):
 
     assert calls == [(chunk, "5m") for chunk in chunks]
     assert len(results) == len(chunks)
-    assert all(not history.empty and attempts == 1 for history, attempts in results)
+    assert all(
+        not history.empty and attempts == 1 and elapsed >= 0
+        for history, attempts, elapsed in results
+    )
 
 
 def test_download_chunks_handles_empty_universe():
