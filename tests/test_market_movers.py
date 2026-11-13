@@ -6,8 +6,8 @@ from services import market_service
 def test_get_top_movers_returns_up_to_ten_gainers_and_losers(monkeypatch):
     frame = pd.DataFrame(
         {
-            "Symbol": [f"STOCK{i}" for i in range(12)],
-            "Change %": [float(value) for value in range(-6, 6)],
+            "Symbol": [f"STOCK{i}" for i in range(24)],
+            "Change %": [float(value) for value in range(-12, 12)],
         }
     )
     monkeypatch.setattr(market_service, "_scan_watchlist", lambda _watchlist: frame)
