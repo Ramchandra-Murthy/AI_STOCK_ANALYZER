@@ -1,5 +1,8 @@
-def show_market_movers():
-    """Render the same coverage-aware scanner used by the dedicated page."""
+"""Dashboard component for the lightweight market-movers view."""
+
+
+def show_market_movers() -> None:
+    """Render the shared market-movers view."""
     from modules.market_movers import show
 
     show()

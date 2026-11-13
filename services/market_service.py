@@ -402,8 +402,8 @@ def get_top_movers(
     if frame.empty:
         return frame.copy(), frame.copy()
     return (
-        frame.sort_values("Change %", ascending=False).head(5).reset_index(drop=True),
-        frame.sort_values("Change %", ascending=True).head(5).reset_index(drop=True),
+        frame.sort_values("Change %", ascending=False).head(10).reset_index(drop=True),
+        frame.sort_values("Change %", ascending=True).head(10).reset_index(drop=True),
     )
 
 
