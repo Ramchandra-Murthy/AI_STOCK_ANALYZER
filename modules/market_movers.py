@@ -63,7 +63,13 @@ def _completed_market_mover_frame(
     current = current.tz_localize(IST) if current.tzinfo is None else current.tz_convert(IST)
     completed, rejected = completed_ohlcv_bars(frame, current.to_pydatetime(), 5)
     rejected["stale_symbols"] = 0
-    # Yahoo historical fixtures and cached snapshots may be from a prior session.\n    # Enforce the 15-minute age limit only during an exchange-confirmed live session.\n    session_status = equity_market_session_status(current.to_pydatetime())\n    if not completed.empty and session_status == "OPEN":\n        age_seconds = (current - (completed.index[-1] + pd.Timedelta(minutes=5))).total_seconds()\n        if age_seconds > 15 * 60:\n            rejected["stale_symbols"] = 1\n            return completed.iloc[0:0], rejected\n    return completed, rejected
+    session_status = equity_market_session_status(current.to_pydatetime())
+    if not completed.empty and session_status in {"OPEN", "CALENDAR_UNAVAILABLE"}:
+        age_seconds = (current - (completed.index[-1] + pd.Timedelta(minutes=5))).total_seconds()
+        if age_seconds > 15 * 60:
+            rejected["stale_symbols"] = 1
+            return completed.iloc[0:0], rejected
+    return completed, rejected
 
 
 def _window_change(close: pd.Series, bars: int) -> float | None:
