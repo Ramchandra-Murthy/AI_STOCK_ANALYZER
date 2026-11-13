@@ -252,7 +252,6 @@ def test_merge_reports_official_count_curated_additions_and_final_count(monkeypa
     assert "CUSTOM_SYMBOL" in merged
 
 
-
 @pytest.mark.parametrize(
     ("exchange", "cache_name", "loader_name", "fetch_name", "symbols"),
     [
