@@ -32,6 +32,16 @@ def test_get_top_movers_returns_empty_frames_when_no_quotes(monkeypatch):
     assert losers.empty
 
 
+def test_market_watchlist_includes_ten_curated_symbols_per_exchange():
+    from modules.market_movers import _market_watchlist
+
+    watchlist = _market_watchlist()
+
+    assert len(watchlist) == 20
+    assert sum(ticker.endswith(".NS") for ticker in watchlist.values()) == 10
+    assert sum(ticker.endswith(".BO") for ticker in watchlist.values()) == 10
+
+
 def test_dashboard_component_uses_shared_lightweight_view(monkeypatch):
     import components.market_movers as dashboard_movers
     import modules.market_movers as page_movers
