@@ -290,3 +290,51 @@ def test_concurrent_universe_refresh_is_coalesced(
 
     assert results == [symbols] * 8
     assert calls == [exchange]
+
+
+
+def test_concurrent_bse_group_a_refresh_is_coalesced(monkeypatch):
+    payload = [{"SCRIP_CD": "500325", "Status": "Active", "Segment": "Equity"}]
+    calls = []
+
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self):
+            return json.dumps(payload).encode("utf-8")
+
+    def fake_urlopen(*args, **kwargs):
+        calls.append("BSE_GROUP_A")
+        sleep(0.05)
+        return FakeResponse()
+
+    monkeypatch.setattr(dynamic_universe, "_cached_bse_group_a", None)
+    monkeypatch.setattr(dynamic_universe, "urlopen", fake_urlopen)
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        results = list(executor.map(lambda _: dynamic_universe.dynamic_bse_group_a_codes(), range(8)))
+
+    assert results == [{"500325"}] * 8
+    assert calls == ["BSE_GROUP_A"]
+
+
+def test_concurrent_bse_group_a_failure_is_cached(monkeypatch):
+    calls = []
+
+    def fail_urlopen(*args, **kwargs):
+        calls.append("BSE_GROUP_A")
+        sleep(0.05)
+        raise OSError("BSE unavailable")
+
+    monkeypatch.setattr(dynamic_universe, "_cached_bse_group_a", None)
+    monkeypatch.setattr(dynamic_universe, "urlopen", fail_urlopen)
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        results = list(executor.map(lambda _: dynamic_universe.dynamic_bse_group_a_codes(), range(8)))
+
+    assert results == [None] * 8
+    assert calls == ["BSE_GROUP_A"]
