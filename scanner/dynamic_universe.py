@@ -25,6 +25,7 @@ _cached_bse_symbols: tuple[float, list[str]] | None = None
 _cached_bse_group_a: tuple[float, set[str] | None] | None = None
 _nse_universe_lock = Lock()
 _bse_universe_lock = Lock()
+_bse_group_a_lock = Lock()
 _bse_yahoo_symbol_map: dict[str, str] = {}
 _universe_source_status: dict[str, dict[str, str | int | float]] = {
     "NSE": {
@@ -222,11 +223,11 @@ def _dynamic_bse_group_a_codes_unlocked() -> set[str] | None:
     return set(codes)
 
 
-
 def dynamic_bse_group_a_codes() -> set[str] | None:
     """Return cached BSE Group A codes with one in-flight refresh per process."""
-    with _bse_universe_lock:
+    with _bse_group_a_lock:
         return _dynamic_bse_group_a_codes_unlocked()
+
 
 def yahoo_symbol_for_bse_code(code: str) -> str | None:
     """Return a Yahoo Finance ticker for a BSE code, including curated fallback codes."""
