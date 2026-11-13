@@ -8,10 +8,12 @@ to have a usable intraday quote.
 
 from __future__ import annotations
 
+import time
 from time import perf_counter
 from typing import Any
 
 import pandas as pd
+import yfinance as yf
 
 from scanner.day_trading_strategy import (
     analyze_day_trade_setup,
@@ -32,7 +34,6 @@ from scanner.surveillance import (
 from scanner.universe import bse_candidates_for_nse_symbols
 from scanner.unusual_activity import CAP_UNIVERSES
 from services.intraday_vwap_orb import vwap_orb_metrics
-from services.resilient_market_data import download_symbol_frames
 
 CHUNK_SIZE = 100
 CHUNK_DOWNLOAD_ATTEMPTS = 3
@@ -43,26 +44,32 @@ def _download_chunk_with_retry(
     tickers: list[str],
     interval: str,
 ) -> tuple[pd.DataFrame, int]:
-    """Download one chunk through the shared cache and bounded provider controls.
+    """Download one ticker chunk using Yahoo's original threaded downloader.
 
-    The shared service owns retries, concurrency limits, request timeouts and
-    cache reuse. Reassemble its per-symbol frames into yfinance's familiar
-    ticker-first MultiIndex shape for the existing analysis pipeline.
+    Keep retries bounded for empty responses and transient provider failures.
+    Yahoo Finance handles parallel ticker requests within each 100-symbol
+    chunk; the scanner processes chunks sequentially.
     """
-    frames, _missing = download_symbol_frames(
-        tickers,
-        period="1d",
-        interval=interval,
-        auto_adjust=False,
-        batch_size=max(1, len(tickers)),
-        timeout=15,
-        retries=CHUNK_DOWNLOAD_ATTEMPTS - 1,
-        recover_missing=False,
-    )
-    if not frames:
-        return pd.DataFrame(), CHUNK_DOWNLOAD_ATTEMPTS
-    history = pd.concat(frames, axis=1).sort_index()
-    return history, 1
+    for attempt in range(1, CHUNK_DOWNLOAD_ATTEMPTS + 1):
+        try:
+            history = yf.download(
+                tickers=tickers,
+                period="1d",
+                interval=interval,
+                progress=False,
+                auto_adjust=False,
+                group_by="ticker",
+                threads=True,
+                timeout=15,
+            )
+            if history is not None and not history.empty:
+                return history, attempt
+        except Exception:
+            if attempt == CHUNK_DOWNLOAD_ATTEMPTS:
+                return pd.DataFrame(), attempt
+        if attempt < CHUNK_DOWNLOAD_ATTEMPTS:
+            time.sleep(CHUNK_RETRY_BACKOFF_SECONDS[attempt - 1])
+    return pd.DataFrame(), CHUNK_DOWNLOAD_ATTEMPTS
 
 
 def summarize_day_trading_setup(strategy: dict[str, Any]) -> dict[str, Any]:
