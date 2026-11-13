@@ -76,11 +76,14 @@ def _download_chunks(chunks: list[list[str]], interval: str):
     if not chunks:
         return
     worker_count = min(MAX_CONCURRENT_CHUNK_DOWNLOADS, len(chunks))
+
+    def download_timed(chunk: list[str]):
+        started = perf_counter()
+        history, attempts = _download_chunk_with_retry(chunk, interval)
+        return history, attempts, perf_counter() - started
+
     with ThreadPoolExecutor(max_workers=worker_count) as executor:
-        yield from executor.map(
-            lambda chunk: _download_chunk_with_retry(chunk, interval),
-            chunks,
-        )
+        yield from executor.map(download_timed, chunks)
 
 
 def summarize_day_trading_setup(strategy: dict[str, Any]) -> dict[str, Any]:
@@ -559,7 +562,7 @@ def scan_day_trader_opportunities(
             tickers[start : start + CHUNK_SIZE]
             for start in range(0, len(tickers), CHUNK_SIZE)
         ]
-        for chunk, (history, download_attempts) in zip(
+        for chunk, (history, download_attempts, chunk_download_seconds) in zip(
             chunks,
             _download_chunks(chunks, interval),
             strict=True,
@@ -567,8 +570,6 @@ def scan_day_trader_opportunities(
             scan_stats["downloaded_chunk_symbol_count"] = scan_stats.get(
                 "downloaded_chunk_symbol_count", 0
             ) + len(chunk)
-            download_started = perf_counter()
-            chunk_download_seconds = perf_counter() - download_started
             download_seconds += chunk_download_seconds
             exchange_stats["chunks_attempted"] += 1
             exchange_stats["download_seconds"] += chunk_download_seconds
