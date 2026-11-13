@@ -292,7 +292,6 @@ def test_concurrent_universe_refresh_is_coalesced(
     assert calls == [exchange]
 
 
-
 def test_concurrent_bse_group_a_refresh_is_coalesced(monkeypatch):
     payload = [{"SCRIP_CD": "500325", "Status": "Active", "Segment": "Equity"}]
     calls = []
