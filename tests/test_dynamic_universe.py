@@ -1,4 +1,6 @@
 import json
+from concurrent.futures import ThreadPoolExecutor
+from time import sleep
 
 import pytest
 
@@ -248,3 +250,43 @@ def test_merge_reports_official_count_curated_additions_and_final_count(monkeypa
     assert status["curated_additions"] == expected_additions
     assert status["merged_symbols"] == len(merged)
     assert "CUSTOM_SYMBOL" in merged
+
+
+@pytest.mark.parametrize(
+    ("exchange", "cache_name", "loader_name", "fetch_name", "symbols"),
+    [
+        (
+            "NSE",
+            "_cached_nse_symbols",
+            "_download_nse_equity_list",
+            "dynamic_nse_symbols",
+            ["LIVE_NSE"],
+        ),
+        (
+            "BSE",
+            "_cached_bse_symbols",
+            "_download_bse_equity_list",
+            "dynamic_bse_symbols",
+            ["500325"],
+        ),
+    ],
+)
+def test_concurrent_universe_refresh_is_coalesced(
+    monkeypatch, exchange, cache_name, loader_name, fetch_name, symbols
+):
+    calls = []
+
+    def fake_download():
+        calls.append(exchange)
+        sleep(0.05)
+        return symbols
+
+    monkeypatch.setattr(dynamic_universe, cache_name, None)
+    monkeypatch.setattr(dynamic_universe, loader_name, fake_download)
+    fetch = getattr(dynamic_universe, fetch_name)
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        results = list(executor.map(lambda _: fetch(), range(8)))
+
+    assert results == [symbols] * 8
+    assert calls == [exchange]

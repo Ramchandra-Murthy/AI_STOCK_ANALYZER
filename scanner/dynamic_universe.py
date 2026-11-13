@@ -5,6 +5,7 @@ import json
 import logging
 import re
 import time
+from threading import Lock
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -22,6 +23,8 @@ SYMBOL_PATTERN = re.compile(r"^[A-Z0-9&.-]+$")
 _cached_nse_symbols: tuple[float, list[str]] | None = None
 _cached_bse_symbols: tuple[float, list[str]] | None = None
 _cached_bse_group_a: tuple[float, set[str]] | None = None
+_nse_universe_lock = Lock()
+_bse_universe_lock = Lock()
 _bse_yahoo_symbol_map: dict[str, str] = {}
 _universe_source_status: dict[str, dict[str, str | int | float]] = {
     "NSE": {
@@ -239,7 +242,7 @@ def yahoo_symbol_for_bse_code(code: str) -> str | None:
     return None
 
 
-def dynamic_nse_symbols() -> list[str]:
+def _dynamic_nse_symbols_unlocked() -> list[str]:
     """Return the current NSE equity universe, falling back to curated symbols."""
     global _cached_nse_symbols
 
@@ -295,7 +298,13 @@ def dynamic_nse_symbols() -> list[str]:
     return fallback
 
 
-def dynamic_bse_symbols() -> list[str]:
+def dynamic_nse_symbols() -> list[str]:
+    """Return the NSE universe, coalescing concurrent cache refreshes."""
+    with _nse_universe_lock:
+        return _dynamic_nse_symbols_unlocked()
+
+
+def _dynamic_bse_symbols_unlocked() -> list[str]:
     """Return active BSE equities, logging live-source coverage and fallback reason."""
     global _cached_bse_symbols
 
@@ -358,6 +367,12 @@ def dynamic_bse_symbols() -> list[str]:
         len(fallback),
     )
     return fallback
+
+
+def dynamic_bse_symbols() -> list[str]:
+    """Return the BSE universe, coalescing concurrent cache refreshes."""
+    with _bse_universe_lock:
+        return _dynamic_bse_symbols_unlocked()
 
 
 def merge_nse_universe(extra_symbols: list[str] | None = None) -> list[str]:
