@@ -336,7 +336,9 @@ def test_concurrent_bse_group_a_failure_is_cached(monkeypatch):
     monkeypatch.setattr(dynamic_universe, "urlopen", fail_urlopen)
 
     with ThreadPoolExecutor(max_workers=8) as executor:
-        results = list(executor.map(lambda _: dynamic_universe.dynamic_bse_group_a_codes(), range(8)))
+        results = list(
+            executor.map(lambda _: dynamic_universe.dynamic_bse_group_a_codes(), range(8))
+        )
 
     assert results == [None] * 8
     assert calls == ["BSE_GROUP_A"]
