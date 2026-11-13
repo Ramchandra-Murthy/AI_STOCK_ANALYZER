@@ -164,6 +164,7 @@ def test_market_movers_scan_uses_shared_market_data_service(monkeypatch):
 
     monkeypatch.setattr(market_movers, "download_symbol_frames", fake_download)
     monkeypatch.setattr(market_movers, "_quote_freshness", lambda _value: "TEST")
+    monkeypatch.setattr(market_movers, "equity_market_session_status", lambda _value: "CLOSED")
 
     result, stats = market_movers._scan_batches([("TEST", "NSE")], 1)
 
@@ -297,6 +298,7 @@ def test_market_movers_submits_exchange_universe_in_one_bounded_parallel_call(mo
     calls = []
     monkeypatch.setattr(market_movers, "BATCH_SIZE", 2)
     monkeypatch.setattr(market_movers, "_quote_freshness", lambda _value: "TEST")
+    monkeypatch.setattr(market_movers, "equity_market_session_status", lambda _value: "CLOSED")
 
     def fake_download(tickers, **kwargs):
         calls.append((list(tickers), kwargs))
