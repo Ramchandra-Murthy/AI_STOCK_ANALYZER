@@ -135,6 +135,7 @@ def _show_coverage_summary(coverage_rows: list[dict]) -> None:
         "final_rows",
         "cached_failures_skipped",
         "provider_error_chunks",
+        "duplicate_rows_removed",
     ):
         totals[key] = sum(int(row.get(key, 0) or 0) for row in coverage_rows)
     st.subheader("Pipeline totals")
