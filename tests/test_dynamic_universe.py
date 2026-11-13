@@ -316,7 +316,9 @@ def test_concurrent_bse_group_a_refresh_is_coalesced(monkeypatch):
     monkeypatch.setattr(dynamic_universe, "urlopen", fake_urlopen)
 
     with ThreadPoolExecutor(max_workers=8) as executor:
-        results = list(executor.map(lambda _: dynamic_universe.dynamic_bse_group_a_codes(), range(8)))
+        results = list(
+            executor.map(lambda _: dynamic_universe.dynamic_bse_group_a_codes(), range(8))
+        )
 
     assert results == [{"500325"}] * 8
     assert calls == ["BSE_GROUP_A"]
