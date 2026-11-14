@@ -1,4 +1,5 @@
 """Tests for reusable trading profiles and position risk calculations."""
+
 import pytest
 
 from algorithmic_trading.risk_engine import calculate_position_plan
@@ -29,8 +30,11 @@ def test_position_plan_respects_risk_and_capital_limits() -> None:
 
 def test_cost_estimate_reduces_position_size() -> None:
     profile = TradingProfile(
-        capital=100_000, risk_value=1, max_position_pct=100,
-        max_exposure_pct=100, cash_reserve_pct=0,
+        capital=100_000,
+        risk_value=1,
+        max_position_pct=100,
+        max_exposure_pct=100,
+        cash_reserve_pct=0,
         estimated_round_trip_cost_pct=1,
     )
     plan = calculate_position_plan(profile, entry_price=100, stop_price=95)
@@ -48,8 +52,12 @@ def test_short_requires_explicit_profile_permission() -> None:
 
 def test_short_position_can_be_sized_when_enabled() -> None:
     profile = TradingProfile(
-        allow_short=True, capital=100_000, risk_value=1,
-        max_position_pct=100, max_exposure_pct=100, cash_reserve_pct=0,
+        allow_short=True,
+        capital=100_000,
+        risk_value=1,
+        max_position_pct=100,
+        max_exposure_pct=100,
+        cash_reserve_pct=0,
         estimated_round_trip_cost_pct=0,
     )
     plan = calculate_position_plan(profile, entry_price=100, stop_price=105, side="SHORT")
@@ -66,10 +74,15 @@ def test_daily_loss_limit_blocks_new_positions() -> None:
     assert "Daily loss limit" in plan.reason
 
 
-@pytest.mark.parametrize("kwargs", [
-    {"capital": 0}, {"risk_value": 0}, {"max_positions": 0},
-    {"max_position_pct": 90, "max_exposure_pct": 80},
-])
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"capital": 0},
+        {"risk_value": 0},
+        {"max_positions": 0},
+        {"max_position_pct": 90, "max_exposure_pct": 80},
+    ],
+)
 def test_invalid_profiles_are_rejected(kwargs: dict) -> None:
     with pytest.raises(ValueError):
         TradingProfile(**kwargs)
