@@ -1,4 +1,4 @@
-"""Streamlit page for AI paper-trading performance analytics."""
+"""Streamlit page for persistent AI paper-trading performance analytics."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import streamlit as st
 
 from ai_trading.paper_trading import PaperPortfolio
 from ai_trading.performance import build_equity_curve, build_performance_report
+from services.ai_paper_trading_store import PaperPortfolioStoreError, load_portfolio
 
 st.set_page_config(
     page_title="AI Paper Performance",
@@ -15,13 +16,24 @@ st.set_page_config(
 )
 
 st.title("📊 AI Paper Trading Performance")
-st.caption("Analytics for the current in-memory AI paper-trading session.")
+st.caption(
+    "Performance analytics for the saved AI paper-trading portfolio. "
+    "Latest unrealized P&L uses the most recent prices held in this browser session."
+)
 
 portfolio = st.session_state.get("ai_paper_portfolio")
-prices = st.session_state.get("ai_paper_prices", {})
-
 if not isinstance(portfolio, PaperPortfolio):
-    st.info("Run the AI Paper Trading page first to create a paper portfolio.")
+    try:
+        portfolio = load_portfolio()
+        if portfolio is not None:
+            st.session_state.ai_paper_portfolio = portfolio
+    except PaperPortfolioStoreError as exc:
+        st.error(f"Could not load the saved paper portfolio: {exc}")
+        st.stop()
+
+prices = st.session_state.get("ai_paper_prices", {})
+if not isinstance(portfolio, PaperPortfolio):
+    st.info("No saved paper portfolio yet. Run the AI Paper Trading page first.")
     st.stop()
 
 equity = portfolio.equity(prices)
@@ -89,7 +101,7 @@ st.dataframe(breakdown, use_container_width=True, hide_index=True)
 
 st.subheader("Trade outcomes")
 if portfolio.trades:
-    journal = pd.DataFrame(
+    st.dataframe(
         [
             {
                 "symbol": trade.symbol,
@@ -100,8 +112,9 @@ if portfolio.trades:
                 "cash_after": trade.cash_after,
             }
             for trade in portfolio.trades
-        ]
+        ],
+        use_container_width=True,
+        hide_index=True,
     )
-    st.dataframe(journal, use_container_width=True, hide_index=True)
 else:
     st.info("No paper trades yet.")
