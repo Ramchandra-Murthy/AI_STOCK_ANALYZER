@@ -237,6 +237,7 @@ def walk_forward_evaluation(
             rows.append(row)
     return pd.DataFrame(rows)
 
+
 def summarize_probability_reliability(
     actual: Any,
     probabilities: Any,
