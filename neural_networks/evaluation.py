@@ -274,8 +274,7 @@ def summarize_probability_reliability(
             continue
         mean_probability = float(probability_values[selected].mean())
         observed_rate = float(actual_values[selected].mean())
-        lower, upper = edges[bin_number], edges[bin_number + 1]
-        rows.append(
+        lower, upper = edges[bin_number], edges[bin_number + 1]        rows.append(
             {
                 "Probability band": f"{lower:.2f}–{upper:.2f}",
                 "Samples": int(selected.sum()),
@@ -524,8 +523,7 @@ def compare_feature_ablation(
     """Compare original and expanded causal factors on identical chronological rows.
 
     This controlled ablation adapts the Cookbook's factor-research mindset:
-    keep the target, holdout dates, and model settings fixed while comparing
-    the incremental value of additional factors. It does not tune parameters
+    keep the target, holdout dates, and model settings fixed while comparing    the incremental value of additional factors. It does not tune parameters
     on the holdout and does not imply that the expanded set will perform better.
     """
     from neural_networks.features import build_direction_dataset
@@ -774,8 +772,7 @@ def compare_mlp_configurations(
     This reports validation diagnostics only. It does not select or deploy a
     model automatically, and the final untouched test period must remain unused.
     """
-    if not features.index.equals(target.index):
-        raise ValueError("features and target must have identical indexes")
+    if not features.index.equals(target.index):        raise ValueError("features and target must have identical indexes")
     if features.empty or target.empty:
         raise ValueError("features and target must not be empty")
     if n_splits < 2:
