@@ -1,4 +1,4 @@
-"""Streamlit page for AI paper trading."""
+"""Streamlit page for persistent AI paper trading."""
 
 from __future__ import annotations
 
@@ -10,6 +10,12 @@ from ai_trading.ml_scanner import scan_universe
 from ai_trading.paper_trading import PaperPortfolio, apply_ml_signals
 from ai_trading.risk import RiskLimits, risk_warnings
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from services.ai_paper_trading_store import (
+    PaperPortfolioStoreError,
+    delete_portfolio,
+    load_portfolio,
+    save_portfolio,
+)
 
 st.set_page_config(
     page_title="AI Paper Trading",
@@ -20,11 +26,18 @@ st.set_page_config(
 st.title("🧪 AI Paper Trading")
 st.caption(
     "Simulation only. ML signals are converted into paper fills and portfolio "
-    "positions; no broker orders are submitted."
+    "positions; no broker connection or live orders are used. Portfolio state "
+    "is saved locally in SQLite."
 )
 
 if "ai_paper_portfolio" not in st.session_state:
-    st.session_state.ai_paper_portfolio = PaperPortfolio(initial_cash=100_000.0)
+    try:
+        st.session_state.ai_paper_portfolio = load_portfolio() or PaperPortfolio(
+            initial_cash=100_000.0
+        )
+    except PaperPortfolioStoreError as exc:
+        st.error(f"Could not restore the saved paper portfolio: {exc}")
+        st.stop()
 
 portfolio = st.session_state.ai_paper_portfolio
 
@@ -115,6 +128,10 @@ if st.button("Run AI Paper Trading Cycle", type="primary"):
     st.session_state.ai_paper_scan = result
     st.session_state.ai_paper_prices = prices
     portfolio.record_equity(prices)
+    try:
+        save_portfolio(portfolio)
+    except PaperPortfolioStoreError as exc:
+        st.error(f"Paper cycle ran, but persistence failed: {exc}")
 
     st.success(f"Completed paper cycle: {len(fills)} simulated fills.")
 
@@ -189,7 +206,11 @@ else:
     st.info("No simulated fills yet.")
 
 if st.button("Reset AI Paper Portfolio"):
-    st.session_state.ai_paper_portfolio = PaperPortfolio(initial_cash=100_000.0)
-    st.session_state.pop("ai_paper_scan", None)
-    st.session_state.pop("ai_paper_prices", None)
-    st.rerun()
+    try:
+        delete_portfolio()
+        st.session_state.ai_paper_portfolio = PaperPortfolio(initial_cash=100_000.0)
+        st.session_state.pop("ai_paper_scan", None)
+        st.session_state.pop("ai_paper_prices", None)
+        st.rerun()
+    except PaperPortfolioStoreError as exc:
+        st.error(f"Could not reset the saved paper portfolio: {exc}")
