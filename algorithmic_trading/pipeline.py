@@ -29,6 +29,28 @@ class AlgorithmicAnalysis:
     risk_plan: PositionPlan | None = None
 
 
+def _average_true_range(frame: pd.DataFrame) -> float | None:
+    """Return the latest 14-bar simple-average true range, when available."""
+    required = {"High", "Low", "Close"}
+    if not required.issubset(frame.columns):
+        return None
+    high = pd.to_numeric(frame["High"], errors="coerce")
+    low = pd.to_numeric(frame["Low"], errors="coerce")
+    close = pd.to_numeric(frame["Close"], errors="coerce")
+    true_range = pd.concat(
+        [
+            high - low,
+            (high - close.shift()).abs(),
+            (low - close.shift()).abs(),
+        ],
+        axis=1,
+    ).max(axis=1)
+    atr = true_range.rolling(window=14, min_periods=14).mean().iloc[-1]
+    if pd.isna(atr) or float(atr) <= 0:
+        return None
+    return float(atr)
+
+
 def _profile_stop_price(
     profile: TradingProfile,
     *,
@@ -49,24 +71,10 @@ def _profile_stop_price(
     elif profile.stop_mode == "percentage":
         distance = entry_price * float(profile.stop_value) / 100.0
     else:
-        required = {"High", "Low", "Close"}
-        if not required.issubset(frame.columns):
-            raise ValueError("ATR stop mode requires High, Low and Close columns")
-        high = pd.to_numeric(frame["High"], errors="coerce")
-        low = pd.to_numeric(frame["Low"], errors="coerce")
-        close = pd.to_numeric(frame["Close"], errors="coerce")
-        true_range = pd.concat(
-            [
-                high - low,
-                (high - close.shift()).abs(),
-                (low - close.shift()).abs(),
-            ],
-            axis=1,
-        ).max(axis=1)
-        atr = true_range.rolling(window=14, min_periods=14).mean().iloc[-1]
-        if pd.isna(atr) or float(atr) <= 0:
-            raise ValueError("not enough valid bars to calculate the profile ATR stop")
-        distance = float(atr) * float(profile.stop_value)
+        atr = _average_true_range(frame)
+        if atr is None:
+            raise ValueError("ATR stop mode requires 14 valid bars with High, Low and Close")
+        distance = atr * float(profile.stop_value)
 
     return entry_price - distance if side == "LONG" else entry_price + distance
 
@@ -159,20 +167,9 @@ def analyze_symbol(
             raise ValueError("capital is required when no trading profile is supplied")
         effective_stop = stop_price
         if effective_stop is None and direction in {"LONG", "SHORT"}:
-            high = pd.to_numeric(frame["High"], errors="coerce")
-            low = pd.to_numeric(frame["Low"], errors="coerce")
-            close = pd.to_numeric(frame["Close"], errors="coerce")
-            true_range = pd.concat(
-                [
-                    high - low,
-                    (high - close.shift()).abs(),
-                    (low - close.shift()).abs(),
-                ],
-                axis=1,
-            ).max(axis=1)
-            atr = true_range.rolling(window=14, min_periods=14).mean().iloc[-1]
-            if pd.notna(atr) and float(atr) > 0:
-                stop_distance = float(atr) * 1.5
+            atr = _average_true_range(frame)
+            if atr is not None:
+                stop_distance = atr * 1.5
                 effective_stop = (
                     current_price - stop_distance
                     if direction == "LONG"
