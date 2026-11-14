@@ -86,7 +86,8 @@ def compare_holdout_baselines(
     target: pd.Series,
     train_fraction: float = 0.70,
     random_state: int = 42,
-    horizon: int = 0,) -> pd.DataFrame:
+    horizon: int = 0,
+) -> pd.DataFrame:
     """Compare majority-class, logistic-regression, and MLP on a purged chronological holdout."""
     X_train, X_test, y_train, y_test = chronological_split(
         features, target, train_fraction, horizon
@@ -143,7 +144,6 @@ def compare_holdout_baselines(
         ),
     )
     return pd.DataFrame(rows)
-
 
 
 def walk_forward_evaluation(
@@ -206,11 +206,8 @@ def walk_forward_evaluation(
             probability_up = None
             if name != "Majority-class" and hasattr(model, "predict_proba") and 1 in model.classes_:
                 probability_up = model.predict_proba(X_test)[:, list(model.classes_).index(1)]
-            row = _score_row(name, y_test, predicted, probability_up)
-            fold_rows.append(row)
+            fold_rows.append(_score_row(name, y_test, predicted, probability_up))
 
-        # A constant forecast based only on the training fold is a proper
-        # probabilistic benchmark for Brier score and log loss.
         prevalence = float(y_train.mean())
         prevalence_probabilities = np.full(len(y_test), prevalence, dtype=float)
         prevalence_predictions = (prevalence_probabilities >= 0.5).astype(int)
@@ -240,6 +237,7 @@ def walk_forward_evaluation(
             rows.append(row)
     return pd.DataFrame(rows)
 
+
 def summarize_probability_reliability(
     actual: Any,
     probabilities: Any,
@@ -247,7 +245,8 @@ def summarize_probability_reliability(
 ) -> pd.DataFrame:
     """Compare mean predicted up-probability with observed up frequency by fixed bins.
 
-    The table is descriptive holdout diagnostics, not proof of calibration or    profitable signals. Empty bins are omitted; small bin counts are noisy.
+    The table is descriptive holdout diagnostics, not proof of calibration or
+    profitable signals. Empty bins are omitted; small bin counts are noisy.
     """
     if n_bins < 2 or n_bins > 20:
         raise ValueError("n_bins must be between 2 and 20")
@@ -276,8 +275,7 @@ def summarize_probability_reliability(
             continue
         mean_probability = float(probability_values[selected].mean())
         observed_rate = float(actual_values[selected].mean())
-        lower, upper = edges[bin_number], edges[bin_number + 1]
-        rows.append(
+        lower, upper = edges[bin_number], edges[bin_number + 1]        rows.append(
             {
                 "Probability band": f"{lower:.2f}–{upper:.2f}",
                 "Samples": int(selected.sum()),
@@ -406,7 +404,8 @@ def evaluate_mlp_seed_stability(
 
     rows: list[dict[str, Any]] = []
     for seed in random_states:
-        model = _mlp(int(seed))        model.fit(X_train, y_train)
+        model = _mlp(int(seed))
+        model.fit(X_train, y_train)
         predicted = model.predict(X_test)
         classes = list(model.classes_)
         if 1 not in classes:
@@ -525,8 +524,7 @@ def compare_feature_ablation(
     """Compare original and expanded causal factors on identical chronological rows.
 
     This controlled ablation adapts the Cookbook's factor-research mindset:
-    keep the target, holdout dates, and model settings fixed while comparing
-    the incremental value of additional factors. It does not tune parameters
+    keep the target, holdout dates, and model settings fixed while comparing    the incremental value of additional factors. It does not tune parameters
     on the holdout and does not imply that the expanded set will perform better.
     """
     from neural_networks.features import build_direction_dataset
@@ -586,3 +584,348 @@ def compare_feature_ablation(
         [
             "Feature set",
             "Model",
+            "Feature count",
+            "Accuracy",
+            "Balanced accuracy",
+            "ROC-AUC",
+            "Train start",
+            "Train end",
+            "Test start",
+            "Test end",
+            "Test rows",
+        ]
+    ]
+
+
+def _block_bootstrap_spearman_ic_interval(
+    factor_values: pd.Series,
+    forward_returns: pd.Series,
+    *,
+    n_bootstrap: int = 200,
+    block_size: int = 5,
+    confidence_level: float = 0.95,
+    random_state: int = 42,
+) -> tuple[float, float]:
+    """Estimate a percentile interval for Spearman IC using moving-block resampling.
+
+    Contiguous blocks preserve some local dependence. This is a descriptive
+    uncertainty estimate, not a formal significance test or proof of predictability.
+    """
+    if n_bootstrap < 50:
+        raise ValueError("n_bootstrap must be at least 50")
+    if block_size < 1:
+        raise ValueError("block_size must be at least 1")
+    pair = (
+        pd.concat([factor_values, forward_returns], axis=1)
+        .replace([np.inf, -np.inf], np.nan)
+        .dropna()
+    )
+    n = len(pair)
+    if n < max(10, block_size * 2):
+        return float("nan"), float("nan")
+    first_unique = pair.iloc[:, 0].nunique(dropna=True)
+    second_unique = pair.iloc[:, 1].nunique(dropna=True)
+    if min(first_unique, second_unique) < 2:
+        return float("nan"), float("nan")
+
+    values = pair.to_numpy(dtype=float)
+    block_size = min(block_size, n)
+    starts = np.arange(n - block_size + 1)
+    rng = np.random.default_rng(random_state)
+    estimates: list[float] = []
+    blocks_needed = int(np.ceil(n / block_size))
+    for _ in range(n_bootstrap):
+        sampled_starts = rng.choice(starts, size=blocks_needed, replace=True)
+        positions = np.concatenate(
+            [np.arange(start, start + block_size) for start in sampled_starts]
+        )[:n]
+        sample = pd.DataFrame(values[positions])
+        estimate = sample.iloc[:, 0].corr(sample.iloc[:, 1], method="spearman")
+        if pd.notna(estimate):
+            estimates.append(float(estimate))
+    if len(estimates) < max(30, int(n_bootstrap * 0.5)):
+        return float("nan"), float("nan")
+    tail = (1.0 - confidence_level) / 2.0
+    lower, upper = np.quantile(estimates, [tail, 1.0 - tail])
+    return float(lower), float(upper)
+
+
+def factor_information_coefficient(
+    ohlcv: pd.DataFrame,
+    horizon: int = 5,
+    n_windows: int = 5,
+    n_bootstrap: int = 200,
+    block_size: int = 5,
+    confidence_level: float = 0.95,
+) -> pd.DataFrame:
+    """Summarize factor rank correlation with forward returns by chronological window.
+
+    Positive IC means higher factor values tended to coincide with higher forward
+    returns within that window. IC is descriptive, not a trading strategy or a
+    guarantee of out-of-sample predictive value.
+    """
+    from neural_networks.features import REQUIRED_COLUMNS, build_features
+
+    if horizon < 1:
+        raise ValueError("horizon must be at least 1")
+    if n_windows < 2:
+        raise ValueError("n_windows must be at least 2")
+    if n_bootstrap < 50:
+        raise ValueError("n_bootstrap must be at least 50")
+    if block_size < 1:
+        raise ValueError("block_size must be at least 1")
+    if not 0 < confidence_level < 1:
+        raise ValueError("confidence_level must be between 0 and 1")
+    missing = [column for column in REQUIRED_COLUMNS if column not in ohlcv.columns]
+    if missing:
+        raise ValueError("Missing required OHLCV columns: " + ", ".join(missing))
+
+    frame = ohlcv.loc[:, REQUIRED_COLUMNS].copy().sort_index()
+    close = pd.to_numeric(frame["Close"], errors="coerce").astype(float)
+    entry_close = close.shift(-1)
+    exit_close = close.shift(-(horizon + 1))
+    forward_return = exit_close / entry_close - 1.0
+    features = build_features(frame)
+    valid = (
+        features.notna().all(axis=1)
+        & forward_return.notna()
+        & entry_close.gt(0)
+        & exit_close.gt(0)
+        & close.gt(0)
+    )
+    features = features.loc[valid]
+    forward_return = forward_return.loc[valid]
+    if len(features) < n_windows * 10:
+        raise ValueError(
+            f"Need at least {n_windows * 10} valid observations for {n_windows} IC windows"
+        )
+
+    window_indices = [
+        part for part in np.array_split(np.arange(len(features)), n_windows) if len(part)
+    ]
+    rows: list[dict[str, Any]] = []
+    for factor in features.columns:
+        correlations: list[float] = []
+        for window_number, positions in enumerate(window_indices, start=1):
+            factor_values = features.iloc[list(positions)][factor]
+            returns = forward_return.iloc[list(positions)]
+            pair = pd.concat([factor_values, returns], axis=1).dropna()
+            ic = float(pair.iloc[:, 0].corr(pair.iloc[:, 1], method="spearman"))
+            if pd.isna(ic):
+                ic = float("nan")
+            correlations.append(ic)
+            ci_lower, ci_upper = _block_bootstrap_spearman_ic_interval(
+                pair.iloc[:, 0],
+                pair.iloc[:, 1],
+                n_bootstrap=n_bootstrap,
+                block_size=block_size,
+                confidence_level=confidence_level,
+                random_state=42 + window_number,
+            )
+            rows.append(
+                {
+                    "Factor": factor,
+                    "Window": window_number,
+                    "Window start": str(pair.index.min().date()) if not pair.empty else "",
+                    "Window end": str(pair.index.max().date()) if not pair.empty else "",
+                    "Observations": int(len(pair)),
+                    "Spearman IC": ic,
+                    "IC CI lower": ci_lower,
+                    "IC CI upper": ci_upper,
+                }
+            )
+        valid_ics = [value for value in correlations if pd.notna(value)]
+        summary = {
+            "Factor": factor,
+            "Window": "Summary",
+            "Window start": str(features.index.min().date()),
+            "Window end": str(features.index.max().date()),
+            "Observations": int(len(features)),
+            "Spearman IC": (float(sum(valid_ics) / len(valid_ics)) if valid_ics else float("nan")),
+            "IC CI lower": float("nan"),
+            "IC CI upper": float("nan"),
+            "IC standard deviation": (
+                float(pd.Series(valid_ics).std(ddof=0)) if valid_ics else float("nan")
+            ),
+            "Positive windows": int(sum(value > 0 for value in valid_ics)),
+            "Valid windows": int(len(valid_ics)),
+        }
+        rows.append(summary)
+    return pd.DataFrame(rows)
+
+
+def compare_mlp_configurations(
+    features: pd.DataFrame,
+    target: pd.Series,
+    *,
+    configurations: tuple[tuple[tuple[int, ...], float], ...] = (
+        ((8,), 0.01),
+        ((16,), 0.1),
+        ((16, 8), 0.1),
+        ((32, 16), 0.01),
+    ),
+    n_splits: int = 3,
+    horizon: int = 5,
+    random_state: int = 42,
+) -> pd.DataFrame:
+    """Compare MLP configurations on expanding chronological validation folds.
+
+    This reports validation diagnostics only. It does not select or deploy a
+    model automatically, and the final untouched test period must remain unused.
+    """
+    if not features.index.equals(target.index):        raise ValueError("features and target must have identical indexes")
+    if features.empty or target.empty:
+        raise ValueError("features and target must not be empty")
+    if n_splits < 2:
+        raise ValueError("n_splits must be at least 2")
+    if horizon < 1:
+        raise ValueError("horizon must be at least 1")
+    if not configurations:
+        raise ValueError("at least one MLP configuration is required")
+    for hidden_layers, alpha in configurations:
+        if not hidden_layers or any(width < 1 for width in hidden_layers):
+            raise ValueError("hidden layer sizes must be positive integers")
+        if alpha <= 0 or not np.isfinite(alpha):
+            raise ValueError("alpha must be finite and positive")
+
+    splitter = TimeSeriesSplit(n_splits=n_splits, gap=horizon + 1)
+    rows: list[dict[str, Any]] = []
+    for fold_number, (train_indices, test_indices) in enumerate(splitter.split(features), start=1):
+        X_train, X_test = features.iloc[train_indices], features.iloc[test_indices]
+        y_train, y_test = target.iloc[train_indices], target.iloc[test_indices]
+        if len(X_train) < 100 or len(X_test) < 30:
+            raise ValueError(
+                "MLP configuration validation needs at least 100 training and 30 test rows per fold"
+            )
+        if y_train.nunique() < 2:
+            raise ValueError(f"Fold {fold_number} training target contains only one class")
+        for config_number, (hidden_layers, alpha) in enumerate(configurations, start=1):
+            network = MLPClassifier(
+                hidden_layer_sizes=hidden_layers,
+                activation="relu",
+                alpha=float(alpha),
+                max_iter=300,
+                early_stopping=False,
+                random_state=random_state + fold_number,
+            )
+            model = _pipeline(network)
+            model.fit(X_train, y_train)
+            probabilities = model.predict_proba(X_test)[:, list(model.classes_).index(1)]
+            predicted = model.predict(X_test)
+            row = _score_row("MLP", y_test, predicted, probabilities)
+            row.update(
+                {
+                    "Brier score": float(np.mean((probabilities - y_test.to_numpy()) ** 2)),
+                    "Log loss": float(
+                        -np.mean(
+                            y_test.to_numpy() * np.log(np.clip(probabilities, 1e-15, 1 - 1e-15))
+                            + (1 - y_test.to_numpy())
+                            * np.log(np.clip(1 - probabilities, 1e-15, 1 - 1e-15))
+                        )
+                    ),
+                }
+            )
+            row.update(
+                {
+                    "Configuration": config_number,
+                    "Hidden layers": str(hidden_layers),
+                    "Alpha": float(alpha),
+                    "Fold": fold_number,
+                    "Train rows": int(len(X_train)),
+                    "Validation rows": int(len(X_test)),
+                    "Train end": str(features.index[train_indices[-1]].date()),
+                    "Validation start": str(features.index[test_indices[0]].date()),
+                    "Validation end": str(features.index[test_indices[-1]].date()),
+                    "Training iterations": int(network.n_iter_),
+                    "Reached iteration limit": bool(network.n_iter_ >= network.max_iter),
+                }
+            )
+            rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def summarize_mlp_configuration_results(results: pd.DataFrame) -> pd.DataFrame:
+    """Summarize MLP configuration metrics across chronological validation folds.
+
+    Fold means and dispersion are descriptive only; this helper does not choose
+    or deploy a model. The final untouched test period must remain separate.
+    """
+    required = {
+        "Configuration",
+        "Hidden layers",
+        "Alpha",
+        "Fold",
+        "Accuracy",
+        "Balanced accuracy",
+        "ROC-AUC",
+        "Brier score",
+        "Log loss",
+        "Training iterations",
+        "Reached iteration limit",
+    }
+    missing = sorted(required.difference(results.columns))
+    if missing:
+        raise ValueError("MLP configuration results missing columns: " + ", ".join(missing))
+    metrics = ["Accuracy", "Balanced accuracy", "ROC-AUC", "Brier score", "Log loss"]
+    output_columns = [
+        "Configuration",
+        "Hidden layers",
+        "Alpha",
+        "Folds",
+        *[f"{metric} {stat}" for metric in metrics for stat in ("mean", "std", "min", "max")],
+        "Iteration-limit folds",
+    ]
+    if results.empty:
+        return pd.DataFrame(columns=output_columns)
+
+    frame = results.copy()
+    for column in ["Configuration", "Fold", "Alpha", "Training iterations", *metrics]:
+        frame[column] = pd.to_numeric(frame[column], errors="coerce")
+    if frame[["Configuration", "Fold", "Alpha", "Training iterations"]].isna().any().any():
+        raise ValueError("configuration identifiers and training iterations must be numeric")
+    if not np.isfinite(
+        frame[["Configuration", "Fold", "Alpha", "Training iterations"]].to_numpy(dtype=float)
+    ).all():
+        raise ValueError("configuration identifiers and training iterations must be finite")
+    if (frame["Configuration"] < 1).any() or (frame["Fold"] < 1).any():
+        raise ValueError("configuration and fold numbers must be positive")
+    if (frame["Alpha"] <= 0).any() or (frame["Training iterations"] < 1).any():
+        raise ValueError("alpha and training iterations must be positive")
+    if frame.duplicated(["Configuration", "Fold"]).any():
+        raise ValueError("each configuration may have only one row per fold")
+    for metric in ["Accuracy", "Balanced accuracy", "Brier score"]:
+        values = frame[metric].dropna()
+        if not np.isfinite(values.to_numpy(dtype=float)).all() or not values.between(0, 1).all():
+            raise ValueError(f"{metric} must be finite and between 0 and 1")
+    auc = frame["ROC-AUC"].dropna()
+    if not np.isfinite(auc.to_numpy(dtype=float)).all() or not auc.between(0, 1).all():
+        raise ValueError("ROC-AUC must be finite and between 0 and 1 when defined")
+    loss = frame["Log loss"].dropna()
+    if not np.isfinite(loss.to_numpy(dtype=float)).all() or (loss < 0).any():
+        raise ValueError("Log loss must be finite and non-negative when defined")
+    if not frame["Reached iteration limit"].isin([True, False, 0, 1]).all():
+        raise ValueError("Reached iteration limit must contain boolean values")
+
+    rows: list[dict[str, Any]] = []
+    for (configuration, hidden_layers, alpha), group in frame.groupby(
+        ["Configuration", "Hidden layers", "Alpha"], sort=True, dropna=False
+    ):
+        row: dict[str, Any] = {
+            "Configuration": int(configuration),
+            "Hidden layers": str(hidden_layers),
+            "Alpha": float(alpha),
+            "Folds": int(group["Fold"].nunique()),
+            "Iteration-limit folds": int(group["Reached iteration limit"].astype(bool).sum()),
+        }
+        for metric in metrics:
+            values = group[metric].dropna()
+            row[f"{metric} mean"] = float(values.mean()) if not values.empty else float("nan")
+            row[f"{metric} std"] = (
+                float(values.std(ddof=1))
+                if len(values) > 1
+                else (0.0 if len(values) == 1 else float("nan"))
+            )
+            row[f"{metric} min"] = float(values.min()) if not values.empty else float("nan")
+            row[f"{metric} max"] = float(values.max()) if not values.empty else float("nan")
+        rows.append(row)
+    return pd.DataFrame(rows, columns=output_columns)
