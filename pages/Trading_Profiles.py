@@ -15,7 +15,9 @@ from services.trading_profile_store import (
 
 st.set_page_config(page_title="Trading Profiles", page_icon="🛡️", layout="wide")
 st.title("🛡️ Trading Profiles")
-st.caption("Save reusable risk settings locally. These profiles calculate research position sizes; they do not place orders.")
+st.caption(
+    "Save reusable risk settings locally. These profiles calculate research position sizes; they do not place orders."
+)
 
 try:
     names = list_profiles()
@@ -36,24 +38,76 @@ else:
 with st.form("trading_profile_form"):
     name = st.text_input("Profile name", value=profile.name, max_chars=80)
     c1, c2, c3 = st.columns(3)
-    style = c1.selectbox("Trading style", ["intraday", "swing", "positional", "long_term"], index=["intraday", "swing", "positional", "long_term"].index(profile.style))
-    exchange = c2.selectbox("Exchange", ["NSE", "BSE", "BOTH"], index=["NSE", "BSE", "BOTH"].index(profile.exchange))
+    style = c1.selectbox(
+        "Trading style",
+        ["intraday", "swing", "positional", "long_term"],
+        index=["intraday", "swing", "positional", "long_term"].index(profile.style),
+    )
+    exchange = c2.selectbox(
+        "Exchange", ["NSE", "BSE", "BOTH"], index=["NSE", "BSE", "BOTH"].index(profile.exchange)
+    )
     timeframe = c3.text_input("Timeframe", value=profile.timeframe)
     c1, c2, c3 = st.columns(3)
-    capital = c1.number_input("Capital (₹)", min_value=1.0, value=float(profile.capital), step=1000.0)
-    risk_mode = c2.selectbox("Risk mode", ["percent", "fixed"], index=["percent", "fixed"].index(profile.risk_mode))
-    risk_value = c3.number_input("Risk value (% or ₹)", min_value=0.01, value=float(profile.risk_value), step=0.1)
+    capital = c1.number_input(
+        "Capital (₹)", min_value=1.0, value=float(profile.capital), step=1000.0
+    )
+    risk_mode = c2.selectbox(
+        "Risk mode", ["percent", "fixed"], index=["percent", "fixed"].index(profile.risk_mode)
+    )
+    risk_value = c3.number_input(
+        "Risk value (% or ₹)", min_value=0.01, value=float(profile.risk_value), step=0.1
+    )
     c1, c2, c3 = st.columns(3)
-    max_daily_loss_pct = c1.number_input("Maximum daily loss (%)", min_value=0.01, max_value=100.0, value=float(profile.max_daily_loss_pct), step=0.25)
-    max_positions = c2.number_input("Maximum positions", min_value=1, max_value=100, value=int(profile.max_positions), step=1)
-    max_position_pct = c3.number_input("Maximum position (%)", min_value=0.01, max_value=100.0, value=float(profile.max_position_pct), step=1.0)
+    max_daily_loss_pct = c1.number_input(
+        "Maximum daily loss (%)",
+        min_value=0.01,
+        max_value=100.0,
+        value=float(profile.max_daily_loss_pct),
+        step=0.25,
+    )
+    max_positions = c2.number_input(
+        "Maximum positions", min_value=1, max_value=100, value=int(profile.max_positions), step=1
+    )
+    max_position_pct = c3.number_input(
+        "Maximum position (%)",
+        min_value=0.01,
+        max_value=100.0,
+        value=float(profile.max_position_pct),
+        step=1.0,
+    )
     c1, c2, c3 = st.columns(3)
-    max_exposure_pct = c1.number_input("Maximum exposure (%)", min_value=0.01, max_value=100.0, value=float(profile.max_exposure_pct), step=1.0)
-    cash_reserve_pct = c2.number_input("Cash reserve (%)", min_value=0.0, max_value=99.99, value=float(profile.cash_reserve_pct), step=1.0)
-    estimated_round_trip_cost_pct = c3.number_input("Estimated round-trip cost (%)", min_value=0.0, value=float(profile.estimated_round_trip_cost_pct), step=0.05)
+    max_exposure_pct = c1.number_input(
+        "Maximum exposure (%)",
+        min_value=0.01,
+        max_value=100.0,
+        value=float(profile.max_exposure_pct),
+        step=1.0,
+    )
+    cash_reserve_pct = c2.number_input(
+        "Cash reserve (%)",
+        min_value=0.0,
+        max_value=99.99,
+        value=float(profile.cash_reserve_pct),
+        step=1.0,
+    )
+    estimated_round_trip_cost_pct = c3.number_input(
+        "Estimated round-trip cost (%)",
+        min_value=0.0,
+        value=float(profile.estimated_round_trip_cost_pct),
+        step=0.05,
+    )
     c1, c2 = st.columns(2)
-    stop_mode = c1.selectbox("Stop policy", ["fixed", "percentage", "atr", "technical"], index=["fixed", "percentage", "atr", "technical"].index(profile.stop_mode))
-    stop_value = c2.number_input("Stop value (₹ / % / ATR multiple)", min_value=0.01, value=float(profile.stop_value), step=0.1)
+    stop_mode = c1.selectbox(
+        "Stop policy",
+        ["fixed", "percentage", "atr", "technical"],
+        index=["fixed", "percentage", "atr", "technical"].index(profile.stop_mode),
+    )
+    stop_value = c2.number_input(
+        "Stop value (₹ / % / ATR multiple)",
+        min_value=0.01,
+        value=float(profile.stop_value),
+        step=0.1,
+    )
     allow_short = st.checkbox("Allow short selling", value=bool(profile.allow_short))
     save_clicked = st.form_submit_button("Save profile", type="primary")
 
@@ -95,4 +149,6 @@ if names and selected != "New profile":
             st.success(f"Deleted '{selected}'.")
             st.rerun()
 
-st.info("Storage: local SQLite database. For persistent deployments, set TRADING_PROFILES_DATABASE_PATH to a durable writable path. Do not expose this single-user app publicly without adding authentication and per-user access controls.")
+st.info(
+    "Storage: local SQLite database. For persistent deployments, set TRADING_PROFILES_DATABASE_PATH to a durable writable path. Do not expose this single-user app publicly without adding authentication and per-user access controls."
+)
