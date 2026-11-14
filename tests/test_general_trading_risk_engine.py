@@ -67,9 +67,7 @@ def test_short_position_can_be_sized_when_enabled() -> None:
 
 def test_daily_loss_limit_blocks_new_positions() -> None:
     profile = TradingProfile(capital=100_000, max_daily_loss_pct=2)
-    plan = calculate_position_plan(
-        profile, entry_price=100, stop_price=95, daily_loss_so_far=2_000
-    )
+    plan = calculate_position_plan(profile, entry_price=100, stop_price=95, daily_loss_so_far=2_000)
     assert not plan.allowed
     assert "Daily loss limit" in plan.reason
 
