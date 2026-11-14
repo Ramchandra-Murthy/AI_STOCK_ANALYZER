@@ -1,4 +1,5 @@
 """General-purpose position sizing and pre-trade risk checks."""
+
 from __future__ import annotations
 
 import math
@@ -55,15 +56,31 @@ def calculate_position_plan(
     if side == "SHORT" and stop_price <= entry_price:
         raise ValueError("short stop_price must be above entry_price")
     if side == "SHORT" and not profile.allow_short:
-        return PositionPlan(0, profile.risk_budget, 0.0, 0.0, 0.0, side, False,
-                            "Short selling is disabled in this profile.")
+        return PositionPlan(
+            0,
+            profile.risk_budget,
+            0.0,
+            0.0,
+            0.0,
+            side,
+            False,
+            "Short selling is disabled in this profile.",
+        )
 
     cash = profile.capital if available_cash is None else float(available_cash)
     if not math.isfinite(cash) or cash < 0:
         raise ValueError("available_cash must be finite and non-negative")
     if daily_loss_so_far >= profile.daily_loss_limit:
-        return PositionPlan(0, profile.risk_budget, 0.0, 0.0, 0.0, side, False,
-                            "Daily loss limit has been reached.")
+        return PositionPlan(
+            0,
+            profile.risk_budget,
+            0.0,
+            0.0,
+            0.0,
+            side,
+            False,
+            "Daily loss limit has been reached.",
+        )
 
     stop_distance = abs(entry_price - stop_price)
     cost_per_unit = entry_price * profile.estimated_round_trip_cost_pct / 100.0
@@ -82,8 +99,16 @@ def calculate_position_plan(
     quantity_by_capital = math.floor(notional_room / entry_price)
     quantity = max(0, min(quantity_by_risk, quantity_by_capital))
     if quantity == 0:
-        return PositionPlan(0, risk_budget, 0.0, risk_per_unit, 0.0, side, False,
-                            "No quantity fits all configured risk and capital limits.")
+        return PositionPlan(
+            0,
+            risk_budget,
+            0.0,
+            risk_per_unit,
+            0.0,
+            side,
+            False,
+            "No quantity fits all configured risk and capital limits.",
+        )
 
     notional = quantity * entry_price
     estimated_loss = quantity * risk_per_unit
