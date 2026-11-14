@@ -5,18 +5,30 @@ from __future__ import annotations
 import pandas as pd
 
 from algorithmic_trading.pipeline import AlgorithmicAnalysis, analyze_symbol
+from algorithmic_trading.trading_profile import TradingProfile
 from services.resilient_market_data import download_market_frames
 
 
 def scan_universe(
     symbols: list[str],
     exchange: str,
-    capital: float,
+    capital: float | None = None,
     risk_fraction: float = 0.01,
     period: str = "1y",
     relative_periods: int = 20,
+    *,
+    profile: TradingProfile | None = None,
+    available_cash: float | None = None,
+    current_exposure: float = 0.0,
+    daily_loss_so_far: float = 0.0,
 ) -> pd.DataFrame:
-    """Run the transparent algorithmic pipeline across an exchange universe."""
+    """Run the exchange scanner with legacy sizing or a reusable risk profile.
+
+    When a profile is supplied, its capital and risk limits are used by the
+    shared analysis pipeline for every candidate. No orders are submitted.
+    """
+    if profile is None and capital is None:
+        raise ValueError("capital is required when no trading profile is supplied")
     exchange = exchange.upper()
     if exchange not in {"NSE", "BSE"}:
         raise ValueError("exchange must be NSE or BSE")
@@ -55,6 +67,10 @@ def scan_universe(
                 capital=capital,
                 risk_fraction=risk_fraction,
                 relative_periods=relative_periods,
+                profile=profile,
+                available_cash=available_cash,
+                current_exposure=current_exposure,
+                daily_loss_so_far=daily_loss_so_far,
             )
         except (TypeError, ValueError, IndexError):
             continue
@@ -106,6 +122,7 @@ def _row(
     frame: pd.DataFrame,
 ) -> dict[str, object]:
     close = pd.to_numeric(frame["Close"], errors="coerce").dropna()
+    risk_plan = getattr(result, "risk_plan", None)
     return {
         "symbol": result.symbol,
         "exchange": exchange,
@@ -118,6 +135,8 @@ def _row(
         "signal_score": result.signal.score,
         "quantity": result.position_size.quantity,
         "risk_budget": result.position_size.risk_budget,
+        "risk_allowed": risk_plan.allowed if risk_plan is not None else None,
+        "risk_reason": risk_plan.reason if risk_plan is not None else None,
     }
 
 
@@ -134,6 +153,8 @@ def _result_frame(rows: list[dict[str, object]]) -> pd.DataFrame:
         "signal_score",
         "quantity",
         "risk_budget",
+        "risk_allowed",
+        "risk_reason",
     ]
     if not rows:
         return pd.DataFrame(columns=columns)

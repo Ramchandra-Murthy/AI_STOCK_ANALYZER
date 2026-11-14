@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 from algorithmic_trading.pipeline import analyze_symbol
+from algorithmic_trading.trading_profile import TradingProfile
 
 
 def _market_frame() -> pd.DataFrame:
@@ -52,3 +53,63 @@ def test_pipeline_rejects_missing_close() -> None:
             None,
             capital=100_000,
         )
+
+
+def test_pipeline_uses_profile_risk_engine_and_exposes_plan() -> None:
+    frame = _market_frame()
+    profile = TradingProfile(
+        capital=100_000,
+        risk_value=1,
+        max_position_pct=50,
+        max_exposure_pct=80,
+        cash_reserve_pct=0,
+        stop_mode="percentage",
+        stop_value=2,
+        estimated_round_trip_cost_pct=0,
+    )
+
+    result = analyze_symbol(
+        "RELIANCE",
+        frame,
+        None,
+        profile=profile,
+        available_cash=60_000,
+        current_exposure=10_000,
+    )
+
+    assert result.risk_plan is not None
+    assert result.risk_plan.allowed
+    assert result.position_size.method == "profile_risk"
+    assert result.position_size.quantity == result.risk_plan.quantity
+    assert result.risk_plan.capital_required <= 50_000
+    assert result.risk_plan.estimated_loss_at_stop <= profile.risk_budget
+
+
+def test_profile_daily_loss_limit_blocks_pipeline_position() -> None:
+    frame = _market_frame()
+    profile = TradingProfile(
+        capital=100_000,
+        max_daily_loss_pct=2,
+        stop_mode="percentage",
+        stop_value=2,
+    )
+
+    result = analyze_symbol(
+        "RELIANCE",
+        frame,
+        None,
+        profile=profile,
+        daily_loss_so_far=2_000,
+    )
+
+    assert result.risk_plan is not None
+    assert not result.risk_plan.allowed
+    assert result.position_size.quantity == 0
+
+
+def test_profile_pipeline_requires_technical_stop() -> None:
+    frame = _market_frame()
+    profile = TradingProfile(stop_mode="technical")
+
+    with pytest.raises(ValueError, match="stop_price is required"):
+        analyze_symbol("RELIANCE", frame, None, profile=profile)
