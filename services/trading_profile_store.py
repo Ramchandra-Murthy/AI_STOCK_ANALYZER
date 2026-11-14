@@ -32,16 +32,14 @@ def _connect() -> sqlite3.Connection:
     connection = sqlite3.connect(path, timeout=10)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA busy_timeout = 10000")
-    connection.execute(
-        """
+    connection.execute("""
         CREATE TABLE IF NOT EXISTS trading_profiles (
             name TEXT PRIMARY KEY COLLATE NOCASE,
             profile_json TEXT NOT NULL,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
-        """
-    )
+        """)
     return connection
 
 
