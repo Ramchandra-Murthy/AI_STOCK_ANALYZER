@@ -3,6 +3,7 @@
 Profiles contain user preferences and limits; they do not encode a specific
 account size, risk amount, exchange, or holding period.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
