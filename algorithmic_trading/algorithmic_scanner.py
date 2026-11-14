@@ -122,6 +122,7 @@ def _row(
     frame: pd.DataFrame,
 ) -> dict[str, object]:
     close = pd.to_numeric(frame["Close"], errors="coerce").dropna()
+    risk_plan = getattr(result, "risk_plan", None)
     return {
         "symbol": result.symbol,
         "exchange": exchange,
@@ -134,8 +135,8 @@ def _row(
         "signal_score": result.signal.score,
         "quantity": result.position_size.quantity,
         "risk_budget": result.position_size.risk_budget,
-        "risk_allowed": result.risk_plan.allowed if result.risk_plan is not None else None,
-        "risk_reason": result.risk_plan.reason if result.risk_plan is not None else None,
+        "risk_allowed": risk_plan.allowed if risk_plan is not None else None,
+        "risk_reason": risk_plan.reason if risk_plan is not None else None,
     }
 
 
