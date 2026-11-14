@@ -10,7 +10,9 @@ from algorithmic_trading.edge_engine import EdgeMetrics, calculate_edge
 from algorithmic_trading.position_sizing import PositionSize, fixed_risk_size
 from algorithmic_trading.regime_engine import classify_regime, regime_score
 from algorithmic_trading.relative_strength import relative_return
+from algorithmic_trading.risk_engine import PositionPlan, calculate_position_plan
 from algorithmic_trading.signal_engine import SignalDecision, compose_signal
+from algorithmic_trading.trading_profile import TradingProfile
 
 
 @dataclass(frozen=True)
@@ -24,23 +26,73 @@ class AlgorithmicAnalysis:
     edge: EdgeMetrics | None
     signal: SignalDecision
     position_size: PositionSize
+    risk_plan: PositionPlan | None = None
+
+
+def _profile_stop_price(
+    profile: TradingProfile,
+    *,
+    entry_price: float,
+    side: str,
+    frame: pd.DataFrame,
+    supplied_stop: float | None,
+) -> float:
+    """Resolve a profile's stop policy into a concrete stop price."""
+    if supplied_stop is not None:
+        return float(supplied_stop)
+
+    if profile.stop_mode == "technical":
+        raise ValueError("stop_price is required when stop_mode is 'technical'")
+
+    if profile.stop_mode == "fixed":
+        distance = float(profile.stop_value)
+    elif profile.stop_mode == "percentage":
+        distance = entry_price * float(profile.stop_value) / 100.0
+    else:
+        required = {"High", "Low", "Close"}
+        if not required.issubset(frame.columns):
+            raise ValueError("ATR stop mode requires High, Low and Close columns")
+        high = pd.to_numeric(frame["High"], errors="coerce")
+        low = pd.to_numeric(frame["Low"], errors="coerce")
+        close = pd.to_numeric(frame["Close"], errors="coerce")
+        true_range = pd.concat(
+            [
+                high - low,
+                (high - close.shift()).abs(),
+                (low - close.shift()).abs(),
+            ],
+            axis=1,
+        ).max(axis=1)
+        atr = true_range.rolling(window=14, min_periods=14).mean().iloc[-1]
+        if pd.isna(atr) or float(atr) <= 0:
+            raise ValueError("not enough valid bars to calculate the profile ATR stop")
+        distance = float(atr) * float(profile.stop_value)
+
+    return entry_price - distance if side == "LONG" else entry_price + distance
 
 
 def analyze_symbol(
     symbol: str,
     frame: pd.DataFrame,
     benchmark: pd.Series | None,
-    capital: float,
+    capital: float | None = None,
     risk_fraction: float = 0.01,
     stop_price: float | None = None,
     historical_trade_returns: pd.Series | None = None,
     min_expectancy: float = 0.0,
     relative_periods: int = 20,
+    *,
+    profile: TradingProfile | None = None,
+    available_cash: float | None = None,
+    current_exposure: float = 0.0,
+    daily_loss_so_far: float = 0.0,
 ) -> AlgorithmicAnalysis:
-    """Run the existing algorithmic components as one transparent pipeline.
+    """Run the research pipeline and optionally apply profile-based risk controls.
 
-    Market data is supplied by the caller so this layer remains independent
-    of any broker or data vendor.
+    Existing callers retain the legacy fixed-risk sizing path. Supplying a
+    TradingProfile activates the reusable risk engine, including cash reserve,
+    position/exposure caps, estimated round-trip costs and daily loss limits.
+    This function is analytics-only and never places broker orders.
     """
     if not symbol.strip():
         raise ValueError("symbol must not be empty")
@@ -48,7 +100,7 @@ def analyze_symbol(
         raise ValueError("frame must contain Close data")
 
     current_price = float(pd.to_numeric(frame["Close"], errors="coerce").iloc[-1])
-    if current_price <= 0:
+    if not pd.notna(current_price) or current_price <= 0:
         raise ValueError("latest close must be greater than zero")
 
     score = regime_score(frame)
@@ -74,34 +126,65 @@ def analyze_symbol(
         min_expectancy=min_expectancy,
     )
 
-    effective_stop = stop_price
-    if effective_stop is None and signal.direction in {"LONG", "SHORT"}:
-        high = pd.to_numeric(frame["High"], errors="coerce")
-        low = pd.to_numeric(frame["Low"], errors="coerce")
-        close = pd.to_numeric(frame["Close"], errors="coerce")
-        true_range = pd.concat(
-            [
-                high - low,
-                (high - close.shift()).abs(),
-                (low - close.shift()).abs(),
-            ],
-            axis=1,
-        ).max(axis=1)
-        atr = true_range.rolling(window=14, min_periods=14).mean().iloc[-1]
-        if pd.notna(atr) and float(atr) > 0:
-            stop_distance = float(atr) * 1.5
-            effective_stop = (
-                current_price - stop_distance
-                if signal.direction == "LONG"
-                else current_price + stop_distance
+    direction = signal.direction
+    risk_plan = None
+    if profile is not None:
+        if direction not in {"LONG", "SHORT"}:
+            position_size = PositionSize(0, 0.0, 0.0, "profile_risk")
+        else:
+            resolved_stop = _profile_stop_price(
+                profile,
+                entry_price=current_price,
+                side=direction,
+                frame=frame,
+                supplied_stop=stop_price,
             )
+            risk_plan = calculate_position_plan(
+                profile,
+                entry_price=current_price,
+                stop_price=resolved_stop,
+                side=direction,
+                available_cash=available_cash,
+                current_exposure=current_exposure,
+                daily_loss_so_far=daily_loss_so_far,
+            )
+            position_size = PositionSize(
+                quantity=risk_plan.quantity,
+                risk_budget=risk_plan.risk_budget,
+                risk_per_share=risk_plan.risk_per_unit,
+                method="profile_risk",
+            )
+    else:
+        if capital is None:
+            raise ValueError("capital is required when no trading profile is supplied")
+        effective_stop = stop_price
+        if effective_stop is None and direction in {"LONG", "SHORT"}:
+            high = pd.to_numeric(frame["High"], errors="coerce")
+            low = pd.to_numeric(frame["Low"], errors="coerce")
+            close = pd.to_numeric(frame["Close"], errors="coerce")
+            true_range = pd.concat(
+                [
+                    high - low,
+                    (high - close.shift()).abs(),
+                    (low - close.shift()).abs(),
+                ],
+                axis=1,
+            ).max(axis=1)
+            atr = true_range.rolling(window=14, min_periods=14).mean().iloc[-1]
+            if pd.notna(atr) and float(atr) > 0:
+                stop_distance = float(atr) * 1.5
+                effective_stop = (
+                    current_price - stop_distance
+                    if direction == "LONG"
+                    else current_price + stop_distance
+                )
 
-    position_size = fixed_risk_size(
-        capital=capital,
-        risk_fraction=risk_fraction,
-        entry_price=current_price,
-        stop_price=effective_stop if effective_stop is not None else current_price,
-    )
+        position_size = fixed_risk_size(
+            capital=capital,
+            risk_fraction=risk_fraction,
+            entry_price=current_price,
+            stop_price=effective_stop if effective_stop is not None else current_price,
+        )
 
     return AlgorithmicAnalysis(
         symbol=symbol,
@@ -111,4 +194,5 @@ def analyze_symbol(
         edge=edge,
         signal=signal,
         position_size=position_size,
+        risk_plan=risk_plan,
     )
