@@ -259,7 +259,8 @@ def test_walk_forward_stability_summary_reports_per_model_dispersion() -> None:
     assert result.loc["MLP", "Accuracy mean"] == pytest.approx(0.7)
     assert result.loc["MLP", "Accuracy std"] == pytest.approx(0.1)
     assert result.loc["MLP", "Accuracy min"] == pytest.approx(0.6)
-    assert result.loc["MLP", "Accuracy max"] == pytest.approx(0.8)    assert result.loc["MLP", "ROC-AUC mean"] == pytest.approx(0.71)
+    assert result.loc["MLP", "Accuracy max"] == pytest.approx(0.8)
+    assert result.loc["MLP", "ROC-AUC mean"] == pytest.approx(0.71)
     assert result.loc["MLP", "ROC-AUC std"] == pytest.approx(np.std([0.61, 0.81], ddof=1))
 
 
@@ -508,7 +509,8 @@ def test_permutation_feature_sensitivity_ranks_features_and_is_reproducible() ->
     data = sample_ohlcv(rows=260)
     features, target = build_direction_dataset(data, horizon=3)
     split = int(len(features) * 0.70)
-    X_train, X_test = features.iloc[:split], features.iloc[split:]    y_train, y_test = target.iloc[:split], target.iloc[split:]
+    X_train, X_test = features.iloc[:split], features.iloc[split:]
+    y_train, y_test = target.iloc[:split], target.iloc[split:]
     model = Pipeline(
         [
             ("imputer", SimpleImputer(strategy="median")),
