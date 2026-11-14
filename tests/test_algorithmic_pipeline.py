@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 from algorithmic_trading.pipeline import analyze_symbol
+from algorithmic_trading.trading_profile import TradingProfile
 
 
 def _market_frame() -> pd.DataFrame:
@@ -52,9 +53,6 @@ def test_pipeline_rejects_missing_close() -> None:
             None,
             capital=100_000,
         )
-
-
-from algorithmic_trading.trading_profile import TradingProfile
 
 
 def test_pipeline_uses_profile_risk_engine_and_exposes_plan() -> None:
