@@ -499,44 +499,57 @@ def test_coverage_diagnostics_handle_empty_universe():
     assert stats["no_usable_data_count"] == 0
 
 
-def test_chunk_download_retries_empty_response_then_succeeds(monkeypatch):
+def test_chunk_download_uses_shared_bounded_market_data(monkeypatch):
     import scanner.day_trader_opportunity as scanner
 
-    calls = []
-    expected = pd.DataFrame({"Close": [100.0]})
+    calls = {}
+    frame = pd.DataFrame(
+        {
+            "Open": [99.0],
+            "High": [101.0],
+            "Low": [98.0],
+            "Close": [100.0],
+            "Volume": [1000],
+        },
+        index=pd.DatetimeIndex(["2026-11-12 10:00:00"]),
+    )
 
-    def fake_download(**kwargs):
-        calls.append(kwargs)
-        return pd.DataFrame() if len(calls) == 1 else expected
+    def fake_download(tickers, **kwargs):
+        calls["tickers"] = tickers
+        calls.update(kwargs)
+        return {"ABC.NS": frame}, []
 
-    monkeypatch.setattr(scanner.yf, "download", fake_download)
-    monkeypatch.setattr(scanner.time, "sleep", lambda _delay: None)
+    monkeypatch.setattr(scanner, "download_symbol_frames", fake_download)
 
     result, attempts = scanner._download_chunk_with_retry(["ABC.NS"], "5m")
 
-    assert result.equals(expected)
-    assert attempts == 2
-    assert len(calls) == 2
-    assert calls[-1]["timeout"] == 15
+    assert scanner._frame(result, "ABC.NS").equals(frame)
+    assert attempts == 1
+    assert calls["tickers"] == ["ABC.NS"]
+    assert calls["period"] == "1d"
+    assert calls["interval"] == "5m"
+    assert calls["recover_missing"] is False
+    assert calls["max_workers"] == 1
+    assert calls["timeout"] == 15
 
 
-def test_chunk_download_stops_after_bounded_failures(monkeypatch):
+def test_chunk_download_reports_unavailable_shared_data(monkeypatch):
     import scanner.day_trader_opportunity as scanner
 
-    calls = []
+    calls = {}
 
-    def fake_download(**_kwargs):
-        calls.append(True)
-        raise TimeoutError("provider timeout")
+    def fake_download(tickers, **kwargs):
+        calls["tickers"] = tickers
+        calls.update(kwargs)
+        return {}, list(tickers)
 
-    monkeypatch.setattr(scanner.yf, "download", fake_download)
-    monkeypatch.setattr(scanner.time, "sleep", lambda _delay: None)
+    monkeypatch.setattr(scanner, "download_symbol_frames", fake_download)
 
-    result, attempts = scanner._download_chunk_with_retry(["ABC.NS"], "5m")
+    result, attempts = scanner._download_chunk_with_retry(["ABC.NS"], "1m")
 
     assert result.empty
     assert attempts == scanner.CHUNK_DOWNLOAD_ATTEMPTS
-    assert len(calls) == scanner.CHUNK_DOWNLOAD_ATTEMPTS
+    assert calls["recover_missing"] is False
 
 
 def test_scan_provider_data_contract_detects_all_failed_chunks():
