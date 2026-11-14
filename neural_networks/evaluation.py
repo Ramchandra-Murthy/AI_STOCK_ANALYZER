@@ -153,14 +153,24 @@ def walk_forward_evaluation(
     random_state: int = 42,
     horizon: int = 5,
 ) -> pd.DataFrame:
-    """Evaluate baselines on future folds with a horizon-aware embargo."""
+    """Compare probability and classification baselines on purged future folds.
+
+    Every fold fits preprocessing and learned models on earlier observations
+    only. The horizon-aware gap removes training labels whose forward outcome
+    could overlap the test window. A training-prevalence forecast is included
+    as a probability benchmark; it never uses test labels.
+    """
     if not features.index.equals(target.index):
         raise ValueError("features and target must have identical indexes")
+    if not features.index.is_unique or not features.index.is_monotonic_increasing:
+        raise ValueError("features must have a unique chronological index")
     if n_splits < 2:
         raise ValueError("n_splits must be at least 2")
     if horizon < 1:
         raise ValueError("horizon must be at least 1")
-    # Exclude boundary rows whose forward outcome could reach into the test fold.
+    if target.isna().any() or not target.isin([0, 1]).all():
+        raise ValueError("target must contain only non-null binary labels")
+
     splitter = TimeSeriesSplit(n_splits=n_splits, gap=horizon + 1)
     rows: list[dict[str, Any]] = []
     for fold_number, (train_indices, test_indices) in enumerate(splitter.split(features), start=1):
@@ -172,6 +182,7 @@ def walk_forward_evaluation(
             )
         if y_train.nunique() < 2:
             raise ValueError(f"Fold {fold_number} training target contains only one class")
+
         models = [
             (
                 "Majority-class",
@@ -188,22 +199,39 @@ def walk_forward_evaluation(
             ),
             ("MLP", _mlp(random_state + fold_number)),
         ]
+        fold_rows: list[dict[str, Any]] = []
         for name, model in models:
             model.fit(X_train, y_train)
             predicted = model.predict(X_test)
             probability_up = None
-            if hasattr(model, "predict_proba") and 1 in model.classes_:
+            if name != "Majority-class" and hasattr(model, "predict_proba") and 1 in model.classes_:
                 probability_up = model.predict_proba(X_test)[:, list(model.classes_).index(1)]
-            row = _score_row(name, y_test, predicted, probability_up)
+            fold_rows.append(_score_row(name, y_test, predicted, probability_up))
+
+        prevalence = float(y_train.mean())
+        prevalence_probabilities = np.full(len(y_test), prevalence, dtype=float)
+        prevalence_predictions = (prevalence_probabilities >= 0.5).astype(int)
+        fold_rows.append(
+            _score_row(
+                "Training-prevalence probability baseline",
+                y_test,
+                prevalence_predictions,
+                prevalence_probabilities,
+            )
+        )
+
+        for row in fold_rows:
             row.update(
                 {
                     "Fold": fold_number,
-                    "Train start": str(features.index[train_indices[0]].date()),
-                    "Train end": str(features.index[train_indices[-1]].date()),
-                    "Test start": str(features.index[test_indices[0]].date()),
-                    "Test end": str(features.index[test_indices[-1]].date()),
+                    "Train start": str(X_train.index[0].date()),
+                    "Train end": str(X_train.index[-1].date()),
+                    "Test start": str(X_test.index[0].date()),
+                    "Test end": str(X_test.index[-1].date()),
                     "Train rows": len(train_indices),
                     "Test rows": len(test_indices),
+                    "Train positive rate": prevalence,
+                    "Test positive rate": float(y_test.mean()),
                 }
             )
             rows.append(row)

@@ -110,18 +110,30 @@ def test_baseline_comparison_and_walk_forward_preserve_chronology() -> None:
     assert prevalence["Brier score"] == pytest.approx(expected_brier)
 
     walk_forward = walk_forward_evaluation(features, target, n_splits=3, horizon=5)
-    assert len(walk_forward) == 9
+    assert len(walk_forward) == 12
     assert set(walk_forward["Model"]) == {
         "Majority-class",
         "Logistic regression",
         "MLP",
+        "Training-prevalence probability baseline",
     }
     assert (walk_forward["Train end"] < walk_forward["Test start"]).all()
+    assert walk_forward.groupby("Fold")["Model"].nunique().eq(4).all()
+    assert walk_forward["Accuracy"].between(0, 1).all()
+    assert walk_forward["Train positive rate"].between(0, 1).all()
+    assert walk_forward["Test positive rate"].between(0, 1).all()
+    prevalence_rows = walk_forward[
+        walk_forward["Model"] == "Training-prevalence probability baseline"
+    ]
+    for _, row in prevalence_rows.iterrows():
+        expected = float(target.loc[: pd.Timestamp(row["Train end"])].mean())
+        assert row["Train positive rate"] == pytest.approx(expected)
+        assert row["Brier score"] >= 0
+        assert row["Log loss"] >= 0
     for _, fold in walk_forward.groupby("Fold"):
         train_end = pd.Timestamp(fold["Train end"].iloc[0])
         test_start = pd.Timestamp(fold["Test start"].iloc[0])
         assert (test_start - train_end).days >= 8
-    assert walk_forward["Accuracy"].between(0, 1).all()
 
 
 def test_cost_aware_backtest_uses_non_overlapping_trades_and_costs() -> None:
