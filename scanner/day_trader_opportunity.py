@@ -1,40 +1,42 @@
 """Intraday opportunity screening for momentum and low-priced stocks.
 
 The scanner ranks observable intraday conditions; it does not predict profits or
-provide guaranteed trade signals. The All caps universe is built from the current dynamic NSE and BSE equity
-lists. Provider coverage is reported separately; a listed symbol is not assumed
-to have a usable intraday quote.
+provide guaranteed trade signals. The interactive All caps scan uses a bounded curated NSE+BSE universe for
+responsiveness. Provider coverage is reported separately; a listed symbol is
+not assumed to have a usable intraday quote.
 """
 
 from __future__ import annotations
 
+import time
 from time import perf_counter
 from typing import Any
 
 import pandas as pd
+import yfinance as yf
 
 from scanner.day_trading_strategy import (
     analyze_day_trade_setup,
     calculate_day_trade_plan,
     classify_day_trade_plan_state,
 )
-from scanner.dynamic_universe import (
-    merge_bse_universe,
-    merge_nse_universe,
-    yahoo_symbol_for_bse_code,
-)
+from scanner.dynamic_universe import yahoo_symbol_for_bse_code
 from scanner.surveillance import (
     apply_safety_filter,
     fetch_nse_safety_snapshot,
     liquidity_warning,
 )
-from scanner.universe import bse_candidates_for_nse_symbols
+from scanner.universe import (
+    BSE_CANDIDATES,
+    NSE_CANDIDATES,
+    bse_candidates_for_nse_symbols,
+)
 from scanner.unusual_activity import CAP_UNIVERSES
 from services.intraday_vwap_orb import vwap_orb_metrics
-from services.resilient_market_data import download_symbol_frames
 
 CHUNK_SIZE = 100
 CHUNK_DOWNLOAD_ATTEMPTS = 3
+MAX_FAST_UNIVERSE = 200
 CHUNK_RETRY_BACKOFF_SECONDS = (0.5, 1.0)
 
 
@@ -42,31 +44,31 @@ def _download_chunk_with_retry(
     tickers: list[str],
     interval: str,
 ) -> tuple[pd.DataFrame, int]:
-    """Download one intraday chunk through the shared bounded Yahoo service.
+    """Download one ticker chunk with bounded retries and threaded yfinance.
 
-    The shared service owns retry limits, concurrency, caching, circuit-breaker
-    protection, and missing-symbol diagnostics. Recovery is disabled here so a
-    large scan never turns one batch into hundreds of serial requests.
+    Threaded symbol downloads keep each 100-symbol batch concurrent. Retries
+    apply to both exceptions and empty provider responses.
     """
-    frames, missing = download_symbol_frames(
-        tickers,
-        period="1d",
-        interval=interval,
-        auto_adjust=False,
-        batch_size=max(1, len(tickers)),
-        timeout=15,
-        retries=CHUNK_DOWNLOAD_ATTEMPTS - 1,
-        recover_missing=False,
-        max_workers=1,
-    )
-    if not frames:
-        return pd.DataFrame(), CHUNK_DOWNLOAD_ATTEMPTS
-
-    # Preserve the existing _frame() extraction contract while keeping each
-    # symbol's OHLCV columns independently addressable.
-    history = pd.concat(frames, axis=1)
-    attempts = 1 if not missing else CHUNK_DOWNLOAD_ATTEMPTS
-    return history, attempts
+    for attempt in range(1, CHUNK_DOWNLOAD_ATTEMPTS + 1):
+        try:
+            history = yf.download(
+                tickers=tickers,
+                period="1d",
+                interval=interval,
+                progress=False,
+                auto_adjust=False,
+                group_by="ticker",
+                threads=True,
+                timeout=15,
+            )
+            if history is not None and not history.empty:
+                return history, attempt
+        except Exception:
+            if attempt == CHUNK_DOWNLOAD_ATTEMPTS:
+                return pd.DataFrame(), attempt
+        if attempt < CHUNK_DOWNLOAD_ATTEMPTS:
+            time.sleep(CHUNK_RETRY_BACKOFF_SECONDS[attempt - 1])
+    return pd.DataFrame(), CHUNK_DOWNLOAD_ATTEMPTS
 
 
 def summarize_day_trading_setup(strategy: dict[str, Any]) -> dict[str, Any]:
@@ -115,24 +117,24 @@ def select_day_trader_universe(
     cap_category: str = "All caps",
     exchange_category: str = "Both",
 ) -> list[tuple[str, str]]:
-    """Return the selected candidate universe, using live NSE/BSE lists for All caps."""
+    """Return a bounded curated NSE/BSE universe for responsive intraday scans."""
     if cap_category not in {"All caps", *CAP_UNIVERSES}:
+        return []
+    if exchange_category not in {"NSE", "BSE", "Both"}:
         return []
     exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
     if cap_category == "All caps":
-        # All caps means the complete current exchange equity lists, not a
-        # curated large-cap shortlist. Keep exchange membership separate so
-        # duplicate company listings on NSE and BSE remain independently scannable.
-        universe = [(symbol, "NSE") for symbol in merge_nse_universe()]
-        universe.extend((symbol, "BSE") for symbol in merge_bse_universe())
+        # The 7 Oct 2026 fast path intentionally avoids thousands of illiquid
+        # symbols. Keep the maintained NSE/BSE candidate baskets and cap the
+        # combined scan at 200 symbols.
+        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES]
+        universe.extend((symbol, "BSE") for symbol in BSE_CANDIDATES)
     else:
-        # Named cap baskets are maintained research subsets. Users selecting
-        # All caps receive the full dynamic exchange universe above.
         selected = CAP_UNIVERSES[cap_category]
-        universe = [(symbol, "NSE") for symbol in merge_nse_universe() if symbol in selected]
+        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
         universe.extend((symbol, "BSE") for symbol in bse_candidates_for_nse_symbols(selected))
     filtered = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
-    return sorted(set(filtered), key=lambda item: (item[1], item[0]))
+    return sorted(set(filtered), key=lambda item: (item[1], item[0]))[:MAX_FAST_UNIVERSE]
 
 
 def _add_coverage_diagnostics(stats: dict[str, Any]) -> dict[str, Any]:
