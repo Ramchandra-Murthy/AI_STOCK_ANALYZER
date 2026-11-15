@@ -496,9 +496,7 @@ def test_chunk_download_uses_threaded_yfinance(monkeypatch):
 
     calls = {}
     index = pd.DatetimeIndex(["2026-11-12 10:00:00"])
-    columns = pd.MultiIndex.from_product(
-        [["ABC.NS"], ["Open", "High", "Low", "Close", "Volume"]]
-    )
+    columns = pd.MultiIndex.from_product([["ABC.NS"], ["Open", "High", "Low", "Close", "Volume"]])
     history = pd.DataFrame([[99.0, 101.0, 98.0, 100.0, 1000]], index=index, columns=columns)
 
     def fake_download(**kwargs):
