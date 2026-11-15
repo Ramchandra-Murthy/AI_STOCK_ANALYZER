@@ -1,9 +1,9 @@
 """Intraday opportunity screening for momentum and low-priced stocks.
 
 The scanner ranks observable intraday conditions; it does not predict profits or
-provide guaranteed trade signals. The All caps universe is built from the current dynamic NSE and BSE equity
-lists. Provider coverage is reported separately; a listed symbol is not assumed
-to have a usable intraday quote.
+provide guaranteed trade signals. The interactive All caps scan uses a bounded curated NSE+BSE universe for
+responsiveness. Provider coverage is reported separately; a listed symbol is
+not assumed to have a usable intraday quote.
 """
 
 from __future__ import annotations
@@ -26,7 +26,11 @@ from scanner.surveillance import (
     fetch_nse_safety_snapshot,
     liquidity_warning,
 )
-from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES, bse_candidates_for_nse_symbols
+from scanner.universe import (
+    BSE_CANDIDATES,
+    NSE_CANDIDATES,
+    bse_candidates_for_nse_symbols,
+)
 from scanner.unusual_activity import CAP_UNIVERSES
 from services.intraday_vwap_orb import vwap_orb_metrics
 
