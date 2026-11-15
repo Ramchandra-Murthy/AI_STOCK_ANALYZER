@@ -112,25 +112,17 @@ def test_candle_settings_keep_fine_windows_on_one_minute_data():
     assert _candle_settings(3) == ("1m", 3)
 
 
-def test_all_caps_uses_complete_dynamic_exchange_universe(monkeypatch):
-    import scanner.day_trader_opportunity as scanner
-
-    monkeypatch.setattr(scanner, "merge_nse_universe", lambda: ["RELIANCE", "MIDCAP1", "SMALLCAP1"])
-    monkeypatch.setattr(scanner, "merge_bse_universe", lambda: ["500325", "540000", "590000"])
-
+def test_all_caps_uses_bounded_curated_exchange_universe():
     universe = select_day_trader_universe("All caps", "Both")
-
-    assert len(universe) == 6
+    assert universe
+    assert len(universe) <= 200
     assert ("RELIANCE", "NSE") in universe
-    assert ("MIDCAP1", "NSE") in universe
-    assert ("SMALLCAP1", "NSE") in universe
-    assert ("540000", "BSE") in universe
-    assert ("590000", "BSE") in universe
-    assert select_day_trader_universe("All caps", "NSE") == [
-        ("MIDCAP1", "NSE"),
-        ("RELIANCE", "NSE"),
-        ("SMALLCAP1", "NSE"),
-    ]
+    assert ("500325", "BSE") in universe
+    assert all(exchange in {"NSE", "BSE"} for _, exchange in universe)
+
+    nse_only = select_day_trader_universe("All caps", "NSE")
+    assert nse_only
+    assert all(exchange == "NSE" for _, exchange in nse_only)
 
 
 def test_score_combines_opportunity_and_setup_scores():
