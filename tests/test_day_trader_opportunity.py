@@ -491,57 +491,51 @@ def test_coverage_diagnostics_handle_empty_universe():
     assert stats["no_usable_data_count"] == 0
 
 
-def test_chunk_download_uses_shared_bounded_market_data(monkeypatch):
+def test_chunk_download_uses_threaded_yfinance(monkeypatch):
     import scanner.day_trader_opportunity as scanner
 
     calls = {}
-    frame = pd.DataFrame(
-        {
-            "Open": [99.0],
-            "High": [101.0],
-            "Low": [98.0],
-            "Close": [100.0],
-            "Volume": [1000],
-        },
-        index=pd.DatetimeIndex(["2026-11-12 10:00:00"]),
+    index = pd.DatetimeIndex(["2026-11-12 10:00:00"])
+    columns = pd.MultiIndex.from_product(
+        [["ABC.NS"], ["Open", "High", "Low", "Close", "Volume"]]
     )
+    history = pd.DataFrame([[99.0, 101.0, 98.0, 100.0, 1000]], index=index, columns=columns)
 
-    def fake_download(tickers, **kwargs):
-        calls["tickers"] = tickers
+    def fake_download(**kwargs):
         calls.update(kwargs)
-        return {"ABC.NS": frame}, []
+        return history
 
-    monkeypatch.setattr(scanner, "download_symbol_frames", fake_download)
+    monkeypatch.setattr(scanner.yf, "download", fake_download)
 
     result, attempts = scanner._download_chunk_with_retry(["ABC.NS"], "5m")
 
-    assert scanner._frame(result, "ABC.NS").equals(frame)
+    assert scanner._frame(result, "ABC.NS").equals(scanner._frame(history, "ABC.NS"))
     assert attempts == 1
     assert calls["tickers"] == ["ABC.NS"]
     assert calls["period"] == "1d"
     assert calls["interval"] == "5m"
-    assert calls["recover_missing"] is False
-    assert calls["max_workers"] == 1
+    assert calls["threads"] is True
     assert calls["timeout"] == 15
 
 
-def test_chunk_download_reports_unavailable_shared_data(monkeypatch):
+def test_chunk_download_retries_empty_yfinance_responses(monkeypatch):
     import scanner.day_trader_opportunity as scanner
 
-    calls = {}
+    calls = []
 
-    def fake_download(tickers, **kwargs):
-        calls["tickers"] = tickers
-        calls.update(kwargs)
-        return {}, list(tickers)
+    def fake_download(**kwargs):
+        calls.append(kwargs)
+        return pd.DataFrame()
 
-    monkeypatch.setattr(scanner, "download_symbol_frames", fake_download)
+    monkeypatch.setattr(scanner.yf, "download", fake_download)
+    monkeypatch.setattr(scanner.time, "sleep", lambda _seconds: None)
 
     result, attempts = scanner._download_chunk_with_retry(["ABC.NS"], "1m")
 
     assert result.empty
     assert attempts == scanner.CHUNK_DOWNLOAD_ATTEMPTS
-    assert calls["recover_missing"] is False
+    assert len(calls) == scanner.CHUNK_DOWNLOAD_ATTEMPTS
+    assert all(call["threads"] is True for call in calls)
 
 
 def test_scan_provider_data_contract_detects_all_failed_chunks():
