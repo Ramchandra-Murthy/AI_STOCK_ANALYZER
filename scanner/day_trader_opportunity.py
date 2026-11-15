@@ -70,6 +70,7 @@ def _download_chunk_with_retry(
             time.sleep(CHUNK_RETRY_BACKOFF_SECONDS[attempt - 1])
     return pd.DataFrame(), CHUNK_DOWNLOAD_ATTEMPTS
 
+
 def summarize_day_trading_setup(strategy: dict[str, Any]) -> dict[str, Any]:
     """Convert setup-engine conditions into concise scanner evidence."""
     long_score = strategy["Long setup score"]
@@ -131,12 +132,10 @@ def select_day_trader_universe(
     else:
         selected = CAP_UNIVERSES[cap_category]
         universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
-        universe.extend(
-            (symbol, "BSE")
-            for symbol in bse_candidates_for_nse_symbols(selected)
-        )
+        universe.extend((symbol, "BSE") for symbol in bse_candidates_for_nse_symbols(selected))
     filtered = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
     return sorted(set(filtered), key=lambda item: (item[1], item[0]))[:MAX_FAST_UNIVERSE]
+
 
 def _add_coverage_diagnostics(stats: dict[str, Any]) -> dict[str, Any]:
     """Add explicit universe-resolution and usable-data coverage metrics."""
