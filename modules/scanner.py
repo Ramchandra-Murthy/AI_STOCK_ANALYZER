@@ -19,7 +19,6 @@ def _normalize_broad_market_confidence(df: pd.DataFrame) -> pd.DataFrame:
     return result
 
 
-
 def _live_intraday_rows(df: pd.DataFrame) -> pd.DataFrame:
     """Keep only rows with an explicit, timestamped live quote and valid price."""
     required = {
@@ -34,11 +33,14 @@ def _live_intraday_rows(df: pd.DataFrame) -> pd.DataFrame:
     live = df["Tick Live"].map(
         lambda value: value is True or str(value).strip().casefold() == "true"
     )
-    status = df["Observation Status"].astype(str).str.strip().str.upper().eq("LIVE QUOTE")
+    status = (
+        df["Observation Status"].astype(str).str.strip().str.upper().eq("LIVE QUOTE")
+    )
     observed = pd.to_datetime(df["Observed At"], errors="coerce", utc=True)
     price = pd.to_numeric(df["Latest Observation Price"], errors="coerce")
     valid = observed.notna() & price.gt(0) & price.map(math.isfinite)
     return df.loc[live & status & valid].copy()
+
 
 def _show_data_quality(df: pd.DataFrame) -> None:
     """Show transparent checks for the rows returned by the scanner."""
