@@ -7,12 +7,15 @@ Provider availability and timestamps are surfaced rather than inferred.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import UTC, datetime
+import json
+import time
+from dataclasses import dataclass
+from http.cookiejar import CookieJar
+from urllib.error import HTTPError
+from urllib.request import HTTPCookieProcessor, Request, build_opener
 
 import pandas as pd
 import yfinance as yf
-from curl_cffi import requests as curl_requests
 
 from services.dhan_market_data import DhanCredentials, DhanMarketData
 
@@ -29,20 +32,18 @@ DHAN_OPTION_UNDERLYINGS = {
 }
 
 NSE_HOME_URL = "https://www.nseindia.com/"
-NSE_OPTION_CHAIN_PAGE_URL = "https://www.nseindia.com/option-chain"
-NSE_ALL_INDICES_URL = "https://www.nseindia.com/api/allIndices"
-NSE_OPTION_CHAIN_URL = "https://www.nseindia.com/api/option-chain-v3"
-NSE_OPTION_CHAIN_CONTRACT_INFO_URL = "https://www.nseindia.com/api/option-chain-contract-info"
+NSE_OPTION_CHAIN_URL = "https://www.nseindia.com/api/option-chain-indices"
 NSE_HEADERS = {
     "Accept": "application/json,text/plain,*/*",
     "Accept-Language": "en-US,en;q=0.9",
-    "Origin": "https://www.nseindia.com",
     "Referer": "https://www.nseindia.com/option-chain",
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0 Safari/537.36"
     ),
 }
+NSE_RETRY_DELAY_SECONDS = 1.0
+_NSE_OPENER = build_opener(HTTPCookieProcessor(CookieJar()))
 
 CHAIN_COLUMNS = [
     "strike",
@@ -72,8 +73,6 @@ class OptionChainResult:
     expiries: tuple[str, ...]
     status: str
     message: str
-    # Local retrieval time, not a provider-supplied market-data timestamp.
-    fetched_at_utc: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 def available_expiries(underlying: str) -> tuple[str, ...]:
@@ -120,10 +119,7 @@ def fetch_option_chain(
         dhan_error = str(exc)
 
     try:
-        if expiry is None:
-            payload = _fetch_nse_option_chain(underlying)
-        else:
-            payload = _fetch_nse_option_chain(underlying, expiry)
+        payload = _fetch_nse_option_chain(underlying)
         expiries = _nse_expiries(payload)
         if expiries:
             selected_expiry = expiry if expiry in expiries else expiries[0]
@@ -149,16 +145,8 @@ def fetch_option_chain(
     if yahoo_result.status == "AVAILABLE":
         return yahoo_result
 
-    dhan_diagnostic = f"Dhan option-chain data was unavailable ({dhan_error})"
-    if "HTTP 401" in dhan_error:
-        dhan_diagnostic += (
-            " Dhan rejected the API credentials (HTTP 401 Unauthorized). "
-            "Verify DHAN_CLIENT_ID and DHAN_ACCESS_TOKEN in the deployment secrets; "
-            "if the token has expired, generate a fresh Dhan access token and update "
-            "the secret before restarting the app. Never paste credentials into logs or chat."
-        )
     message = (
-        f"{dhan_diagnostic}; "
+        f"Dhan option-chain data was unavailable ({dhan_error}); "
         f"NSE fallback was unavailable ({nse_error}); "
         f"Yahoo Finance fallback was also unavailable ({yahoo_result.message})."
     )
@@ -321,9 +309,7 @@ def _fetch_dhan_option_chain(
         raise RuntimeError("Dhan returned no active option expiries.")
 
     requested = _dhan_expiry(expiry) if expiry else None
-    if requested is not None and requested not in expiry_values:
-        raise ValueError(f"Requested Dhan expiry {requested} is not available.")
-    selected = requested if requested is not None else expiry_values[0]
+    selected = requested if requested in expiry_values else expiry_values[0]
     response = client.option_chain(security_id, segment, selected)
 
     if not isinstance(response, dict) or response.get("status") != "success":
@@ -333,172 +319,53 @@ def _fetch_dhan_option_chain(
     return _normalize_dhan_chain(response, underlying, selected, expiry_values)
 
 
-def _fetch_nse_option_chain(underlying: str, expiry: str | None = None) -> dict:
-    """Fetch the current NSE v3 option-chain response for one expiry."""
-    try:
-        expiry_values = _fetch_nse_expiries(underlying)
-    except Exception:
-        expiry_values = ()
-
-    if expiry is not None and expiry_values and expiry not in expiry_values:
-        raise ValueError(f"Requested NSE expiry {expiry} is not available.")
-    selected_expiry = expiry if expiry is not None else None
-    if selected_expiry is None and expiry_values:
-        selected_expiry = expiry_values[0]
-
-    session = _nse_session()
-    params = {
-        "type": "Indices",
-        "symbol": underlying,
-    }
-    if selected_expiry is not None:
-        params["expiry"] = selected_expiry
-
-    try:
-        response = session.get(
-            NSE_OPTION_CHAIN_URL,
-            params=params,
-            headers=NSE_HEADERS,
-            timeout=12,
-        )
-        if response.status_code in (401, 403, 429):
-            session = _nse_session()
-            response = session.get(
-                NSE_OPTION_CHAIN_URL,
-                params=params,
-                headers=NSE_HEADERS,
-                timeout=12,
-            )
-        response.raise_for_status()
-        payload = response.json()
-    except Exception as exc:
-        raise RuntimeError(f"NSE v3 option-chain request failed: {exc}") from exc
-
-    if not isinstance(payload, dict):
-        raise RuntimeError("NSE v3 returned an invalid option-chain payload.")
-
-    payload_expiries = _nse_expiries(payload)
-    if not expiry_values:
-        expiry_values = payload_expiries or _nse_data_expiries(payload)
-    if not expiry_values:
-        raise RuntimeError("NSE returned no usable option-chain expiries.")
-
-    if expiry is not None and expiry not in expiry_values:
-        raise ValueError(f"Requested NSE expiry {expiry} is not available.")
-    selected_expiry = expiry if expiry is not None else expiry_values[0]
-    payload.setdefault("records", {})
-    if isinstance(payload["records"], dict):
-        payload["records"]["expiryDates"] = list(expiry_values)
-    return payload
-
-
-def _fetch_nse_expiries(underlying: str) -> tuple[str, ...]:
-    """Fetch current option expiries from NSE's contract-info endpoint."""
-    session = _nse_session()
-    try:
-        response = session.get(
-            NSE_OPTION_CHAIN_CONTRACT_INFO_URL,
-            params={"symbol": underlying},
-            headers=NSE_HEADERS,
-            timeout=12,
-        )
-        if response.status_code in (401, 403, 429):
-            session = _nse_session()
-            response = session.get(
-                NSE_OPTION_CHAIN_CONTRACT_INFO_URL,
-                params={"symbol": underlying},
-                headers=NSE_HEADERS,
-                timeout=12,
-            )
-        response.raise_for_status()
-        payload = response.json()
-    except Exception as exc:
-        raise RuntimeError(f"NSE expiry request failed: {exc}") from exc
-
-    if not isinstance(payload, dict):
-        raise RuntimeError("NSE expiry endpoint returned an invalid payload.")
-    values = payload.get("expiryDates")
-    if not isinstance(values, list):
-        values = payload.get("records", {}).get("expiryDates", [])
-    return tuple(str(value) for value in values if value)
-
-
-def _nse_session() -> curl_requests.Session:
-    """Create a browser-impersonating NSE session with fresh cookies."""
-    session = curl_requests.Session(impersonate="chrome")
-    session.headers.update(
-        {
-            **NSE_HEADERS,
-            "Connection": "keep-alive",
-            "Cache-Control": "max-age=0",
-            "DNT": "1",
-            "Upgrade-Insecure-Requests": "1",
-            "Sec-Fetch-Site": "same-origin",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Dest": "empty",
-        }
+def _fetch_nse_option_chain(underlying: str) -> dict:
+    """Fetch NSE option-chain JSON using a primed browser-like session."""
+    _prime_nse_session()
+    request = Request(
+        f"{NSE_OPTION_CHAIN_URL}?symbol={underlying}",
+        headers=NSE_HEADERS,
+        method="GET",
     )
     try:
-        session.get(
-            NSE_HOME_URL,
-            headers={
-                **NSE_HEADERS,
-                "Accept": (
-                    "text/html,application/xhtml+xml,application/xml;q=0.9,"
-                    "image/avif,image/webp,image/apng,*/*;q=0.8"
-                ),
-                "Sec-Fetch-Site": "none",
-                "Sec-Fetch-Mode": "navigate",
-                "Sec-Fetch-User": "?1",
-            },
-            timeout=10,
-        )
-        session.get(
-            NSE_OPTION_CHAIN_PAGE_URL,
-            headers={
-                **NSE_HEADERS,
-                "Accept": (
-                    "text/html,application/xhtml+xml,application/xml;q=0.9,"
-                    "image/avif,image/webp,image/apng,*/*;q=0.8"
-                ),
-                "Sec-Fetch-Site": "same-origin",
-                "Sec-Fetch-Mode": "navigate",
-                "Sec-Fetch-Dest": "document",
-            },
-            timeout=10,
-        )
-        session.get(
-            NSE_ALL_INDICES_URL,
-            headers={
-                **NSE_HEADERS,
-                "Accept": "application/json,text/plain,*/*",
-                "Sec-Fetch-Site": "same-origin",
-                "Sec-Fetch-Mode": "cors",
-                "Sec-Fetch-Dest": "empty",
-            },
-            timeout=10,
-        )
+        with _NSE_OPENER.open(request, timeout=12) as response:
+            if response.status != 200:
+                raise RuntimeError(f"NSE returned HTTP {response.status}.")
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        if exc.code not in (403, 429):
+            raise
+        time.sleep(NSE_RETRY_DELAY_SECONDS)
+        _prime_nse_session()
+        with _NSE_OPENER.open(request, timeout=12) as response:
+            if response.status != 200:
+                raise RuntimeError(f"NSE returned HTTP {response.status}.") from exc
+            return json.loads(response.read().decode("utf-8"))
+
+
+def _prime_nse_session() -> None:
+    """Prime NSE cookies before requesting the protected option-chain endpoint."""
+    request = Request(
+        NSE_HOME_URL,
+        headers={
+            **NSE_HEADERS,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        },
+        method="GET",
+    )
+    try:
+        with _NSE_OPENER.open(request, timeout=10):
+            pass
     except Exception:
-        # The API request remains the source of truth; some environments
-        # block the NSE web pages while allowing the API endpoint.
+        # The API request below remains the source of truth; some environments
+        # block the NSE homepage while allowing the API endpoint.
         pass
-    return session
 
 
 def _nse_expiries(payload: dict) -> tuple[str, ...]:
     records = payload.get("records", {})
     values = records.get("expiryDates", [])
     return tuple(str(value) for value in values if value)
-
-
-def _nse_data_expiries(payload: dict) -> tuple[str, ...]:
-    """Extract unique expiry dates directly from NSE option-chain rows."""
-    values = {
-        str(item.get("expiryDate"))
-        for item in payload.get("records", {}).get("data", [])
-        if isinstance(item, dict) and item.get("expiryDate")
-    }
-    return tuple(sorted(values))
 
 
 def _nse_spot(payload: dict) -> float | None:
@@ -570,19 +437,7 @@ def _fetch_yahoo_option_chain(
             "Yahoo Finance did not expose an option chain for this underlying.",
         )
 
-    if expiry is not None and expiry not in expiries:
-        return OptionChainResult(
-            underlying,
-            symbol,
-            expiry,
-            _spot_price(ticker),
-            pd.DataFrame(columns=CHAIN_COLUMNS),
-            expiries,
-            "UNAVAILABLE",
-            f"Requested Yahoo Finance expiry {expiry} is not available.",
-        )
-
-    selected_expiry = expiry if expiry is not None else expiries[0]
+    selected_expiry = expiry if expiry in expiries else expiries[0]
     try:
         raw = ticker.option_chain(selected_expiry)
         chain = _normalize_chain(raw.calls, raw.puts)

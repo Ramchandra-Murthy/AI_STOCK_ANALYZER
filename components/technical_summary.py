@@ -1,153 +1,122 @@
-import math
-
 import streamlit as st
 
-_REQUIRED_COLUMNS = ("Close", "EMA20", "EMA50", "EMA200", "RSI", "MACD", "MACD_Signal")
-_OPTIONAL_COLUMNS = ("ATR", "Support", "Resistance", "Volume", "Volume_MA20")
 
-
-def _finite_number(value):
-    """Return a finite float, or None for missing/non-numeric values."""
-    try:
-        number = float(value)
-    except (TypeError, ValueError):
-        return None
-    return number if math.isfinite(number) else None
-
-
-def _format_price(value):
-    number = _finite_number(value)
-    return f"₹{number:.2f}" if number is not None and number > 0 else "N/A"
-
-
-def show_technical_summary(df, allow_recommendation=False, block_reason=None):
+def show_technical_summary(df):
     """
-    Display validated technical indicators and optionally withhold recommendations.
-
-    The caller remains responsible for verifying market-data freshness. This
-    component validates the latest row but does not claim that data is live.
+    Displays a technical summary of the latest indicators.
     """
-    st.subheader("📊 Technical Summary")
-    st.caption("Diagnostic: technical_summary.py version = mixed-ema-v1")
 
     if df is None or df.empty:
         st.warning("No technical data available.")
         return
 
-    missing = [column for column in _REQUIRED_COLUMNS if column not in df.columns]
-    if missing:
-        st.warning(
-            "Technical summary unavailable — missing required indicator(s): " + ", ".join(missing)
-        )
-        return
-
     latest = df.iloc[-1]
-    values = {column: _finite_number(latest[column]) for column in _REQUIRED_COLUMNS}
-    invalid = [column for column, value in values.items() if value is None]
-    if invalid:
-        st.warning(
-            "Technical summary unavailable — invalid or missing latest value(s): "
-            + ", ".join(invalid)
-        )
-        return
 
-    price = values["Close"]
-    ema20 = values["EMA20"]
-    ema50 = values["EMA50"]
-    ema200 = values["EMA200"]
-    rsi = values["RSI"]
-    macd = values["MACD"]
-    signal = values["MACD_Signal"]
+    price = latest["Close"]
+    ema20 = latest["EMA20"]
+    ema50 = latest["EMA50"]
+    ema200 = latest["EMA200"]
+    rsi = latest["RSI"]
+    macd = latest["MACD"]
+    signal = latest["MACD_Signal"]
+    atr = latest["ATR"]
+    support = latest["Support"]
+    resistance = latest["Resistance"]
 
-    if price <= 0 or min(ema20, ema50, ema200) <= 0:
-        st.warning("Technical summary unavailable — price and EMA values must be positive.")
-        return
-    if not 0 <= rsi <= 100:
-        st.warning("Technical summary unavailable — RSI must be between 0 and 100.")
-        return
+    # -------------------------------------------------------
+    # Trend
+    # -------------------------------------------------------
 
-    # A mixed EMA structure is not automatically labelled as sideways.
     if price > ema20 > ema50 > ema200:
         trend = "🟢 Strong Uptrend"
+
     elif price < ema20 < ema50 < ema200:
         trend = "🔴 Strong Downtrend"
-    elif price > ema20 and ema20 > ema50:
-        trend = "🟢 Bullish Structure"
-    elif price < ema20 and ema20 < ema50:
-        trend = "🔴 Bearish Structure"
+
     else:
-        trend = "🟡 Mixed"
+        trend = "🟡 Sideways"
+
+    # -------------------------------------------------------
+    # RSI
+    # -------------------------------------------------------
 
     if rsi >= 70:
         rsi_text = f"{rsi:.2f} (Overbought)"
+
     elif rsi <= 30:
         rsi_text = f"{rsi:.2f} (Oversold)"
+
     else:
         rsi_text = f"{rsi:.2f} (Neutral)"
 
-    macd_text = "🟢 Bullish" if macd > signal else "🔴 Bearish"
+    # -------------------------------------------------------
+    # MACD
+    # -------------------------------------------------------
 
-    volume = _finite_number(latest["Volume"]) if "Volume" in df.columns else None
-    volume_average = _finite_number(latest["Volume_MA20"]) if "Volume_MA20" in df.columns else None
-    if volume is None or volume_average is None or volume < 0 or volume_average < 0:
-        volume_text = "Unavailable"
-    elif volume > volume_average:
+    if macd > signal:
+        macd_text = "🟢 Bullish"
+
+    else:
+        macd_text = "🔴 Bearish"
+
+    # -------------------------------------------------------
+    # Volume
+    # -------------------------------------------------------
+
+    if latest["Volume"] > latest["Volume_MA20"]:
         volume_text = "Above Average"
+
     else:
         volume_text = "Below Average"
 
-    atr = _finite_number(latest["ATR"]) if "ATR" in df.columns else None
-    support = _finite_number(latest["Support"]) if "Support" in df.columns else None
-    resistance = _finite_number(latest["Resistance"]) if "Resistance" in df.columns else None
-    atr_text = f"{atr:.2f}" if atr is not None and atr >= 0 else "N/A"
-    # Support and resistance must form a valid positive range to be displayed.
-    if (
-        support is None
-        or resistance is None
-        or support <= 0
-        or resistance <= 0
-        or support >= resistance
-    ):
-        support_text = "N/A"
-        resistance_text = "N/A"
-    else:
-        support_text = _format_price(support)
-        resistance_text = _format_price(resistance)
+    # -------------------------------------------------------
+    # Recommendation
+    # -------------------------------------------------------
 
-    score = sum(
-        (
-            price > ema20,
-            ema20 > ema50,
-            ema50 > ema200,
-            macd > signal,
-            50 < rsi < 70,
-        )
-    )
+    score = 0
+
+    if price > ema20:
+        score += 1
+
+    if ema20 > ema50:
+        score += 1
+
+    if ema50 > ema200:
+        score += 1
+
+    if macd > signal:
+        score += 1
+
+    if 50 < rsi < 70:
+        score += 1
+
     if score >= 4:
         recommendation = "🟢 BUY"
+
     elif score >= 2:
         recommendation = "🟡 HOLD"
+
     else:
         recommendation = "🔴 SELL"
 
+    # -------------------------------------------------------
+    # Display
+    # -------------------------------------------------------
+
+    st.subheader("📊 Technical Summary")
+
     c1, c2, c3 = st.columns(3)
+
     c1.metric("Trend", trend)
     c2.metric("RSI", rsi_text)
     c3.metric("MACD", macd_text)
 
     c1, c2, c3 = st.columns(3)
-    c1.metric("ATR", atr_text)
-    c2.metric("Support", support_text)
-    c3.metric("Resistance", resistance_text)
+
+    c1.metric("ATR", f"{atr:.2f}")
+    c2.metric("Support", f"₹{support:.2f}")
+    c3.metric("Resistance", f"₹{resistance:.2f}")
+
     st.metric("Volume", volume_text)
 
-    if allow_recommendation:
-        st.success(f"Recommendation: {recommendation}")
-    else:
-        message = (
-            "Recommendation withheld — data freshness is not verified. "
-            "Do not use this summary as a current trading signal."
-        )
-        if block_reason:
-            message = f"{message} {block_reason}"
-        st.warning(message)
+    st.success(f"Recommendation : {recommendation}")

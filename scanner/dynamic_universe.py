@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import io
 import json
-import logging
 import re
 import time
-from threading import Lock
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -22,48 +20,6 @@ SYMBOL_PATTERN = re.compile(r"^[A-Z0-9&.-]+$")
 
 _cached_nse_symbols: tuple[float, list[str]] | None = None
 _cached_bse_symbols: tuple[float, list[str]] | None = None
-_cached_bse_group_a: tuple[float, set[str] | None] | None = None
-_nse_universe_lock = Lock()
-_bse_universe_lock = Lock()
-_bse_group_a_lock = Lock()
-_bse_yahoo_symbol_map: dict[str, str] = {}
-_universe_source_status: dict[str, dict[str, str | int | float]] = {
-    "NSE": {
-        "source": "source unavailable",
-        "reason": "",
-        "official_source_status": "not loaded",
-    },
-    "BSE": {
-        "source": "source unavailable",
-        "reason": "",
-        "official_source_status": "not loaded",
-    },
-}
-
-
-def _record_universe_source(
-    exchange: str,
-    *,
-    source: str,
-    origin: str,
-    source_symbols: int,
-    cache_age_seconds: float,
-    reason: str = "",
-) -> None:
-    """Record current list provenance while keeping provider and fallback status distinct."""
-    _universe_source_status[exchange] = {
-        "source": source,
-        "origin": origin,
-        "official_source_status": ("available" if origin == "official" else "source unavailable"),
-        "source_symbols": source_symbols if origin == "official" else 0,
-        "cache_age_seconds": round(max(0.0, cache_age_seconds), 1),
-        "reason": reason,
-    }
-
-
-def universe_source_status() -> dict[str, dict[str, str | int | float]]:
-    """Return the latest exchange-list source and coverage counts."""
-    return {exchange: dict(status) for exchange, status in _universe_source_status.items()}
 
 
 def _download_nse_equity_list() -> list[str]:
@@ -95,8 +51,6 @@ def _download_nse_equity_list() -> list[str]:
 
 
 def _download_bse_equity_list() -> list[str]:
-    global _bse_yahoo_symbol_map
-
     query = urlencode(
         {
             "scripcode": "",
@@ -119,297 +73,72 @@ def _download_bse_equity_list() -> list[str]:
         payload = json.loads(response.read().decode("utf-8"))
 
     if not isinstance(payload, list):
-        raise ValueError(f"BSE securities response must be a list, got {type(payload).__name__}")
+        raise ValueError("BSE securities response is not a list")
 
-    valid_rows = [
-        row
+    symbols = {
+        str(row.get("scrip_id", "")).strip().upper()
         for row in payload
         if isinstance(row, dict)
         and str(row.get("Status", "")).strip().lower() == "active"
         and str(row.get("Segment", "")).strip().lower() == "equity"
-    ]
-
-    symbol_map: dict[str, str] = {}
-    symbols: set[str] = set()
-
-    for row in valid_rows:
-        code = str(row.get("SCRIP_CD", "")).strip()
-        yahoo_symbol = str(row.get("scrip_id", "")).strip().upper()
-
-        if code.isdigit() and len(code) == 6:
-            symbols.add(code)
-
-            if yahoo_symbol and SYMBOL_PATTERN.fullmatch(yahoo_symbol):
-                symbol_map[code] = yahoo_symbol
-
-    parsed = sorted(symbols)
-    _bse_yahoo_symbol_map = symbol_map
-
-    logging.info(
-        "BSE universe source=live raw_rows=%d active_equity_rows=%d "
-        "parsed_symbols=%d yahoo_mappings=%d",
-        len(payload),
-        len(valid_rows),
-        len(parsed),
-        len(symbol_map),
-    )
-
-    if not parsed:
-        sample_keys = sorted(
-            str(key) for row in payload[:3] if isinstance(row, dict) for key in row.keys()
-        )
-        raise ValueError(
-            "BSE response contained no parseable active equity symbols; "
-            f"sample field names={sample_keys}"
-        )
-
-    return parsed
+    }
+    return sorted(symbol for symbol in symbols if symbol and SYMBOL_PATTERN.fullmatch(symbol))
 
 
-def _dynamic_bse_group_a_codes_unlocked() -> set[str] | None:
-    """Return BSE's active Group A scrip codes, or None when the official source fails.
-
-    This uses BSE's own Group=A security-master filter. It deliberately does not
-    infer Group A from market-cap rank or the curated scanner universe.
-    """
-    global _cached_bse_group_a
-
-    now = time.time()
-    if _cached_bse_group_a and now - _cached_bse_group_a[0] < CACHE_TTL_SECONDS:
-        cached_codes = _cached_bse_group_a[1]
-        return set(cached_codes) if cached_codes else None
-
-    query = urlencode(
-        {
-            "scripcode": "",
-            "Group": "A",
-            "industry": "",
-            "segment": "Equity",
-            "status": "Active",
-        }
-    )
-    request = Request(
-        f"{BSE_SECURITIES_URL}?{query}",
-        headers={
-            "User-Agent": "Mozilla/5.0 (compatible; AI_STOCK_ANALYZER/1.0)",
-            "Accept": "application/json,text/plain,*/*",
-            "Referer": "https://www.bseindia.com/",
-            "Origin": "https://www.bseindia.com",
-        },
-    )
-    try:
-        with urlopen(request, timeout=15) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-        if not isinstance(payload, list):
-            raise ValueError("BSE Group A response must be a list")
-        codes = {
-            str(row.get("SCRIP_CD", "")).strip()
-            for row in payload
-            if isinstance(row, dict)
-            and str(row.get("Status", "")).strip().lower() == "active"
-            and str(row.get("Segment", "")).strip().lower() == "equity"
-            and str(row.get("SCRIP_CD", "")).strip().isdigit()
-            and len(str(row.get("SCRIP_CD", "")).strip()) == 6
-        }
-        if not codes:
-            raise ValueError("BSE Group A response contained no active equity scrip codes")
-    except Exception as exc:
-        _cached_bse_group_a = (time.time(), set())
-        logging.warning("BSE Group A source unavailable: %s", exc)
-        return None
-
-    _cached_bse_group_a = (now, codes)
-    logging.info("BSE Group A source=official active_scrip_codes=%d", len(codes))
-    return set(codes)
-
-
-def dynamic_bse_group_a_codes() -> set[str] | None:
-    """Return cached BSE Group A codes with one in-flight refresh per process."""
-    with _bse_group_a_lock:
-        return _dynamic_bse_group_a_codes_unlocked()
-
-
-def yahoo_symbol_for_bse_code(code: str) -> str | None:
-    """Return a Yahoo Finance ticker for a BSE code, including curated fallback codes."""
-    normalized_code = str(code).strip()
-    mapped_symbol = _bse_yahoo_symbol_map.get(normalized_code)
-    if mapped_symbol:
-        return mapped_symbol
-
-    # Yahoo Finance supports BSE scrip codes with the .BO suffix.
-    # Restrict this fallback to known curated candidates so arbitrary or inactive
-    # six-digit codes do not become valid-looking tickers.
-    if normalized_code in BSE_CANDIDATES:
-        # The curated baskets are maintained in matching company order. Use the
-        # paired company symbol rather than requesting invalid numeric .BO tickers.
-        paired_symbols = dict(zip(BSE_CANDIDATES, NSE_CANDIDATES, strict=True))
-        yahoo_symbol = paired_symbols.get(normalized_code)
-        replacements = {"ZOMATO": "ETERNAL", "TATAMOTORS": "TMPV"}
-        if yahoo_symbol:
-            return replacements.get(yahoo_symbol, yahoo_symbol)
-
-    return None
-
-
-def _dynamic_nse_symbols_unlocked() -> list[str]:
+def dynamic_nse_symbols() -> list[str]:
     """Return the current NSE equity universe, falling back to curated symbols."""
     global _cached_nse_symbols
 
     now = time.time()
     if _cached_nse_symbols and now - _cached_nse_symbols[0] < CACHE_TTL_SECONDS:
-        prior = _universe_source_status["NSE"]
-        origin = str(prior.get("origin", "unavailable"))
-        _record_universe_source(
-            "NSE",
-            source=(
-                "cached official exchange source"
-                if origin == "official"
-                else "cached curated fallback"
-            ),
-            origin=origin,
-            source_symbols=int(prior.get("source_symbols", 0)),
-            cache_age_seconds=now - _cached_nse_symbols[0],
-            reason=str(prior.get("reason", "")),
-        )
         return _cached_nse_symbols[1]
 
-    fallback_reason = "live source returned an empty symbol list"
     try:
         symbols = _download_nse_equity_list()
         if symbols:
             _cached_nse_symbols = (now, symbols)
-            _record_universe_source(
-                "NSE",
-                source="official live exchange source",
-                origin="official",
-                source_symbols=len(symbols),
-                cache_age_seconds=0,
-            )
             return symbols
-    except Exception as exc:
-        fallback_reason = f"{type(exc).__name__}: {exc}"
+    except Exception:
+        pass
 
-    fallback = list(NSE_CANDIDATES)
-    _cached_nse_symbols = (now, fallback)
-    _record_universe_source(
-        "NSE",
-        source="curated fallback",
-        origin="curated",
-        source_symbols=0,
-        cache_age_seconds=0,
-        reason=fallback_reason,
-    )
-    logging.warning(
-        "NSE universe fallback=curated reason=%s fallback_symbols=%d",
-        fallback_reason,
-        len(fallback),
-    )
-    return fallback
+    return list(NSE_CANDIDATES)
 
 
-def dynamic_nse_symbols() -> list[str]:
-    """Return the NSE universe, coalescing concurrent cache refreshes."""
-    with _nse_universe_lock:
-        return _dynamic_nse_symbols_unlocked()
-
-
-def _dynamic_bse_symbols_unlocked() -> list[str]:
-    """Return active BSE equities, logging live-source coverage and fallback reason."""
+def dynamic_bse_symbols() -> list[str]:
+    """Return the current active BSE equity universe, with curated fallback."""
     global _cached_bse_symbols
 
     now = time.time()
     if _cached_bse_symbols and now - _cached_bse_symbols[0] < CACHE_TTL_SECONDS:
-        prior = _universe_source_status["BSE"]
-        origin = str(prior.get("origin", "unavailable"))
-        _record_universe_source(
-            "BSE",
-            source=(
-                "cached official exchange source"
-                if origin == "official"
-                else "cached curated fallback"
-            ),
-            origin=origin,
-            source_symbols=int(prior.get("source_symbols", 0)),
-            cache_age_seconds=now - _cached_bse_symbols[0],
-            reason=str(prior.get("reason", "")),
-        )
-        logging.debug(
-            "BSE universe source=cache symbols=%d",
-            len(_cached_bse_symbols[1]),
-        )
         return _cached_bse_symbols[1]
 
     try:
         symbols = _download_bse_equity_list()
         if symbols:
             _cached_bse_symbols = (now, symbols)
-            _record_universe_source(
-                "BSE",
-                source="official live exchange source",
-                origin="official",
-                source_symbols=len(symbols),
-                cache_age_seconds=0,
-            )
-            logging.info(
-                "BSE universe source=live symbols=%d curated_fallback_symbols=%d",
-                len(symbols),
-                len(BSE_CANDIDATES),
-            )
             return symbols
-        fallback_reason = "live source returned an empty symbol list"
-    except Exception as exc:
-        fallback_reason = f"{type(exc).__name__}: {exc}"
+    except Exception:
+        pass
 
-    fallback = list(BSE_CANDIDATES)
-    _cached_bse_symbols = (now, fallback)
-    _record_universe_source(
-        "BSE",
-        source="curated fallback",
-        origin="curated",
-        source_symbols=0,
-        cache_age_seconds=0,
-        reason=fallback_reason,
-    )
-    logging.warning(
-        "BSE universe fallback=curated reason=%s fallback_symbols=%d",
-        fallback_reason,
-        len(fallback),
-    )
-    return fallback
-
-
-def dynamic_bse_symbols() -> list[str]:
-    """Return the BSE universe, coalescing concurrent cache refreshes."""
-    with _bse_universe_lock:
-        return _dynamic_bse_symbols_unlocked()
+    return list(BSE_CANDIDATES)
 
 
 def merge_nse_universe(extra_symbols: list[str] | None = None) -> list[str]:
-    """Merge the official or fallback NSE list with curated and caller symbols."""
-    source_symbols = set(dynamic_nse_symbols())
-    symbols = set(source_symbols)
+    """Merge the live NSE list with curated symbols so known names are never lost."""
+    symbols = set(dynamic_nse_symbols())
     symbols.update(NSE_CANDIDATES)
     if extra_symbols:
         symbols.update(symbol.strip().upper() for symbol in extra_symbols if symbol.strip())
-    result = sorted(symbols)
-    _universe_source_status["NSE"].update(
-        curated_additions=len(set(NSE_CANDIDATES) - source_symbols), merged_symbols=len(result)
-    )
-    return result
+    return sorted(symbols)
 
 
 def merge_bse_universe(extra_symbols: list[str] | None = None) -> list[str]:
-    """Merge the official or fallback BSE list with curated and caller symbols."""
-    source_symbols = set(dynamic_bse_symbols())
-    symbols = set(source_symbols)
+    """Merge the live BSE list with curated symbols so known names are never lost."""
+    symbols = set(dynamic_bse_symbols())
     symbols.update(BSE_CANDIDATES)
     if extra_symbols:
         symbols.update(symbol.strip().upper() for symbol in extra_symbols if symbol.strip())
-    result = sorted(symbols)
-    _universe_source_status["BSE"].update(
-        curated_additions=len(set(BSE_CANDIDATES) - source_symbols), merged_symbols=len(result)
-    )
-    return result
+    return sorted(symbols)
 
 
 def passes_liquidity_filter(latest_price: float, average_volume: float) -> bool:

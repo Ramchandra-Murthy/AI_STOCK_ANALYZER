@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pandas as pd
 import streamlit as st
+import yfinance as yf
 
 from ai_trading.ai_scanner import scan_universe
 from ai_trading.decision_engine import build_signal_decision
@@ -13,8 +14,7 @@ from ai_trading.ml_scanner import scan_universe as scan_ml_universe
 from ai_trading.signal_history import attach_outcomes, record_signal
 from ai_trading.walk_forward import walk_forward_backtest
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
-from services.resilient_market_data import download_market_frames, download_symbol_frames
-from services.scanner_trend_sort import sort_bullish_to_bearish
+from services.resilient_market_data import download_symbol_frames
 
 st.set_page_config(page_title="AI Trading Intelligence", page_icon="🧠", layout="wide")
 
@@ -52,7 +52,6 @@ if st.button("Run AI Trading Scan", type="primary"):
         )
     else:
         st.success(f"Analyzed {len(result)} symbols with complete market-data coverage.")
-    result = sort_bullish_to_bearish(result)
     st.subheader("AI Trading Opportunities")
     st.dataframe(result.head(10), use_container_width=True, hide_index=True)
 
@@ -159,7 +158,6 @@ if isinstance(ml_result, pd.DataFrame):
             & ml_result["regime"].isin(regime_filter)
             & (ml_result["confidence_pct"] >= min_confidence)
         ].copy()
-        filtered = sort_bullish_to_bearish(filtered)
 
         metric1, metric2, metric3, metric4 = st.columns(4)
         metric1.metric("Models validated", len(ml_result))
@@ -472,27 +470,15 @@ if st.button("Run Walk-Forward Backtest", type="primary"):
         else f"{str(ml_symbol).strip().upper()}.BO"
     )
     with st.spinner(f"Backtesting {ticker}..."):
-        history_frames, history_diagnostics = download_market_frames(
-            [ticker],
+        history = yf.download(
+            ticker,
             period="5y",
-            interval="1d",
             auto_adjust=False,
-            batch_size=1,
-            timeout=15,
+            progress=False,
+            threads=False,
         )
-        history = history_frames.get(ticker, pd.DataFrame())
-
-    if history.empty:
-        st.error(
-            "Walk-forward backtest could not obtain historical market data after bounded retries. "
-            "No fallback or synthetic prices are used."
-        )
-        st.stop()
-
-    if not history_diagnostics.get("usable", 0):
-        st.warning(
-            "Market-data diagnostics did not confirm usable coverage; treat results cautiously."
-        )
+        if isinstance(history.columns, pd.MultiIndex):
+            history = history.droplevel(1, axis=1)
 
     try:
         trades, backtest = walk_forward_backtest(
@@ -528,8 +514,6 @@ if st.button("Run Walk-Forward Backtest", type="primary"):
                     "probability_up",
                     "entry_price",
                     "exit_price",
-                    "gross_return",
-                    "transaction_cost",
                     "net_return",
                     "equity",
                     "drawdown",

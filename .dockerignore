@@ -33,18 +33,3 @@ backup_before_v2/
 *.swp
 .DS_Store
 Thumbs.db
-
-# Runtime databases may contain local/user data
-*.db
-*.sqlite
-*.sqlite3
-
-# Frontend build/install artifacts are generated inside Docker stages
-frontend/node_modules/
-frontend/dist/
-
-# Local secrets and credentials must never enter a build context
-.env
-.env.*
-!.env.example
-.streamlit/secrets.toml

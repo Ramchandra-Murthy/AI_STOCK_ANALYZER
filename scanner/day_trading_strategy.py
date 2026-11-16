@@ -9,16 +9,9 @@ opening-range structure.
 
 from __future__ import annotations
 
-import math
-from datetime import datetime
 from typing import Any
-from zoneinfo import ZoneInfo
 
 import pandas as pd
-
-from services.intraday_data_quality import current_session_ohlcv_bars
-
-IST = ZoneInfo("Asia/Kolkata")
 
 
 def _series(frame: pd.DataFrame, name: str) -> pd.Series:
@@ -184,43 +177,21 @@ def analyze_day_trade_setup(
 
 def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
     """Calculate conditional entry, stop and target reference levels."""
-    try:
-        close = float(strategy.get("Close", 0) or 0)
-        atr = float(strategy.get("ATR 14", 0) or 0)
-    except (TypeError, ValueError):
-        close, atr = 0.0, 0.0
-
-    def optional_level(name: str) -> tuple[float | None, bool]:
-        value = strategy.get(name)
-        if value is None:
-            return None, True
-        try:
-            parsed = float(value)
-        except (TypeError, ValueError):
-            return None, False
-        if not math.isfinite(parsed) or parsed <= 0:
-            return None, False
-        return parsed, True
-
-    support, support_valid = optional_level("Support")
-    resistance, resistance_valid = optional_level("Resistance")
-    long_score = strategy.get("Long setup score", 0)
-    short_score = strategy.get("Short setup score", 0)
+    close = float(strategy.get("Close", 0) or 0)
+    atr = float(strategy.get("ATR 14", 0) or 0)
+    support = strategy.get("Support")
+    resistance = strategy.get("Resistance")
     direction = (
         "LONG"
-        if long_score >= 70 and long_score > short_score
-        else ("SHORT" if short_score >= 70 and short_score > long_score else "NEUTRAL")
+        if strategy.get("Long setup score", 0) > strategy.get("Short setup score", 0)
+        else (
+            "SHORT"
+            if strategy.get("Short setup score", 0) > strategy.get("Long setup score", 0)
+            else "NEUTRAL"
+        )
     )
 
-    if (
-        not math.isfinite(close)
-        or not math.isfinite(atr)
-        or close <= 0
-        or atr <= 0
-        or not support_valid
-        or not resistance_valid
-        or (support is not None and resistance is not None and support >= resistance)
-    ):
+    if close <= 0 or atr <= 0:
         return {
             "Plan": "INSUFFICIENT DATA",
             "Entry reference": None,
@@ -279,23 +250,6 @@ def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
         entry + risk * multiple if direction == "LONG" else entry - risk * multiple
         for multiple in (1.0, 2.0, 3.0)
     ]
-    if (
-        not all(math.isfinite(level) and level > 0 for level in [entry, stop, *targets])
-        or (direction == "LONG" and not stop < entry < targets[0] < targets[1] < targets[2])
-        or (direction == "SHORT" and not targets[2] < targets[1] < targets[0] < entry < stop)
-    ):
-        return {
-            "Plan": "INSUFFICIENT RISK RANGE",
-            "Entry reference": round(entry, 2),
-            "Stop reference": round(stop, 2),
-            "Target 1": None,
-            "Target 2": None,
-            "Target 3": None,
-            "Risk per share": None,
-            "R:R T1": None,
-            "R:R T2": None,
-            "R:R T3": None,
-        }
     return {
         "Plan": f"{direction} reference plan",
         "Entry reference": round(entry, 2),
@@ -311,171 +265,26 @@ def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
 
 
 def classify_day_trade_plan_state(strategy: dict[str, Any], plan: dict[str, Any]) -> str:
-    """Classify only complete, geometrically valid directional plans."""
-    direction_by_label = {
-        "LONG reference plan": "LONG",
-        "SHORT reference plan": "SHORT",
-    }
-    direction = direction_by_label.get(str(plan.get("Plan", "")))
-    if direction is None:
+    """Classify the current setup against its reference levels."""
+    if not plan.get("Entry reference") or not plan.get("Stop reference"):
         return "NO TRADE PLAN"
 
-    try:
-        close = float(strategy.get("Close", 0))
-        entry = float(plan["Entry reference"])
-        stop = float(plan["Stop reference"])
-        targets = [float(plan[f"Target {number}"]) for number in (1, 2, 3)]
-    except (KeyError, TypeError, ValueError, OverflowError):
-        return "NO TRADE PLAN"
+    close = float(strategy.get("Close", 0) or 0)
+    entry = float(plan["Entry reference"])
+    stop = float(plan["Stop reference"])
+    direction = "LONG" if "LONG" in str(plan.get("Plan", "")) else "SHORT"
 
-    levels = [close, entry, stop, *targets]
-    if not all(math.isfinite(level) and level > 0 for level in levels):
+    if close <= 0:
         return "NO TRADE PLAN"
 
     if direction == "LONG":
-        if not stop < entry < targets[0] < targets[1] < targets[2]:
-            return "NO TRADE PLAN"
         if close <= stop:
             return "INVALIDATED"
         if close >= entry:
             return "TRIGGERED / ABOVE REFERENCE"
         return "WAITING FOR REFERENCE"
-
-    if not targets[2] < targets[1] < targets[0] < entry < stop:
-        return "NO TRADE PLAN"
     if close >= stop:
         return "INVALIDATED"
     if close <= entry:
         return "TRIGGERED / BELOW REFERENCE"
     return "WAITING FOR REFERENCE"
-
-
-def analyze_narrow_range_breakout(
-    frame: pd.DataFrame,
-    lookback: int = 4,
-    trend_lookback: int = 20,
-    atr_window: int = 14,
-    max_range_atr: float = 0.67,
-    *,
-    as_of: datetime | None = None,
-    interval_minutes: int = 5,
-) -> dict[str, Any]:
-    """Identify a completed narrow-range setup and its next-bar trigger levels.
-
-    NR4/NR7 means the latest completed candle has the smallest high-low range
-    among the last N completed candles. The setup is only a watch condition:
-    a subsequent bar must break the setup high/low to trigger. No future bars
-    are used in detection.
-    """
-    if lookback not in (4, 7) or trend_lookback < 2 or atr_window < 2:
-        return {}
-    if not 0 < max_range_atr <= 1 or interval_minutes < 1:
-        return {}
-    evaluation_time = as_of or datetime.now(IST)
-    completed, rejected = current_session_ohlcv_bars(
-        frame,
-        evaluation_time,
-        interval_minutes,
-        stale_after_minutes=max(15, interval_minutes * 3),
-    )
-    if (
-        completed.empty
-        or rejected["future_candles"]
-        or rejected["missing_ohlcv"]
-        or rejected["invalid_ohlcv"]
-        or rejected["missing_ohlcv_columns"]
-    ):
-        return {}
-    completed = completed.loc[completed.index.date == completed.index[-1].date()]
-    required_bars = max(lookback, trend_lookback, atr_window) + 1
-    if len(completed) < required_bars:
-        return {}
-    recent_index = completed.index[-required_bars:]
-    expected_delta = pd.Timedelta(minutes=interval_minutes)
-    if any(
-        right - left != expected_delta
-        for left, right in zip(recent_index[:-1], recent_index[1:], strict=True)
-    ):
-        return {}
-    data = prepare_day_trading_frame(completed)
-    required = {"Open", "High", "Low", "Close", "Volume"}
-    if data.empty or not required.issubset(data.columns):
-        return {}
-    if len(data) < required_bars:
-        return {}
-
-    high = pd.to_numeric(data["High"], errors="coerce")
-    low = pd.to_numeric(data["Low"], errors="coerce")
-    close = pd.to_numeric(data["Close"], errors="coerce")
-    ranges = high - low
-    setup_range = float(ranges.iloc[-1])
-    comparison = ranges.iloc[-lookback:]
-    if comparison.isna().any() or setup_range <= 0:
-        return {}
-    is_narrowest = setup_range <= float(comparison.min())
-    atr = float(data["ATR 14"].iloc[-1])
-    if not pd.notna(atr) or atr <= 0:
-        true_range = pd.concat(
-            [high - low, (high - close.shift()).abs(), (low - close.shift()).abs()],
-            axis=1,
-        ).max(axis=1)
-        atr = float(true_range.rolling(atr_window, min_periods=atr_window).mean().iloc[-1])
-    if not pd.notna(atr) or atr <= 0:
-        return {}
-
-    setup_high = float(high.iloc[-1])
-    setup_low = float(low.iloc[-1])
-    narrow_by_atr = setup_range / atr <= max_range_atr
-    prior_trend = close.iloc[-trend_lookback - 1 : -1]
-    prior_mean = float(prior_trend.mean()) if len(prior_trend) else float("nan")
-    trend = (
-        "UPTREND"
-        if close.iloc[-2] > prior_mean
-        else "DOWNTREND" if close.iloc[-2] < prior_mean else "MIXED"
-    )
-    qualifies = is_narrowest and narrow_by_atr
-    pattern = f"NR{lookback}" if qualifies else "NO NARROW-RANGE SETUP"
-
-    return {
-        "Pattern": pattern,
-        "Qualifies": bool(qualifies),
-        "Narrowest in lookback": bool(is_narrowest),
-        "Range/ATR": round(setup_range / atr, 4),
-        "ATR": round(atr, 4),
-        "Setup high": round(setup_high, 4),
-        "Setup low": round(setup_low, 4),
-        "Long trigger": round(setup_high, 4) if qualifies else None,
-        "Short trigger": round(setup_low, 4) if qualifies else None,
-        "Long stop reference": round(setup_low, 4) if qualifies else None,
-        "Short stop reference": round(setup_high, 4) if qualifies else None,
-        "Trend context": trend,
-        "Signal timing": "NEXT BAR BREAK ONLY",
-    }
-
-
-def classify_narrow_range_breakout(
-    setup: dict[str, Any],
-    next_bar_high: float,
-    next_bar_low: float,
-) -> str:
-    """Classify a next-bar range break; simultaneous breaks are ambiguous."""
-    if not setup.get("Qualifies"):
-        return "NO VALID SETUP"
-    try:
-        high = float(next_bar_high)
-        low = float(next_bar_low)
-        long_trigger = float(setup["Long trigger"])
-        short_trigger = float(setup["Short trigger"])
-    except (TypeError, ValueError, KeyError):
-        return "INVALID BAR"
-    if high < low:
-        return "INVALID BAR"
-    long_break = high > long_trigger
-    short_break = low < short_trigger
-    if long_break and short_break:
-        return "AMBIGUOUS — BOTH SIDES TOUCHED"
-    if long_break:
-        return "LONG BREAKOUT"
-    if short_break:
-        return "SHORT BREAKDOWN"
-    return "WAITING"

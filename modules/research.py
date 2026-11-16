@@ -2,11 +2,9 @@ import streamlit as st
 
 from components.charts.candlestick_chart import plot_candlestick
 from components.technical_summary import show_technical_summary
-from engine.recommendation_validation import validate_trade_plan
 from services.ai_service import get_ai_recommendation
 from services.fundamental_score_service import calculate_fundamental_score
 from services.investment_thesis_service import generate_investment_thesis
-from services.market_data_status import describe_daily_history
 from services.news_service import get_company_news
 from services.recommendation_service import generate_recommendation
 from services.research_service import get_stock_profile
@@ -22,6 +20,7 @@ from services.ui_formatters import (
     format_percent,
     format_price,
     format_ratio,
+    safe_progress,
 )
 from services.valuation_service import generate_valuation_analysis
 from services.valuation_v43_service import generate_valuation_v43
@@ -89,21 +88,6 @@ def show():
     if not data:
         st.error("Unable to fetch stock information.")
         return
-
-    # Use one freshness decision consistently across the Technical and AI tabs.
-    if history is not None and not history.empty:
-        market_data_status = describe_daily_history(history)
-    else:
-        market_data_status = {
-            "status": "UNKNOWN",
-            "source": "Unknown",
-            "timestamp": "Unknown",
-        }
-    recommendations_verified = market_data_status["status"] == "RECENT"
-    recommendation_block_reason = (
-        f"Data status: {market_data_status['status']}; "
-        f"latest candle: {market_data_status['timestamp']}."
-    )
 
     try:
         ai_result = get_ai_recommendation(data, history)
@@ -309,37 +293,13 @@ def show():
     with tab3:
         st.subheader("Technical Analysis")
         if history is not None and not history.empty:
-            status = market_data_status
-            st.caption("Historical daily candles — this is not a verified live quote.")
-            status_col1, status_col2, status_col3 = st.columns([1, 2, 2])
-            status_col1.metric("Data status", status["status"])
-            status_col2.metric("Data source", status["source"])
-            status_col3.metric("Latest candle", status["timestamp"])
-            if status["status"] == "STALE":
-                st.warning(
-                    "The latest available daily candle appears stale. "
-                    "Do not treat this technical summary as a current trading signal."
-                )
-            elif status["status"] == "UNKNOWN":
-                st.warning(
-                    "Data freshness could not be verified. Confirm the source and timestamp "
-                    "before using these indicators."
-                )
             try:
-                st.plotly_chart(
-                    plot_candlestick(history),
-                    use_container_width=True,
-                    key="research_technical_price_chart",
-                )
+                st.plotly_chart(plot_candlestick(history), use_container_width=True)
             except Exception as error:
                 st.error(f"Unable to display price chart: {error}")
             st.divider()
             try:
-                show_technical_summary(
-                    history,
-                    allow_recommendation=recommendations_verified,
-                    block_reason=recommendation_block_reason,
-                )
+                show_technical_summary(history)
             except Exception as error:
                 st.error(f"Unable to display technical summary: {error}")
         else:
@@ -348,8 +308,6 @@ def show():
     with tab4:
         st.subheader("AI Investment Analysis")
         recommendation = recommendation_result.get("recommendation", "INSUFFICIENT DATA")
-        if not recommendations_verified:
-            recommendation = "NOT VERIFIED — DATA STATUS"
         st.metric(
             "Overall Investment Score",
             f"{investment_score}/100" if investment_score is not None else "N/A",
@@ -365,16 +323,14 @@ def show():
         ):
             st.metric(label, f"{value:.0f}/100" if value is not None else "N/A")
 
+        confidence = recommendation_result.get("confidence")
         overall_score = recommendation_result.get("overall_score")
-        st.metric("Confidence", "Not calibrated")
-        st.caption(
-            "The recommendation service currently derives its score from component scores; "
-            "it does not provide a separately calibrated probability of success."
-        )
+        st.metric("Confidence", f"{confidence}%" if confidence is not None else "N/A")
+        st.progress(safe_progress(confidence))
         st.metric("Overall Score", f"{overall_score}/100" if overall_score is not None else "N/A")
 
         st.subheader("Target Price & Trade Plan")
-        if trade_plan.get("status") == "OK" and recommendations_verified:
+        if trade_plan.get("status") == "OK":
             for label, value in (
                 ("Current Price", trade_plan.get("current_price")),
                 ("Target Price", trade_plan.get("target_price")),
@@ -384,62 +340,14 @@ def show():
                 ("Resistance", trade_plan.get("resistance")),
             ):
                 st.metric(label, format_price(value))
-
-            try:
-                plan_validation = validate_trade_plan(
-                    current_price=float(trade_plan["current_price"]),
-                    target_price=float(trade_plan["target_price"]),
-                    stop_loss=float(trade_plan["stop_loss"]),
-                    direction="LONG",
-                    min_reward_risk=1.0,
-                )
-            except (KeyError, TypeError, ValueError) as error:
-                plan_validation = {
-                    "valid": False,
-                    "issues": [f"Trade-plan validation failed: {error}"],
-                }
-
-            ratio = plan_validation.get("reward_risk_ratio")
-            st.metric("Reward / Risk", f"{ratio:.2f}:1" if ratio is not None else "N/A")
-            if not plan_validation.get("valid", False):
-                st.warning(
-                    "This trade plan does not meet the minimum 1.0:1 reward-to-risk check. "
-                    "Treat the levels as reference estimates, not an actionable entry. "
-                    + "; ".join(plan_validation.get("issues", []))
-                )
-
-            target_price = trade_plan.get("target_price")
-            resistance = trade_plan.get("resistance")
-            current_price = trade_plan.get("current_price")
-            if (
-                target_price is not None
-                and resistance is not None
-                and current_price is not None
-                and current_price < resistance < target_price
-            ):
-                st.info(
-                    "The projected target is above the calculated resistance level. "
-                    "That target assumes a resistance breakout; the breakout is not confirmed."
-                )
-        elif not recommendations_verified:
-            st.warning(
-                "Trade plan withheld because the historical data freshness is not verified. "
-                + recommendation_block_reason
-            )
         else:
             st.warning(trade_plan.get("message", "Trade planning data unavailable."))
 
         st.subheader("AI Model Analysis")
         ai_score = ai_result.get("score")
         st.metric("AI Score", f"{ai_score}/100" if ai_score is not None else "N/A")
-        risk_level = ai_result.get("risk")
-        st.metric("Risk Level", risk_level if risk_level else "Not calculated")
-        ai_verdict = ai_result.get("recommendation")
-        if not ai_verdict:
-            ai_verdict = "Score only — no independent verdict"
-        if not recommendations_verified:
-            ai_verdict = "NOT VERIFIED — DATA STATUS"
-        st.metric("AI Verdict", ai_verdict)
+        st.metric("Risk Level", ai_result.get("risk", "Unknown"))
+        st.metric("AI Verdict", ai_result.get("recommendation", "INSUFFICIENT DATA"))
 
         st.subheader("Technical Reasons")
         for reason in technical_reasons:

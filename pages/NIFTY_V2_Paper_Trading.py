@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import csv
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, time
 from io import StringIO
 from zoneinfo import ZoneInfo
 
@@ -23,8 +23,6 @@ from engine.nifty_options_v2_market_data import (
 )
 from engine.nifty_options_v2_market_session import market_session_ready
 from engine.nifty_options_v2_provider_guard import provider_data_ready
-from engine.nifty_options_v2_refresh import is_market_hours, refresh_seconds
-from services.market_calendar import equity_market_session_status
 from services.options_analytics import fetch_option_chain
 from strategy.nifty_options_v2 import NiftyCallContract
 
@@ -37,7 +35,7 @@ st.warning(
     "Verify market data before acting on any paper decision."
 )
 st.caption(
-    "Simulation only. Live observations refresh during NSE market hours. "
+    "Simulation only. Enter current market observations manually. "
     "This page never submits broker orders."
 )
 
@@ -48,80 +46,27 @@ if "nifty_v2_decision_history" not in st.session_state:
 
 session: NiftyOptionsV2LivePaperSession = st.session_state.nifty_v2_paper_session
 
-
-@st.fragment(run_every=f"{refresh_seconds()}s")
-def show_live_observation() -> None:
-    """Refresh the current NIFTY option observation without placing orders."""
-    now = datetime.now().astimezone()
-    if not is_market_hours(now):
-        st.info("NSE market is outside configured market hours. Paper refresh is paused.")
-        return
-
-    try:
-        result = fetch_option_chain("NIFTY")
-        if result.status != "AVAILABLE" or result.spot is None or result.expiry is None:
-            st.warning(f"Live option data unavailable: {result.message}")
-            return
-
-        expiry = date.fromisoformat(result.expiry)
-        selected = select_deepest_itm_call(
-            result.chain,
-            spot=result.spot,
-            expiry=expiry,
-            observed_date=now.date(),
-        )
-        st.metric("NIFTY Spot", f"{result.spot:.2f}")
-        st.metric(
-            f"Selected ITM CALL {selected.contract.strike:.0f}",
-            f"{selected.observation.ltp:.2f}",
-        )
-
-        active = session.trader.active_trade
-        if active is not None:
-            current_ltp = selected.observation.ltp
-            st.metric(
-                "Paper Unrealized P&L",
-                f"{current_ltp - active.entry_ltp:+.2f} points",
-            )
-    except (ValueError, RuntimeError) as exc:
-        st.warning(f"Live refresh failed: {exc}")
-
-
-show_live_observation()
-
-with st.expander("Manual paper controls"):
-    expiry = st.date_input("Option expiry", value=date.today(), key="nifty_v2_manual_expiry")
-    strike = st.number_input(
-        "CALL strike", min_value=1.0, value=25000.0, step=50.0, key="nifty_v2_manual_call_strike"
-    )
-    observed_date = st.date_input(
-        "Observation date", value=date.today(), key="nifty_v2_manual_observation_date"
-    )
 if st.button("Reset Paper Session"):
     st.session_state.nifty_v2_paper_session = NiftyOptionsV2LivePaperSession()
     st.rerun()
 
+provider_fetched_at = datetime.now(UTC)
+provider = fetch_option_chain("NIFTY")
 india_now = datetime.now(ZoneInfo("Asia/Kolkata"))
-market_status = equity_market_session_status(india_now)
+market_open = india_now.weekday() < 5 and time(9, 15) <= india_now.time() <= time(15, 30)
 
 st.subheader("NSE Market Session")
-if market_status == "OPEN":
+if market_open:
     st.success(f"MARKET SESSION OPEN — {india_now.strftime('%H:%M:%S')} IST")
-elif market_status == "HOLIDAY":
-    st.info(f"MARKET HOLIDAY — {india_now.strftime('%Y-%m-%d %H:%M:%S')} IST")
-elif market_status == "CALENDAR_UNAVAILABLE":
-    st.warning(
-        f"MARKET SESSION UNKNOWN — verified holiday calendar unavailable for {india_now.year}. "
-        "Paper automation remains blocked."
-    )
 else:
     st.info(f"MARKET SESSION CLOSED — {india_now.strftime('%H:%M:%S')} IST")
 st.caption(
-    "Session status uses the shared NSE/BSE equity calendar and regular 09:15–15:30 IST hours."
+    "Session check uses weekday and 09:15–15:30 IST only; "
+    "exchange holidays are not inferred here."
 )
 
-provider = fetch_option_chain("NIFTY")
 provider_fetched_at = datetime.now(UTC)
+provider = fetch_option_chain("NIFTY")
 
 st.subheader("Market Data Status")
 status_left, status_mid, status_right = st.columns(3)
@@ -137,7 +82,7 @@ active_expiry = active.contract.expiry if active is not None else None
 
 cycle = cycle_status(
     expiries=provider.expiries,
-    observed_date=india_now.date(),
+    observed_date=date.today(),
     active_contract_expiry=active_expiry,
 )
 auto_cycle = NiftyOptionsV2AutoCycle(auto_paper=NiftyOptionsV2AutoPaper(session=session))
@@ -170,41 +115,20 @@ else:
 left, right = st.columns(2)
 
 with left:
-    expiry = st.date_input(
-        "Option expiry",
-        value=cycle.next_expiry if cycle is not None else india_now.date(),
-        key="nifty_v2_trade_expiry",
-    )
-    strike = st.number_input(
-        "CALL strike", min_value=1.0, value=25000.0, step=50.0, key="nifty_v2_trade_call_strike"
-    )
+    expiry = st.date_input("Option expiry", value=date.today())
+    strike = st.number_input("CALL strike", min_value=1.0, value=25000.0, step=50.0)
 
 with right:
-    observed_date = st.date_input(
-        "Observation date", value=india_now.date(), key="nifty_v2_trade_observation_date"
-    )
+    observed_date = st.date_input("Observation date", value=date.today())
     spot = st.number_input("NIFTY spot", min_value=0.01, value=25000.0, step=1.0)
     ltp = st.number_input("CALL LTP", min_value=0.0, value=500.0, step=0.05)
 
-    observation = LivePaperObservation(
-        observed_date=observed_date,
-        spot=spot,
-        ltp=ltp,
-    )
+observation = LivePaperObservation(
+    observed_date=observed_date,
+    spot=spot,
+    ltp=ltp,
+)
 
-    if st.button("Start Paper Trade", type="primary"):
-        try:
-            session.start(expiry=expiry, strike=strike, observation=observation)
-            st.success("Paper trade started. No broker order was submitted.")
-        except ValueError as exc:
-            st.error(str(exc))
-
-    if st.button("Close Paper Trade"):
-        try:
-            closed = session.close(observation)
-            st.success(f"Paper trade closed: {closed.points_pnl:.2f} points")
-        except ValueError as exc:
-            st.error(str(exc))
 if st.button("Refresh Live Paper Observation"):
     st.rerun()
 
@@ -327,14 +251,7 @@ if st.session_state.nifty_v2_decision_history:
         st.session_state.nifty_v2_decision_history = []
         st.rerun()
 
-manual_entry_ready = observed_date < expiry
-if not manual_entry_ready:
-    st.warning(
-        "Paper entry is blocked because the option expiry must be after the "
-        "observation date. Select a future expiry before starting a paper trade."
-    )
-
-if st.button("Start Paper Trade", type="secondary", disabled=not manual_entry_ready):
+if st.button("Start Paper Trade", type="secondary"):
     try:
         session.start(expiry=expiry, strike=strike, observation=observation)
         st.success("Paper trade started. No broker order was submitted.")
@@ -350,8 +267,17 @@ if active is not None:
             "strike": active.contract.strike,
             "entry_date": active.entry_date.isoformat(),
             "entry_ltp": active.entry_ltp,
+            "current_ltp": ltp,
+            "unrealized_points": ltp - active.entry_ltp,
         }
     )
+
+    if st.button("Close Paper Trade"):
+        try:
+            closed = session.close(observation)
+            st.success(f"Paper trade closed: {closed.points_pnl:.2f} points")
+        except ValueError as exc:
+            st.error(str(exc))
 
 if session.trader.completed_trades:
     st.subheader("Paper Session Summary")

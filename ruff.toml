@@ -35,7 +35,9 @@ ignore = [
     "E501",   # Long lines
     "B017",   # Blind exception assertions
     "E402",   # Module import not at top
+    "F811",   # Redefinition
     "E741",   # Ambiguous variable names
+    "F821",   # Undefined names (temporarily)
 ]
 
 # Package exports

@@ -6,8 +6,6 @@ Kelly-based sizing primitives for use by trading and portfolio engines.
 
 from __future__ import annotations
 
-import math
-
 import numpy as np
 import pandas as pd
 
@@ -74,8 +72,8 @@ def kelly_position_size(
     """Return units from a Kelly allocation, optionally capped."""
     _validate_positive(capital, "capital")
     _validate_positive(price, "price")
-    if not math.isfinite(kelly_fraction) or kelly_fraction < 0:
-        raise ValueError("kelly_fraction must be finite and non-negative")
+    if kelly_fraction < 0:
+        raise ValueError("kelly_fraction must be non-negative")
     fraction = kelly_fraction
     if max_fraction is not None:
         _validate_fraction(max_fraction, "max_fraction")
@@ -138,10 +136,10 @@ def position_sizing_report(
 
 
 def _validate_positive(value: float, name: str) -> None:
-    if not math.isfinite(value) or value <= 0:
-        raise ValueError(f"{name} must be finite and positive")
+    if value <= 0:
+        raise ValueError(f"{name} must be positive")
 
 
 def _validate_fraction(value: float, name: str) -> None:
-    if not math.isfinite(value) or not 0 <= value <= 1:
-        raise ValueError(f"{name} must be finite and between 0 and 1")
+    if not 0 <= value <= 1:
+        raise ValueError(f"{name} must be between 0 and 1")

@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
-from numbers import Integral
 
 import pandas as pd
 
@@ -36,41 +34,28 @@ def walk_forward_backtest(
     """Run an expanding-window, non-overlapping ML backtest.
 
     Each model is trained only on observations whose future labels are already
-    known before the prediction date. Predictions use data available through
-    the decision bar's close, then enter on the next bar (at its open when
-    available). Each trade holds for the configured horizon without overlap.
-    The chronological validation holdout is scored first, then the model is
-    refit on all labelled observations that were available before the decision
-    timestamp.
+    known before the prediction date. Each prediction holds for horizon bars,
+    avoiding overlapping test trades.
     """
-    if isinstance(horizon, bool) or not isinstance(horizon, Integral) or horizon < 1:
-        raise ValueError("horizon must be a positive integer")
+    if horizon < 1:
+        raise ValueError("horizon must be at least 1")
     if not 0.5 <= long_probability <= 1.0:
         raise ValueError("long_probability must be between 0.5 and 1.0")
     if not 0.0 <= short_probability <= 0.5:
         raise ValueError("short_probability must be between 0.0 and 0.5")
     if short_probability >= long_probability:
         raise ValueError("short_probability must be below long_probability")
-    if (
-        isinstance(initial_train, bool)
-        or not isinstance(initial_train, Integral)
-        or initial_train < 30
-    ):
-        raise ValueError("initial_train must be an integer of at least 30")
-    if not math.isfinite(transaction_cost_bps) or transaction_cost_bps < 0:
-        raise ValueError("transaction_cost_bps must be finite and non-negative")
+    if initial_train < 30:
+        raise ValueError("initial_train must be at least 30")
+    if transaction_cost_bps < 0:
+        raise ValueError("transaction_cost_bps must be non-negative")
 
     close = pd.to_numeric(frame["Close"], errors="coerce")
-    has_open = "Open" in frame.columns
-    open_prices = pd.to_numeric(frame["Open"], errors="coerce") if has_open else close
-    # With OHLC data, enter at the next bar's open and exit at the close
-    # horizon bars after the decision bar. For close-only data, delay entry
-    # until the next close and extend the exit by one bar to preserve holding
-    # duration without pretending the decision-bar close was executable.
-    exit_offset = horizon if has_open else horizon + 1
     rows: list[dict[str, object]] = []
 
-    for prediction_index in range(initial_train, len(frame) - exit_offset, horizon):
+    for prediction_index in range(initial_train, len(frame) - horizon, horizon):
+        # Keep the prediction row out of training, but include it in the
+        # feature frame so predict_latest() scores the actual entry timestamp.
         train_frame = frame.iloc[:prediction_index].copy()
         prediction_frame = frame.iloc[: prediction_index + 1].copy()
         try:
@@ -79,7 +64,6 @@ def walk_forward_backtest(
                 horizon=horizon,
                 threshold=threshold,
                 test_fraction=0.2,
-                refit_full=True,
             )
             prediction = predict_latest(model, prediction_frame)
         except (TypeError, ValueError, KeyError):
@@ -96,22 +80,16 @@ def walk_forward_backtest(
             signal = "FLAT"
             direction = 0.0
 
-        entry_index = prediction_index + 1
-        exit_index = prediction_index + exit_offset
-        entry = float(open_prices.iloc[entry_index] if has_open else close.iloc[entry_index])
-        exit_price = float(close.iloc[exit_index])
-        if not all(math.isfinite(price) and price > 0.0 for price in (entry, exit_price)):
-            continue
-
+        entry = float(close.iloc[prediction_index])
+        exit_price = float(close.iloc[prediction_index + horizon])
         gross_return = direction * (exit_price / entry - 1.0) if direction else 0.0
         cost = (2.0 * transaction_cost_bps) / 10000.0 if direction else 0.0
         net_return = gross_return - cost
 
         rows.append(
             {
-                "decision_index": frame.index[prediction_index],
-                "entry_index": frame.index[entry_index],
-                "exit_index": frame.index[exit_index],
+                "entry_index": frame.index[prediction_index],
+                "exit_index": frame.index[prediction_index + horizon],
                 "signal": signal,
                 "probability_up": probability,
                 "entry_price": entry,

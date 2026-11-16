@@ -18,16 +18,13 @@ from services.portfolio_service import get_portfolio, get_summary
 
 
 def calculate_ai_score(summary):
-    """Return a portfolio health score, or None when there is no portfolio to assess."""
-    if summary["holdings"] == 0:
-        return None
 
     score = 100
 
     if summary["holdings"] < 5:
         score -= 20
 
-    if summary["return"] is not None and summary["return"] < 0:
+    if summary["return"] < 0:
         score -= 10
 
     if summary["investment"] == 0:
@@ -46,20 +43,6 @@ def show():
 
     df = get_portfolio()
     summary = get_summary(df)
-
-    if summary["unpriced_holdings"]:
-        st.warning(
-            f"Portfolio valuation is unavailable for {summary['unpriced_holdings']} of "
-            f"{summary['holdings']} holdings. Dashboard totals and returns include only "
-            "holdings with available prices; unpriced holdings are not treated as losses."
-        )
-
-    if summary["cost_basis_incomplete"]:
-        st.warning(
-            "Profit/Loss and Return are unavailable because one or more priced holdings "
-            "have a missing, zero, negative, or invalid purchase price. Review the holding's "
-            "quantity and purchase price before relying on portfolio performance."
-        )
 
     summary["ai_score"] = calculate_ai_score(summary)
 
@@ -112,27 +95,11 @@ def show():
 
     st.divider()
 
-    # Market-wide scans make multiple external requests. Run them on demand so the
-    # portfolio dashboard can render without waiting for every quote provider.
-    with st.expander("🔥 Market Movers (load on demand)", expanded=False):
-        if st.button("Load market movers", key="load_dashboard_market_movers"):
-            st.session_state["dashboard_market_movers_requested"] = True
-        if st.session_state.get("dashboard_market_movers_requested", False):
-            with st.spinner("Loading market movers from available data providers…"):
-                show_market_movers()
-        else:
-            st.caption("Select Load market movers to fetch the latest available quotes.")
+    show_market_movers()
 
     st.divider()
 
-    with st.expander("🤖 Market Signal Summary (load on demand)", expanded=False):
-        if st.button("Load market signal summary", key="load_dashboard_market_summary"):
-            st.session_state["dashboard_market_summary_requested"] = True
-        if st.session_state.get("dashboard_market_summary_requested", False):
-            with st.spinner("Loading market observations…"):
-                show_ai_market_summary()
-        else:
-            st.caption("Market signal data is fetched only when requested.")
+    show_ai_market_summary()
 
     st.divider()
 
