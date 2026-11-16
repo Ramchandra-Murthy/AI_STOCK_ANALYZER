@@ -10,6 +10,15 @@ from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.watchlist_scanner import scan_watchlist
 
 
+def _normalize_broad_market_confidence(df: pd.DataFrame) -> pd.DataFrame:
+    """Do not present legacy AI scores as calibrated confidence probabilities."""
+    result = df.copy()
+    if "Confidence" in result.columns or "AI Score" in result.columns:
+        result["Confidence"] = None
+        result["Confidence Status"] = "Not calibrated"
+    return result
+
+
 def _show_data_quality(df: pd.DataFrame) -> None:
     """Show transparent checks for the rows returned by the scanner."""
     st.subheader("Data quality")
@@ -110,6 +119,9 @@ def show():
     if st.button("Scan", use_container_width=True):
         with st.spinner("Scanning stocks..."):
             df = scan_watchlist(watchlist) if scan_mode == "Personal Watchlist" else market_scan()
+
+        if scan_mode == "Broad Market":
+            df = _normalize_broad_market_confidence(df)
 
         if df.empty:
             st.warning("No stocks could be analyzed for this scan.")
