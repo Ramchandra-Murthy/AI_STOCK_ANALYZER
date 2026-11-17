@@ -152,6 +152,7 @@ def test_market_scan_exchange_filter_limits_candidate_universe(monkeypatch) -> N
 
     def fake_screen(candidates, coverage=None, interval="1d"):
         observed.update(candidates)
+        observed["interval"] = interval
         return []
 
     monkeypatch.setattr(market_scanner, "_batch_change_screen", fake_screen)
@@ -202,6 +203,7 @@ def test_full_market_scan_uses_official_exchange_lists(monkeypatch) -> None:
     assert observed == {
         "NSE": ["RELIANCE", "INFY"],
         "BSE": ["500325", "500209"],
+        "interval": "5m",
     }
     assert result.attrs["scanner_universe_mode"] == "full"
     assert result.attrs["scanner_coverage"]["NSE"]["candidates"] == 2
@@ -236,3 +238,37 @@ def test_full_market_scan_does_not_claim_curated_fallback_as_full_universe(monke
     assert observed == {"NSE": []}
     assert result.attrs["scanner_coverage"]["NSE"]["candidates"] == 0
     assert result.attrs["scanner_coverage"]["NSE"]["source_reason"] == "connection timeout"
+
+
+
+def test_five_minute_screen_rejects_stale_intraday_history(monkeypatch) -> None:
+    from scanner import market_scanner
+
+    now = pd.Timestamp.now(tz="Asia/Kolkata")
+    stale_bar = now - pd.Timedelta(hours=1)
+    history = pd.DataFrame(
+        {
+            "Open": [100.0, 101.0],
+            "High": [101.0, 102.0],
+            "Low": [99.0, 100.0],
+            "Close": [100.0, 101.0],
+            "Volume": [1000.0, 1100.0],
+        },
+        index=[stale_bar - pd.Timedelta(minutes=5), stale_bar],
+    )
+    monkeypatch.setattr(
+        market_scanner,
+        "_download_chunk",
+        lambda _chunk, interval="1d": history,
+    )
+    coverage = {"NSE": {}}
+
+    movers = market_scanner._batch_change_screen(
+        {"NSE": ["RELIANCE"]},
+        coverage,
+        interval="5m",
+    )
+
+    assert movers == []
+    assert coverage["NSE"]["stale_histories"] == 1
+    assert "latest_bar_at" not in coverage["NSE"]
