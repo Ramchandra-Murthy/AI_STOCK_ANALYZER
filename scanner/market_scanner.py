@@ -30,7 +30,8 @@ def _ticker(symbol: str, exchange: str) -> str | None:
     """Return a Yahoo ticker, resolving BSE scrip codes to their company symbols."""
     normalized = str(symbol).strip().upper()
     if exchange == "NSE":
-        return f"{normalized}.NS"
+        yahoo_symbol = {"ZOMATO": "ETERNAL", "TATAMOTORS": "TMPV"}.get(normalized, normalized)
+        return f"{yahoo_symbol}.NS"
     if exchange != "BSE":
         raise ValueError(f"Unsupported exchange: {exchange}")
     yahoo_symbol = yahoo_symbol_for_bse_code(normalized)
@@ -181,12 +182,9 @@ def _batch_change_screen(
                     latest = float(close.iloc[-1])
                     previous = float(close.iloc[-2])
                     average_volume = float(volume.tail(5).mean())
-                    if (
-                        not all(math.isfinite(value) for value in (latest, previous, average_volume))
-                        or previous <= 0
-                        or latest <= 0
-                        or average_volume < 0
-                    ):
+                    if not all(
+                        math.isfinite(value) for value in (latest, previous, average_volume)
+                    ) or previous <= 0 or latest <= 0 or average_volume < 0:
                         continue
 
                     change_pct = ((latest - previous) / previous) * 100
@@ -352,5 +350,9 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
     if result.empty:
         return finish(result)
 
-    result = result.sort_values(by="AI Score", ascending=False).head(DISPLAY_COUNT).reset_index(drop=True)
+    result = (
+        result.sort_values(by="AI Score", ascending=False)
+        .head(DISPLAY_COUNT)
+        .reset_index(drop=True)
+    )
     return finish(result)
