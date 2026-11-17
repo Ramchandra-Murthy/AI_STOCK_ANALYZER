@@ -10,6 +10,38 @@ from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.watchlist_scanner import scan_watchlist
 
 
+def _normalize_broad_market_confidence(df: pd.DataFrame) -> pd.DataFrame:
+    """Do not present legacy AI scores as calibrated confidence probabilities."""
+    result = df.copy()
+    if "Confidence" in result.columns or "AI Score" in result.columns:
+        result["Confidence"] = None
+        result["Confidence Status"] = "Not calibrated"
+    return result
+
+
+def _live_intraday_rows(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep only rows with an explicit, timestamped live quote and valid price."""
+    required = {
+        "Tick Live",
+        "Observation Status",
+        "Observed At",
+        "Latest Observation Price",
+    }
+    if not required.issubset(df.columns):
+        return df.iloc[0:0].copy()
+
+    live = df["Tick Live"].map(
+        lambda value: value is True or str(value).strip().casefold() == "true"
+    )
+    status = (
+        df["Observation Status"].astype(str).str.strip().str.upper().eq("LIVE QUOTE")
+    )
+    observed = pd.to_datetime(df["Observed At"], errors="coerce", utc=True)
+    price = pd.to_numeric(df["Latest Observation Price"], errors="coerce")
+    valid = observed.notna() & price.gt(0) & price.map(math.isfinite)
+    return df.loc[live & status & valid].copy()
+
+
 def _show_data_quality(df: pd.DataFrame) -> None:
     """Show transparent checks for the rows returned by the scanner."""
     st.subheader("Data quality")
@@ -115,6 +147,9 @@ def show():
                 if scan_mode == "Personal Watchlist"
                 else market_scan(exchange_filter)
             )
+
+        if scan_mode == "Broad Market":
+            df = _normalize_broad_market_confidence(df)
 
         if df.empty:
             st.warning("No stocks could be analyzed for this scan.")
