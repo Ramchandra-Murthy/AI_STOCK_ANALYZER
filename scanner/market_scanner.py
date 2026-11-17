@@ -359,6 +359,9 @@ def market_scan(
     exchange_counts = {exchange: 0 for exchange in selected}
     for ticker, exchange, _change, _turnover in movers:
         company_key = ticker.rsplit(".", maxsplit=1)[0]
+        company_key = {"TATAMOTORS": "TMPV", "ZOMATO": "ETERNAL"}.get(
+            company_key, company_key
+        )
         if company_key in seen_companies or exchange_counts[exchange] >= MAX_CANDIDATES_PER_EXCHANGE:
             continue
         analysis_tickers.append(ticker)
