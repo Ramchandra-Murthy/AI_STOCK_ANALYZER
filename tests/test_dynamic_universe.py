@@ -341,3 +341,26 @@ def test_concurrent_bse_group_a_failure_is_cached(monkeypatch):
 
     assert results == [None] * 8
     assert calls == ["BSE_GROUP_A"]
+
+
+
+def test_download_nse_equity_list_keeps_all_equity_series(monkeypatch):
+    payload = b"SYMBOL,SERIES\\nRELIANCE,EQ\\nABCBE,BE\\nSMECO,SM\\n"
+    
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self):
+            return payload
+
+    monkeypatch.setattr(
+        dynamic_universe,
+        "urlopen",
+        lambda *args, **kwargs: FakeResponse(),
+    )
+
+    assert dynamic_universe._download_nse_equity_list() == ["ABCBE", "RELIANCE", "SMECO"]
