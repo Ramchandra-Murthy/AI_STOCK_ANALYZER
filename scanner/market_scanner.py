@@ -1,5 +1,6 @@
 import math
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
 import pandas as pd
@@ -28,6 +29,7 @@ TOP_CANDIDATES_TO_ANALYZE = 40
 DISPLAY_COUNT = 20
 DOWNLOAD_CHUNK_SIZE = 40
 MAX_CANDIDATES_PER_EXCHANGE = 20
+SCREEN_DOWNLOAD_WORKERS = 3
 ANALYSIS_PERIOD = "1y"
 
 
@@ -152,10 +154,11 @@ def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
 
 def _batch_change_screen(
     candidates: dict[str, list[str]],
-    coverage: dict[str, dict[str, int]] | None = None,
+    coverage: dict[str, dict[str, Any]] | None = None,
 ) -> list[tuple[str, str, float, float]]:
-    """Find price movers from the bounded candidate basket using batched data."""
+    """Screen all supplied symbols in bounded concurrent Yahoo Finance batches."""
     ranked: list[tuple[str, str, float, float]] = []
+    jobs: list[tuple[str, list[str]]] = []
 
     for exchange, symbols in candidates.items():
         stats = coverage.setdefault(exchange, {}) if coverage is not None else {}
@@ -165,45 +168,64 @@ def _batch_change_screen(
             stats["tickers_requested"] = len(tickers)
             stats["unmapped_symbols"] = sum(ticker is None for _symbol, ticker in mapped)
 
-        for start in range(0, len(tickers), DOWNLOAD_CHUNK_SIZE):
-            chunk = tickers[start : start + DOWNLOAD_CHUNK_SIZE]
+        for offset in range(0, len(tickers), DOWNLOAD_CHUNK_SIZE):
+            jobs.append((exchange, tickers[offset : offset + DOWNLOAD_CHUNK_SIZE]))
+
+        if coverage is not None:
+            stats["screen_chunks_requested"] = sum(
+                1 for job_exchange, _chunk in jobs if job_exchange == exchange
+            )
+
+    def screen_result(exchange: str, chunk: list[str], history: pd.DataFrame) -> None:
+        stats = coverage.setdefault(exchange, {}) if coverage is not None else {}
+        if history.empty:
             if coverage is not None:
-                stats["screen_chunks_requested"] = stats.get("screen_chunks_requested", 0) + 1
-            history = _download_chunk(chunk)
-            if history.empty:
+                stats["screen_chunks_empty"] = stats.get("screen_chunks_empty", 0) + 1
+            return
+
+        for ticker in chunk:
+            try:
+                close = _extract_series(history, ticker, "Close")
+                volume = _extract_series(history, ticker, "Volume")
+                if len(close) < 2 or volume.empty:
+                    continue
+
+                latest = float(close.iloc[-1])
+                previous = float(close.iloc[-2])
+                average_volume = float(volume.tail(5).mean())
+                if (
+                    not all(
+                        math.isfinite(value) for value in (latest, previous, average_volume)
+                    )
+                    or previous <= 0
+                    or latest <= 0
+                    or average_volume < 0
+                ):
+                    continue
+
+                change_pct = ((latest - previous) / previous) * 100
+                average_turnover = latest * average_volume
+                if not math.isfinite(average_turnover):
+                    continue
                 if coverage is not None:
-                    stats["screen_chunks_empty"] = stats.get("screen_chunks_empty", 0) + 1
+                    stats["histories_returned"] = stats.get("histories_returned", 0) + 1
+                ranked.append((ticker, exchange, change_pct, average_turnover))
+            except (KeyError, TypeError, ValueError, IndexError):
                 continue
 
-            for ticker in chunk:
+    if jobs:
+        with ThreadPoolExecutor(max_workers=SCREEN_DOWNLOAD_WORKERS) as executor:
+            future_jobs = {
+                executor.submit(_download_chunk, chunk): (exchange, chunk)
+                for exchange, chunk in jobs
+            }
+            for future in as_completed(future_jobs):
+                exchange, chunk = future_jobs[future]
                 try:
-                    close = _extract_series(history, ticker, "Close")
-                    volume = _extract_series(history, ticker, "Volume")
-                    if len(close) < 2 or volume.empty:
-                        continue
-
-                    latest = float(close.iloc[-1])
-                    previous = float(close.iloc[-2])
-                    average_volume = float(volume.tail(5).mean())
-                    if (
-                        not all(
-                            math.isfinite(value) for value in (latest, previous, average_volume)
-                        )
-                        or previous <= 0
-                        or latest <= 0
-                        or average_volume < 0
-                    ):
-                        continue
-
-                    change_pct = ((latest - previous) / previous) * 100
-                    average_turnover = latest * average_volume
-                    if not math.isfinite(average_turnover):
-                        continue
-                    if coverage is not None:
-                        stats["histories_returned"] = stats.get("histories_returned", 0) + 1
-                    ranked.append((ticker, exchange, change_pct, average_turnover))
-                except (KeyError, TypeError, ValueError, IndexError):
-                    continue
+                    history = future.result()
+                except Exception:
+                    history = pd.DataFrame()
+                screen_result(exchange, chunk, history)
 
     ranked.sort(key=lambda row: abs(row[2]), reverse=True)
     return ranked
