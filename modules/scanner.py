@@ -95,6 +95,12 @@ def _show_scan_diagnostics(df: pd.DataFrame) -> None:
                     f"Official source: {stats.get('source_status', 'not applicable')} · "
                     f"Unmapped: {stats.get('unmapped_symbols', 0)}"
                 )
+            if stats.get("latest_bar_at"):
+                st.caption(
+                    f"Latest {stats.get('screen_frequency', 'screen')} candle: "
+                    f"{stats['latest_bar_at']} (Asia/Kolkata) · "
+                    f"Stale histories rejected: {stats.get('stale_histories', 0)}"
+                )
             reason = stats.get("source_reason")
             if reason:
                 st.warning(
@@ -192,8 +198,9 @@ def show():
             df = _normalize_broad_market_confidence(df)
         if scan_mode == "Full NSE + BSE Universe":
             st.warning(
-                "Full-universe coverage is based on the official active-equity lists, but the current technical indicators use daily Yahoo Finance candles. "
-                "This is not yet a live 1-minute or 5-minute intraday scan."
+                "Full-universe screening uses Yahoo Finance 5-minute candles and rejects bars older than 20 minutes. "
+                "Detailed RSI, MACD, trend and AI score calculations still use daily candles. "
+                "Yahoo data may be delayed; check the latest candle timestamp before trading."
             )
         _show_scan_diagnostics(df)
 
