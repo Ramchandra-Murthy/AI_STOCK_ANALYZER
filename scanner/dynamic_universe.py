@@ -81,9 +81,9 @@ def _download_nse_equity_list() -> list[str]:
     if "SYMBOL" not in frame.columns:
         raise ValueError("NSE equity list does not contain SYMBOL")
 
+    # EQUITY_L.csv is NSE's active equity-security master. Keep every valid
+    # series in that file rather than silently limiting the universe to EQ.
     symbols = frame["SYMBOL"].astype(str).str.strip().str.upper()
-    if "SERIES" in frame.columns:
-        symbols = symbols[frame["SERIES"].astype(str).str.strip().eq("EQ")]
 
     return sorted(
         {
