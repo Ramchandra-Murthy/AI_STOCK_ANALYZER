@@ -33,9 +33,7 @@ def _live_intraday_rows(df: pd.DataFrame) -> pd.DataFrame:
     live = df["Tick Live"].map(
         lambda value: value is True or str(value).strip().casefold() == "true"
     )
-    status = (
-        df["Observation Status"].astype(str).str.strip().str.upper().eq("LIVE QUOTE")
-    )
+    status = df["Observation Status"].astype(str).str.strip().str.upper().eq("LIVE QUOTE")
     observed = pd.to_datetime(df["Observed At"], errors="coerce", utc=True)
     price = pd.to_numeric(df["Latest Observation Price"], errors="coerce")
     valid = observed.notna() & price.gt(0) & price.map(math.isfinite)
