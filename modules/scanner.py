@@ -55,7 +55,7 @@ def show():
 
     st.caption(
         f"Broad candidate pool: {len(NSE_CANDIDATES)} NSE + {len(BSE_CANDIDATES)} BSE symbols. "
-        f"Exchange preference: {selected_exchange}."
+        f"Exchange preference: {selected_exchange}. Fast curated basket; not every listed security."
     )
     if min_volume > 0:
         st.warning(
@@ -109,7 +109,11 @@ def show():
     )
     if st.button("Scan", use_container_width=True):
         with st.spinner("Scanning stocks..."):
-            df = scan_watchlist(watchlist) if scan_mode == "Personal Watchlist" else market_scan()
+            df = (
+                scan_watchlist(watchlist)
+                if scan_mode == "Personal Watchlist"
+                else market_scan(exchange_filter)
+            )
 
         if df.empty:
             st.warning("No stocks could be analyzed for this scan.")
@@ -117,8 +121,6 @@ def show():
 
         _show_data_quality(df)
 
-        if exchange_filter in ("NSE", "BSE") and "Exchange" in df.columns:
-            df = df.loc[df["Exchange"] == exchange_filter]
         if "Price" in df.columns:
             df = df.loc[df["Price"] >= max(min_price, settings_min_price)]
             if max_price > 0:
