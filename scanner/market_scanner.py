@@ -84,13 +84,14 @@ def _extract_history_frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
     return frame.loc[finite_rows].copy()
 
 
-def _download_chunk(chunk: list[str]) -> pd.DataFrame:
-    """Download a mover-screen chunk, retrying once without threading."""
+def _download_chunk(chunk: list[str], interval: str = "1d") -> pd.DataFrame:
+    """Download a mover-screen chunk, retrying once without nested threading."""
+    period = "1d" if interval != "1d" else "5d"
     try:
         history = yf.download(
             tickers=chunk,
-            period="5d",
-            interval="1d",
+            period=period,
+            interval=interval,
             auto_adjust=True,
             progress=False,
             group_by="ticker",
@@ -105,8 +106,8 @@ def _download_chunk(chunk: list[str]) -> pd.DataFrame:
     try:
         history = yf.download(
             tickers=chunk,
-            period="5d",
-            interval="1d",
+            period=period,
+            interval=interval,
             auto_adjust=True,
             progress=False,
             group_by="ticker",
@@ -155,6 +156,7 @@ def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
 def _batch_change_screen(
     candidates: dict[str, list[str]],
     coverage: dict[str, dict[str, Any]] | None = None,
+    interval: str = "1d",
 ) -> list[tuple[str, str, float, float]]:
     """Screen all supplied symbols in bounded concurrent Yahoo Finance batches."""
     ranked: list[tuple[str, str, float, float]] = []
@@ -162,6 +164,9 @@ def _batch_change_screen(
 
     for exchange, symbols in candidates.items():
         stats = coverage.setdefault(exchange, {}) if coverage is not None else {}
+        if coverage is not None:
+            stats["screen_frequency"] = interval
+            stats.setdefault("stale_histories", 0)
         mapped = [(symbol, _ticker(symbol, exchange)) for symbol in symbols]
         tickers = [ticker for _symbol, ticker in mapped if ticker is not None]
         if coverage is not None:
@@ -190,6 +195,24 @@ def _batch_change_screen(
                 if len(close) < 2 or volume.empty:
                     continue
 
+                if interval == "5m":
+                    latest_bar = pd.Timestamp(close.index[-1])
+                    if latest_bar.tzinfo is None:
+                        latest_bar = latest_bar.tz_localize("Asia/Kolkata")
+                    else:
+                        latest_bar = latest_bar.tz_convert("Asia/Kolkata")
+                    now = pd.Timestamp.now(tz="Asia/Kolkata")
+                    if (
+                        latest_bar.date() != now.date()
+                        or latest_bar > now + pd.Timedelta(minutes=2)
+                        or now - latest_bar > pd.Timedelta(minutes=20)
+                    ):
+                        if coverage is not None:
+                            stats["stale_histories"] = stats.get("stale_histories", 0) + 1
+                        continue
+                    if coverage is not None:
+                        stats["latest_bar_at"] = latest_bar.isoformat()
+
                 latest = float(close.iloc[-1])
                 previous = float(close.iloc[-2])
                 average_volume = float(volume.tail(5).mean())
@@ -214,7 +237,7 @@ def _batch_change_screen(
     if jobs:
         with ThreadPoolExecutor(max_workers=SCREEN_DOWNLOAD_WORKERS) as executor:
             future_jobs = {
-                executor.submit(_download_chunk, chunk): (exchange, chunk)
+                executor.submit(_download_chunk, chunk, interval): (exchange, chunk)
                 for exchange, chunk in jobs
             }
             for future in as_completed(future_jobs):
@@ -345,7 +368,8 @@ def market_scan(exchange_filter: str = "NSE + BSE", universe_mode: str = "fast")
     timings["universe_build_seconds"] = round(time.perf_counter() - universe_started, 6)
 
     screen_started = time.perf_counter()
-    movers = _batch_change_screen(candidates, coverage)
+    screen_interval = "5m" if universe_mode == "full" else "1d"
+    movers = _batch_change_screen(candidates, coverage, interval=screen_interval)
     timings["screen_seconds"] = round(time.perf_counter() - screen_started, 6)
     if not movers:
         return finish(pd.DataFrame())
@@ -381,13 +405,24 @@ def market_scan(exchange_filter: str = "NSE + BSE", universe_mode: str = "fast")
         return finish(pd.DataFrame())
 
     turnover_by_ticker = {ticker: turnover for ticker, _exchange, _change, turnover in movers}
+    change_by_ticker = {ticker: change for ticker, _exchange, change, _turnover in movers}
     ticker_exchange = {ticker: exchange for ticker, exchange, _change, _turnover in movers}
 
     analysis_started = time.perf_counter()
     rows: list[dict[str, Any]] = []
     for ticker in analysis_tickers:
-        row = _analyze_history(ticker, history, turnover_by_ticker.get(ticker))
+        row = _analyze_history(
+            ticker,
+            history,
+            None if universe_mode == "full" else turnover_by_ticker.get(ticker),
+        )
         if row is not None:
+            row["Screen Change (%)"] = round(change_by_ticker.get(ticker, 0.0), 2)
+            row["Screen Frequency"] = screen_interval
+            if universe_mode == "full":
+                row["Recent 5-bar Turnover (₹)"] = round(
+                    turnover_by_ticker.get(ticker, 0.0), 0
+                )
             rows.append(row)
             exchange = ticker_exchange[ticker]
             coverage[exchange]["analyses_completed"] += 1
