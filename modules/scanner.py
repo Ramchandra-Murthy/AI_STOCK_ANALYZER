@@ -71,6 +71,53 @@ def _show_data_quality(df: pd.DataFrame) -> None:
     )
 
 
+def _show_scan_diagnostics(df: pd.DataFrame) -> None:
+    """Show how much of the selected exchange universe was actually screened."""
+    coverage = df.attrs.get("scanner_coverage", {})
+    timings = df.attrs.get("scanner_timings", {})
+    sources = df.attrs.get("scanner_universe_sources", {})
+    mode = df.attrs.get("scanner_universe_mode", "unknown")
+
+    with st.expander("Universe coverage and scan diagnostics", expanded=mode == "full"):
+        st.caption(
+            f"Scan mode: {mode}. These counts describe screening coverage, not just displayed rows."
+        )
+        for exchange, stats in coverage.items():
+            st.markdown(f"**{exchange}**")
+            cols = st.columns(4)
+            cols[0].metric("Universe symbols", stats.get("candidates", 0))
+            cols[1].metric("Yahoo tickers mapped", stats.get("tickers_requested", 0))
+            cols[2].metric("Histories returned", stats.get("histories_returned", 0))
+            cols[3].metric("Analyses completed", stats.get("analyses_completed", 0))
+            if stats.get("screen_frequency"):
+                st.caption(
+                    f"Screen interval: {stats['screen_frequency']} · "
+                    f"Stale histories rejected: {stats.get('stale_histories', 0)}"
+                )
+            if stats.get("source"):
+                st.caption(
+                    f"Source: {stats.get('source')} · "
+                    f"Official source: {stats.get('source_status', 'not applicable')} · "
+                    f"Unmapped: {stats.get('unmapped_symbols', 0)}"
+                )
+            if stats.get("latest_bar_at"):
+                st.caption(
+                    f"Latest {stats.get('screen_frequency', 'screen')} candle: "
+                    f"{stats['latest_bar_at']} (Asia/Kolkata)"
+                )
+            reason = stats.get("source_reason")
+            if reason:
+                st.warning(
+                    f"{exchange} official list unavailable: {reason}. Full-universe coverage was not claimed."
+                )
+        if timings:
+            st.caption("Stage timings (seconds)")
+            st.json(timings)
+        if mode == "full" and sources:
+            st.caption("Exchange-list source provenance")
+            st.json(sources)
+
+
 def show():
     st.title("📡 AI Market Scanner")
     st.caption("Professional Scanner")
@@ -84,8 +131,8 @@ def show():
     )
 
     st.caption(
-        f"Broad candidate pool: {len(NSE_CANDIDATES)} NSE + {len(BSE_CANDIDATES)} BSE symbols. "
-        f"Exchange preference: {selected_exchange}. Fast curated basket; not every listed security."
+        f"Fast mode basket: {len(NSE_CANDIDATES)} NSE + {len(BSE_CANDIDATES)} BSE symbols. "
+        f"Exchange preference: {selected_exchange}. Full mode retrieves the official active equity lists."
     )
     if min_volume > 0:
         st.warning(
@@ -130,7 +177,12 @@ def show():
             "Your Personal Watchlist is empty. Add stocks in the Indian Market Dashboard, then return here."
         )
 
-    scan_mode = st.radio("Scan", ["Personal Watchlist", "Broad Market"], horizontal=True)
+    scan_mode = st.radio(
+        "Scan",
+        ["Personal Watchlist", "Fast Market (Curated)", "Full NSE + BSE Universe"],
+        horizontal=True,
+        help="Full mode retrieves the official active equity lists and screens all symbols that Yahoo Finance can map. It can take longer.",
+    )
     exchange_filter = st.selectbox(
         "Exchange",
         ["NSE + BSE", "NSE", "BSE"],
@@ -140,14 +192,21 @@ def show():
     )
     if st.button("Scan", use_container_width=True):
         with st.spinner("Scanning stocks..."):
-            df = (
-                scan_watchlist(watchlist)
-                if scan_mode == "Personal Watchlist"
-                else market_scan(exchange_filter)
-            )
+            if scan_mode == "Personal Watchlist":
+                df = scan_watchlist(watchlist)
+            else:
+                universe_mode = "full" if scan_mode == "Full NSE + BSE Universe" else "fast"
+                df = market_scan(exchange_filter, universe_mode=universe_mode)
 
-        if scan_mode == "Broad Market":
+        if scan_mode != "Personal Watchlist":
             df = _normalize_broad_market_confidence(df)
+        if scan_mode == "Full NSE + BSE Universe":
+            st.warning(
+                "Full-universe screening uses Yahoo Finance 5-minute candles and rejects bars older than 20 minutes. "
+                "Detailed RSI, MACD, trend and AI score calculations still use daily candles. "
+                "Yahoo data may be delayed; check the latest candle timestamp before trading."
+            )
+        _show_scan_diagnostics(df)
 
         if df.empty:
             st.warning("No stocks could be analyzed for this scan.")
@@ -185,7 +244,7 @@ def show():
 
         st.success(f"{len(df)} matching stocks displayed")
         st.dataframe(
-            df.head(DISPLAY_COUNT) if scan_mode == "Broad Market" else df,
+            df.head(DISPLAY_COUNT) if scan_mode != "Personal Watchlist" else df,
             use_container_width=True,
             height=600,
         )
