@@ -150,9 +150,8 @@ def test_market_scan_exchange_filter_limits_candidate_universe(monkeypatch) -> N
     monkeypatch.setattr(market_scanner, "BSE_CANDIDATES", ["500325"])
     observed = {}
 
-    def fake_screen(candidates, coverage=None, interval="1d"):
+    def fake_screen(candidates, coverage=None):
         observed.update(candidates)
-        observed["interval"] = interval
         return []
 
     monkeypatch.setattr(market_scanner, "_batch_change_screen", fake_screen)
@@ -189,8 +188,9 @@ def test_full_market_scan_uses_official_exchange_lists(monkeypatch) -> None:
     monkeypatch.setattr(market_scanner, "universe_source_status", lambda: source_status)
     observed = {}
 
-    def fake_screen(candidates, coverage=None):
+    def fake_screen(candidates, coverage=None, interval="1d"):
         observed.update(candidates)
+        observed["interval"] = interval
         for exchange, symbols in candidates.items():
             coverage[exchange]["tickers_requested"] = len(symbols)
         return []
@@ -226,8 +226,9 @@ def test_full_market_scan_does_not_claim_curated_fallback_as_full_universe(monke
     monkeypatch.setattr(market_scanner, "universe_source_status", lambda: source_status)
     observed = {}
 
-    def fake_screen(candidates, coverage=None):
+    def fake_screen(candidates, coverage=None, interval="1d"):
         observed.update(candidates)
+        observed["interval"] = interval
         return []
 
     monkeypatch.setattr(market_scanner, "_batch_change_screen", fake_screen)
@@ -235,11 +236,9 @@ def test_full_market_scan_does_not_claim_curated_fallback_as_full_universe(monke
     result = market_scanner.market_scan("NSE", universe_mode="full")
 
     assert result.empty
-    assert observed == {"NSE": []}
+    assert observed == {"NSE": [], "interval": "5m"}
     assert result.attrs["scanner_coverage"]["NSE"]["candidates"] == 0
     assert result.attrs["scanner_coverage"]["NSE"]["source_reason"] == "connection timeout"
-
-
 
 def test_five_minute_screen_rejects_stale_intraday_history(monkeypatch) -> None:
     from scanner import market_scanner
