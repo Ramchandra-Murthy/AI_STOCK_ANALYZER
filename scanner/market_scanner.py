@@ -155,9 +155,7 @@ def _batch_change_screen(
     for exchange, symbols in candidates.items():
         stats = coverage.setdefault(exchange, {}) if coverage is not None else {}
         tickers = [
-            ticker
-            for symbol in symbols
-            if (ticker := _ticker(symbol, exchange)) is not None
+            ticker for symbol in symbols if (ticker := _ticker(symbol, exchange)) is not None
         ]
         if coverage is not None:
             stats["tickers_requested"] = len(tickers)
@@ -184,8 +182,7 @@ def _batch_change_screen(
                     average_volume = float(volume.tail(5).mean())
                     if (
                         not all(
-                            math.isfinite(value)
-                            for value in (latest, previous, average_volume)
+                            math.isfinite(value) for value in (latest, previous, average_volume)
                         )
                         or previous <= 0
                         or latest <= 0
@@ -327,20 +324,14 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
 
     analysis_download_started = time.perf_counter()
     history = _download_analysis_chunk(analysis_tickers)
-    timings["analysis_download_seconds"] = round(
-        time.perf_counter() - analysis_download_started, 6
-    )
+    timings["analysis_download_seconds"] = round(time.perf_counter() - analysis_download_started, 6)
     if history.empty:
         for exchange, count in exchange_counts.items():
             coverage[exchange]["analysis_download_failed"] = count
         return finish(pd.DataFrame())
 
-    turnover_by_ticker = {
-        ticker: turnover for ticker, _exchange, _change, turnover in movers
-    }
-    ticker_exchange = {
-        ticker: exchange for ticker, exchange, _change, _turnover in movers
-    }
+    turnover_by_ticker = {ticker: turnover for ticker, _exchange, _change, turnover in movers}
+    ticker_exchange = {ticker: exchange for ticker, exchange, _change, _turnover in movers}
 
     analysis_started = time.perf_counter()
     rows: list[dict[str, Any]] = []
