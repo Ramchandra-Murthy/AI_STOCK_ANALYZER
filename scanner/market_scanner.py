@@ -15,7 +15,12 @@ from indicators.moving_average import calculate_ema, calculate_sma
 from indicators.rsi import calculate_rsi
 from indicators.support_resistance import calculate_support_resistance
 from indicators.trend import detect_trend
-from scanner.dynamic_universe import yahoo_symbol_for_bse_code
+from scanner.dynamic_universe import (
+    dynamic_bse_symbols,
+    dynamic_nse_symbols,
+    universe_source_status,
+    yahoo_symbol_for_bse_code,
+)
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.sector_mapping import sector_for_symbol
 
@@ -154,11 +159,11 @@ def _batch_change_screen(
 
     for exchange, symbols in candidates.items():
         stats = coverage.setdefault(exchange, {}) if coverage is not None else {}
-        tickers = [
-            ticker for symbol in symbols if (ticker := _ticker(symbol, exchange)) is not None
-        ]
+        mapped = [(symbol, _ticker(symbol, exchange)) for symbol in symbols]
+        tickers = [ticker for _symbol, ticker in mapped if ticker is not None]
         if coverage is not None:
             stats["tickers_requested"] = len(tickers)
+            stats["unmapped_symbols"] = sum(ticker is None for _symbol, ticker in mapped)
 
         for start in range(0, len(tickers), DOWNLOAD_CHUNK_SIZE):
             chunk = tickers[start : start + DOWNLOAD_CHUNK_SIZE]
@@ -259,15 +264,19 @@ def _analyze_history(
         return None
 
 
-def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
-    """Scan the fast curated NSE/BSE basket and attach timing and coverage diagnostics."""
+def market_scan(
+    exchange_filter: str = "NSE + BSE", universe_mode: str = "fast"
+) -> pd.DataFrame:
+    """Screen a curated basket or the official NSE/BSE equity universes."""
     if exchange_filter not in {"NSE", "BSE", "NSE + BSE"}:
         raise ValueError(f"Unsupported exchange filter: {exchange_filter}")
+    if universe_mode not in {"fast", "full"}:
+        raise ValueError(f"Unsupported universe mode: {universe_mode}")
 
     started = time.perf_counter()
     selected = ("NSE", "BSE") if exchange_filter == "NSE + BSE" else (exchange_filter,)
     timings: dict[str, float] = {}
-    coverage: dict[str, dict[str, int]] = {
+    coverage: dict[str, dict[str, Any]] = {
         exchange: {
             "candidates": 0,
             "tickers_requested": 0,
@@ -288,15 +297,33 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         frame.attrs["scanner_coverage"] = {
             exchange: dict(values) for exchange, values in coverage.items()
         }
+        frame.attrs["scanner_universe_mode"] = universe_mode
+        if universe_mode == "full":
+            frame.attrs["scanner_universe_sources"] = universe_source_status()
         return frame
 
     universe_started = time.perf_counter()
-    candidates = {
-        exchange: list(NSE_CANDIDATES if exchange == "NSE" else BSE_CANDIDATES)
-        for exchange in selected
-    }
-    for exchange, symbols in candidates.items():
-        coverage[exchange]["candidates"] = len(symbols)
+    if universe_mode == "fast":
+        candidates = {
+            exchange: list(NSE_CANDIDATES if exchange == "NSE" else BSE_CANDIDATES)
+            for exchange in selected
+        }
+        for exchange, symbols in candidates.items():
+            coverage[exchange]["source"] = "curated basket"
+            coverage[exchange]["candidates"] = len(symbols)
+    else:
+        candidates = {}
+        for exchange in selected:
+            symbols = dynamic_nse_symbols() if exchange == "NSE" else dynamic_bse_symbols()
+            source = universe_source_status()[exchange]
+            is_official = source.get("origin") == "official"
+            # Never label a curated fallback as a full-universe scan.
+            candidates[exchange] = list(symbols) if is_official else []
+            coverage[exchange]["source"] = source.get("source", "unknown")
+            coverage[exchange]["source_status"] = source.get("official_source_status", "unknown")
+            coverage[exchange]["source_symbols"] = int(source.get("source_symbols", 0))
+            coverage[exchange]["source_reason"] = source.get("reason", "")
+            coverage[exchange]["candidates"] = len(candidates[exchange])
     timings["universe_build_seconds"] = round(time.perf_counter() - universe_started, 6)
 
     screen_started = time.perf_counter()
@@ -306,13 +333,14 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         return finish(pd.DataFrame())
 
     analysis_tickers: list[str] = []
-    seen: set[str] = set()
+    seen_companies: set[str] = set()
     exchange_counts = {exchange: 0 for exchange in selected}
     for ticker, exchange, _change, _turnover in movers:
-        if ticker in seen or exchange_counts[exchange] >= MAX_CANDIDATES_PER_EXCHANGE:
+        company_key = ticker.rsplit(".", maxsplit=1)[0]
+        if company_key in seen_companies or exchange_counts[exchange] >= MAX_CANDIDATES_PER_EXCHANGE:
             continue
         analysis_tickers.append(ticker)
-        seen.add(ticker)
+        seen_companies.add(company_key)
         exchange_counts[exchange] += 1
         if len(analysis_tickers) >= TOP_CANDIDATES_TO_ANALYZE:
             break
