@@ -104,6 +104,7 @@ def show():
     exchange_filter = st.selectbox(
         "Exchange",
         ["NSE + BSE", "NSE", "BSE"],
+        index=["NSE + BSE", "NSE", "BSE"].index(selected_exchange),
         help="NSE + BSE keeps opportunities from both exchanges in the candidate pool. "
         "Low-liquidity stocks are not removed; use the Risk and turnover information for judgment.",
     )
@@ -117,6 +118,13 @@ def show():
 
         if df.empty:
             st.warning("No stocks could be analyzed for this scan.")
+            return
+
+        if scan_mode == "Personal Watchlist" and exchange_filter in ("NSE", "BSE") and "Exchange" in df.columns:
+            df = df.loc[df["Exchange"] == exchange_filter]
+
+        if df.empty:
+            st.warning("No stocks match the selected exchange.")
             return
 
         _show_data_quality(df)
