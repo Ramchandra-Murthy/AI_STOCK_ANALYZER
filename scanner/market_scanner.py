@@ -369,7 +369,11 @@ def market_scan(exchange_filter: str = "NSE + BSE", universe_mode: str = "fast")
 
     screen_started = time.perf_counter()
     screen_interval = "5m" if universe_mode == "full" else "1d"
-    movers = _batch_change_screen(candidates, coverage, interval=screen_interval)
+    movers = (
+        _batch_change_screen(candidates, coverage)
+        if screen_interval == "1d"
+        else _batch_change_screen(candidates, coverage, interval=screen_interval)
+    )
     timings["screen_seconds"] = round(time.perf_counter() - screen_started, 6)
     if not movers:
         return finish(pd.DataFrame())
