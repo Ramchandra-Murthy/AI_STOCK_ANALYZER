@@ -89,6 +89,8 @@ def _show_scan_diagnostics(df: pd.DataFrame) -> None:
             cols[1].metric("Yahoo tickers mapped", stats.get("tickers_requested", 0))
             cols[2].metric("Histories returned", stats.get("histories_returned", 0))
             cols[3].metric("Analyses completed", stats.get("analyses_completed", 0))
+            if stats.get("screen_frequency"):
+                st.caption(f"Screen interval: {stats['screen_frequency']}")
             if stats.get("source"):
                 st.caption(
                     f"Source: {stats.get('source')} · "
