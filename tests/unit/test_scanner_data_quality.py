@@ -134,7 +134,9 @@ def test_bse_scrip_code_is_resolved_to_yahoo_company_ticker(monkeypatch) -> None
     from scanner import market_scanner
 
     monkeypatch.setattr(
-        market_scanner, "yahoo_symbol_for_bse_code", lambda code: "RELIANCE" if code == "500325" else None
+        market_scanner,
+        "yahoo_symbol_for_bse_code",
+        lambda code: "RELIANCE" if code == "500325" else None,
     )
 
     assert market_scanner._ticker("500325", "BSE") == "RELIANCE.BO"
