@@ -182,9 +182,15 @@ def _batch_change_screen(
                     latest = float(close.iloc[-1])
                     previous = float(close.iloc[-2])
                     average_volume = float(volume.tail(5).mean())
-                    if not all(
-                        math.isfinite(value) for value in (latest, previous, average_volume)
-                    ) or previous <= 0 or latest <= 0 or average_volume < 0:
+                    if (
+                        not all(
+                            math.isfinite(value)
+                            for value in (latest, previous, average_volume)
+                        )
+                        or previous <= 0
+                        or latest <= 0
+                        or average_volume < 0
+                    ):
                         continue
 
                     change_pct = ((latest - previous) / previous) * 100
@@ -199,6 +205,7 @@ def _batch_change_screen(
 
     ranked.sort(key=lambda row: abs(row[2]), reverse=True)
     return ranked
+
 
 def _analyze_history(
     ticker: str,
