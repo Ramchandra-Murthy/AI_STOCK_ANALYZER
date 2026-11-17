@@ -101,8 +101,8 @@ def test_analyze_history_rejects_invalid_ohlcv_rows_before_indicator_calculation
 def test_market_scan_records_analysis_download_failure_per_exchange(monkeypatch) -> None:
     from scanner import market_scanner
 
-    monkeypatch.setattr(market_scanner, "merge_nse_universe", lambda: ["RELIANCE"])
-    monkeypatch.setattr(market_scanner, "merge_bse_universe", lambda: [])
+    monkeypatch.setattr(market_scanner, "NSE_CANDIDATES", ["RELIANCE"])
+    monkeypatch.setattr(market_scanner, "BSE_CANDIDATES", [])
     monkeypatch.setattr(
         market_scanner,
         "_batch_change_screen",
@@ -128,3 +128,35 @@ def test_market_scan_rejects_unsupported_exchange_filter() -> None:
 
     with pytest.raises(ValueError, match="Unsupported exchange filter"):
         market_scanner.market_scan("NYSE")
+
+
+def test_bse_scrip_code_is_resolved_to_yahoo_company_ticker(monkeypatch) -> None:
+    from scanner import market_scanner
+
+    monkeypatch.setattr(
+        market_scanner, "yahoo_symbol_for_bse_code", lambda code: "RELIANCE" if code == "500325" else None
+    )
+
+    assert market_scanner._ticker("500325", "BSE") == "RELIANCE.BO"
+    assert market_scanner._ticker("590109", "BSE") is None
+
+
+def test_market_scan_exchange_filter_limits_candidate_universe(monkeypatch) -> None:
+    from scanner import market_scanner
+
+    monkeypatch.setattr(market_scanner, "NSE_CANDIDATES", ["RELIANCE"])
+    monkeypatch.setattr(market_scanner, "BSE_CANDIDATES", ["500325"])
+    observed = {}
+
+    def fake_screen(candidates, coverage=None):
+        observed.update(candidates)
+        return []
+
+    monkeypatch.setattr(market_scanner, "_batch_change_screen", fake_screen)
+
+    result = market_scanner.market_scan("NSE")
+
+    assert result.empty
+    assert observed == {"NSE": ["RELIANCE"]}
+    assert "scanner_timings" in result.attrs
+    assert result.attrs["scanner_coverage"]["NSE"]["candidates"] == 1
