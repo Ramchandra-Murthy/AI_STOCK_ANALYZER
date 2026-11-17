@@ -240,6 +240,8 @@ def test_full_market_scan_does_not_claim_curated_fallback_as_full_universe(monke
     assert result.attrs["scanner_coverage"]["NSE"]["candidates"] == 0
     assert result.attrs["scanner_coverage"]["NSE"]["source_reason"] == "connection timeout"
 
+
+
 def test_five_minute_screen_rejects_stale_intraday_history(monkeypatch) -> None:
     from scanner import market_scanner
 
