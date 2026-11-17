@@ -194,9 +194,7 @@ def _batch_change_screen(
                 previous = float(close.iloc[-2])
                 average_volume = float(volume.tail(5).mean())
                 if (
-                    not all(
-                        math.isfinite(value) for value in (latest, previous, average_volume)
-                    )
+                    not all(math.isfinite(value) for value in (latest, previous, average_volume))
                     or previous <= 0
                     or latest <= 0
                     or average_volume < 0
@@ -286,9 +284,7 @@ def _analyze_history(
         return None
 
 
-def market_scan(
-    exchange_filter: str = "NSE + BSE", universe_mode: str = "fast"
-) -> pd.DataFrame:
+def market_scan(exchange_filter: str = "NSE + BSE", universe_mode: str = "fast") -> pd.DataFrame:
     """Screen a curated basket or the official NSE/BSE equity universes."""
     if exchange_filter not in {"NSE", "BSE", "NSE + BSE"}:
         raise ValueError(f"Unsupported exchange filter: {exchange_filter}")
@@ -359,10 +355,11 @@ def market_scan(
     exchange_counts = {exchange: 0 for exchange in selected}
     for ticker, exchange, _change, _turnover in movers:
         company_key = ticker.rsplit(".", maxsplit=1)[0]
-        company_key = {"TATAMOTORS": "TMPV", "ZOMATO": "ETERNAL"}.get(
-            company_key, company_key
-        )
-        if company_key in seen_companies or exchange_counts[exchange] >= MAX_CANDIDATES_PER_EXCHANGE:
+        company_key = {"TATAMOTORS": "TMPV", "ZOMATO": "ETERNAL"}.get(company_key, company_key)
+        if (
+            company_key in seen_companies
+            or exchange_counts[exchange] >= MAX_CANDIDATES_PER_EXCHANGE
+        ):
             continue
         analysis_tickers.append(ticker)
         seen_companies.add(company_key)
