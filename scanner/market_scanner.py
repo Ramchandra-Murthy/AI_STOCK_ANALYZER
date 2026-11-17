@@ -94,8 +94,8 @@ def _download_chunk(chunk: list[str]) -> pd.DataFrame:
             auto_adjust=True,
             progress=False,
             group_by="ticker",
-            threads=True,
-            timeout=10,
+            threads=False,
+            timeout=15,
         )
         if history is not None and not history.empty:
             return history
