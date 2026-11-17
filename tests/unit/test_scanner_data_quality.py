@@ -162,3 +162,78 @@ def test_market_scan_exchange_filter_limits_candidate_universe(monkeypatch) -> N
     assert observed == {"NSE": ["RELIANCE"]}
     assert "scanner_timings" in result.attrs
     assert result.attrs["scanner_coverage"]["NSE"]["candidates"] == 1
+
+
+
+def test_full_market_scan_uses_official_exchange_lists(monkeypatch) -> None:
+    from scanner import market_scanner
+
+    source_status = {
+        "NSE": {
+            "origin": "official",
+            "source": "official live exchange source",
+            "official_source_status": "available",
+            "source_symbols": 2,
+            "reason": "",
+        },
+        "BSE": {
+            "origin": "official",
+            "source": "official live exchange source",
+            "official_source_status": "available",
+            "source_symbols": 2,
+            "reason": "",
+        },
+    }
+    monkeypatch.setattr(market_scanner, "dynamic_nse_symbols", lambda: ["RELIANCE", "INFY"])
+    monkeypatch.setattr(market_scanner, "dynamic_bse_symbols", lambda: ["500325", "500209"])
+    monkeypatch.setattr(market_scanner, "universe_source_status", lambda: source_status)
+    observed = {}
+
+    def fake_screen(candidates, coverage=None):
+        observed.update(candidates)
+        for exchange, symbols in candidates.items():
+            coverage[exchange]["tickers_requested"] = len(symbols)
+        return []
+
+    monkeypatch.setattr(market_scanner, "_batch_change_screen", fake_screen)
+
+    result = market_scanner.market_scan("NSE + BSE", universe_mode="full")
+
+    assert result.empty
+    assert observed == {
+        "NSE": ["RELIANCE", "INFY"],
+        "BSE": ["500325", "500209"],
+    }
+    assert result.attrs["scanner_universe_mode"] == "full"
+    assert result.attrs["scanner_coverage"]["NSE"]["candidates"] == 2
+    assert result.attrs["scanner_coverage"]["BSE"]["candidates"] == 2
+
+
+def test_full_market_scan_does_not_claim_curated_fallback_as_full_universe(monkeypatch) -> None:
+    from scanner import market_scanner
+
+    source_status = {
+        "NSE": {
+            "origin": "curated",
+            "source": "curated fallback",
+            "official_source_status": "source unavailable",
+            "source_symbols": 0,
+            "reason": "connection timeout",
+        },
+    }
+    monkeypatch.setattr(market_scanner, "dynamic_nse_symbols", lambda: ["RELIANCE"])
+    monkeypatch.setattr(market_scanner, "universe_source_status", lambda: source_status)
+    observed = {}
+
+    def fake_screen(candidates, coverage=None):
+        observed.update(candidates)
+        return []
+
+    monkeypatch.setattr(market_scanner, "_batch_change_screen", fake_screen)
+
+    result = market_scanner.market_scan("NSE", universe_mode="full")
+
+    assert result.empty
+    assert observed == {"NSE": []}
+    assert result.attrs["scanner_coverage"]["NSE"]["candidates"] == 0
+    assert result.attrs["scanner_coverage"]["NSE"]["source_reason"] == "connection timeout"
