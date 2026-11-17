@@ -187,6 +187,11 @@ def show():
 
         if scan_mode != "Personal Watchlist":
             df = _normalize_broad_market_confidence(df)
+        if scan_mode == "Full NSE + BSE Universe":
+            st.warning(
+                "Full-universe coverage is based on the official active-equity lists, but the current technical indicators use daily Yahoo Finance candles. "
+                "This is not yet a live 1-minute or 5-minute intraday scan."
+            )
         _show_scan_diagnostics(df)
 
         if df.empty:
