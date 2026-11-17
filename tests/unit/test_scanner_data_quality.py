@@ -150,7 +150,7 @@ def test_market_scan_exchange_filter_limits_candidate_universe(monkeypatch) -> N
     monkeypatch.setattr(market_scanner, "BSE_CANDIDATES", ["500325"])
     observed = {}
 
-    def fake_screen(candidates, coverage=None):
+    def fake_screen(candidates, coverage=None, interval="1d"):
         observed.update(candidates)
         return []
 
