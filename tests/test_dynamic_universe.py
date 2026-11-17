@@ -343,10 +343,9 @@ def test_concurrent_bse_group_a_failure_is_cached(monkeypatch):
     assert calls == ["BSE_GROUP_A"]
 
 
-
 def test_download_nse_equity_list_keeps_all_equity_series(monkeypatch):
     payload = b"SYMBOL,SERIES\\nRELIANCE,EQ\\nABCBE,BE\\nSMECO,SM\\n"
-    
+
     class FakeResponse:
         def __enter__(self):
             return self
