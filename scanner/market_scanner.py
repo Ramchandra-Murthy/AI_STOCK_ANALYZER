@@ -424,7 +424,7 @@ def market_scan(exchange_filter: str = "NSE + BSE", universe_mode: str = "fast")
             row["Screen Change (%)"] = round(change_by_ticker.get(ticker, 0.0), 2)
             row["Screen Frequency"] = screen_interval
             if universe_mode == "full":
-                row["Recent 5-bar Turnover (₹)"] = round(
+                row["Average 5-minute Candle Turnover (₹)"] = round(
                     turnover_by_ticker.get(ticker, 0.0), 0
                 )
             rows.append(row)
