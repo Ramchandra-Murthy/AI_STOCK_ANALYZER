@@ -120,7 +120,11 @@ def show():
             st.warning("No stocks could be analyzed for this scan.")
             return
 
-        if scan_mode == "Personal Watchlist" and exchange_filter in ("NSE", "BSE") and "Exchange" in df.columns:
+        if (
+            scan_mode == "Personal Watchlist"
+            and exchange_filter in ("NSE", "BSE")
+            and "Exchange" in df.columns
+        ):
             df = df.loc[df["Exchange"] == exchange_filter]
 
         if df.empty:
