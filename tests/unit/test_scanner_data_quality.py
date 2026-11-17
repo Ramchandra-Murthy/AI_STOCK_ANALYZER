@@ -164,7 +164,6 @@ def test_market_scan_exchange_filter_limits_candidate_universe(monkeypatch) -> N
     assert result.attrs["scanner_coverage"]["NSE"]["candidates"] == 1
 
 
-
 def test_full_market_scan_uses_official_exchange_lists(monkeypatch) -> None:
     from scanner import market_scanner
 
