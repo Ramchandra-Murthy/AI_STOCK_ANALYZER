@@ -90,7 +90,10 @@ def _show_scan_diagnostics(df: pd.DataFrame) -> None:
             cols[2].metric("Histories returned", stats.get("histories_returned", 0))
             cols[3].metric("Analyses completed", stats.get("analyses_completed", 0))
             if stats.get("screen_frequency"):
-                st.caption(f"Screen interval: {stats['screen_frequency']}")
+                st.caption(
+                    f"Screen interval: {stats['screen_frequency']} · "
+                    f"Stale histories rejected: {stats.get('stale_histories', 0)}"
+                )
             if stats.get("source"):
                 st.caption(
                     f"Source: {stats.get('source')} · "
@@ -100,8 +103,7 @@ def _show_scan_diagnostics(df: pd.DataFrame) -> None:
             if stats.get("latest_bar_at"):
                 st.caption(
                     f"Latest {stats.get('screen_frequency', 'screen')} candle: "
-                    f"{stats['latest_bar_at']} (Asia/Kolkata) · "
-                    f"Stale histories rejected: {stats.get('stale_histories', 0)}"
+                    f"{stats['latest_bar_at']} (Asia/Kolkata)"
                 )
             reason = stats.get("source_reason")
             if reason:
