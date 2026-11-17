@@ -73,8 +73,8 @@ def _extract_history_frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
         return pd.DataFrame()
 
     frame = frame.loc[:, required].apply(pd.to_numeric, errors="coerce")
-    frame = frame.replace([float("inf"), float("-inf")], pd.NA)
-    return frame.dropna(subset=required)
+    finite_rows = frame.apply(lambda column: column.map(math.isfinite)).all(axis=1)
+    return frame.loc[finite_rows].copy()
 
 
 def _download_chunk(chunk: list[str]) -> pd.DataFrame:
