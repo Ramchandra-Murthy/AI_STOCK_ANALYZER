@@ -48,6 +48,7 @@ SECTOR_BY_SYMBOL = {
     "MARUTI": "Automobiles",
     "M&M": "Automobiles",
     "TATAMOTORS": "Automobiles",
+    "TMPV": "Automobiles",
     "EICHERMOT": "Automobiles",
     "HEROMOTOCO": "Automobiles",
     "BAJAJ-AUTO": "Automobiles",

@@ -10,6 +10,36 @@ from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.watchlist_scanner import scan_watchlist
 
 
+def _normalize_broad_market_confidence(df: pd.DataFrame) -> pd.DataFrame:
+    """Do not present legacy AI scores as calibrated confidence probabilities."""
+    result = df.copy()
+    if "Confidence" in result.columns or "AI Score" in result.columns:
+        result["Confidence"] = None
+        result["Confidence Status"] = "Not calibrated"
+    return result
+
+
+def _live_intraday_rows(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep only rows with an explicit, timestamped live quote and valid price."""
+    required = {
+        "Tick Live",
+        "Observation Status",
+        "Observed At",
+        "Latest Observation Price",
+    }
+    if not required.issubset(df.columns):
+        return df.iloc[0:0].copy()
+
+    live = df["Tick Live"].map(
+        lambda value: value is True or str(value).strip().casefold() == "true"
+    )
+    status = df["Observation Status"].astype(str).str.strip().str.upper().eq("LIVE QUOTE")
+    observed = pd.to_datetime(df["Observed At"], errors="coerce", utc=True)
+    price = pd.to_numeric(df["Latest Observation Price"], errors="coerce")
+    valid = observed.notna() & price.gt(0) & price.map(math.isfinite)
+    return df.loc[live & status & valid].copy()
+
+
 def _show_data_quality(df: pd.DataFrame) -> None:
     """Show transparent checks for the rows returned by the scanner."""
     st.subheader("Data quality")
@@ -55,7 +85,7 @@ def show():
 
     st.caption(
         f"Broad candidate pool: {len(NSE_CANDIDATES)} NSE + {len(BSE_CANDIDATES)} BSE symbols. "
-        f"Exchange preference: {selected_exchange}."
+        f"Exchange preference: {selected_exchange}. Fast curated basket; not every listed security."
     )
     if min_volume > 0:
         st.warning(
@@ -104,21 +134,38 @@ def show():
     exchange_filter = st.selectbox(
         "Exchange",
         ["NSE + BSE", "NSE", "BSE"],
+        index=["NSE + BSE", "NSE", "BSE"].index(selected_exchange),
         help="NSE + BSE keeps opportunities from both exchanges in the candidate pool. "
         "Low-liquidity stocks are not removed; use the Risk and turnover information for judgment.",
     )
     if st.button("Scan", use_container_width=True):
         with st.spinner("Scanning stocks..."):
-            df = scan_watchlist(watchlist) if scan_mode == "Personal Watchlist" else market_scan()
+            df = (
+                scan_watchlist(watchlist)
+                if scan_mode == "Personal Watchlist"
+                else market_scan(exchange_filter)
+            )
+
+        if scan_mode == "Broad Market":
+            df = _normalize_broad_market_confidence(df)
 
         if df.empty:
             st.warning("No stocks could be analyzed for this scan.")
             return
 
+        if (
+            scan_mode == "Personal Watchlist"
+            and exchange_filter in ("NSE", "BSE")
+            and "Exchange" in df.columns
+        ):
+            df = df.loc[df["Exchange"] == exchange_filter]
+
+        if df.empty:
+            st.warning("No stocks match the selected exchange.")
+            return
+
         _show_data_quality(df)
 
-        if exchange_filter in ("NSE", "BSE") and "Exchange" in df.columns:
-            df = df.loc[df["Exchange"] == exchange_filter]
         if "Price" in df.columns:
             df = df.loc[df["Price"] >= max(min_price, settings_min_price)]
             if max_price > 0:

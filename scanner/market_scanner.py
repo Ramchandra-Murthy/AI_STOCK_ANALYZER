@@ -1,3 +1,5 @@
+import math
+import time
 from typing import Any
 
 import pandas as pd
@@ -13,22 +15,27 @@ from indicators.moving_average import calculate_ema, calculate_sma
 from indicators.rsi import calculate_rsi
 from indicators.support_resistance import calculate_support_resistance
 from indicators.trend import detect_trend
-from scanner.dynamic_universe import (
-    merge_bse_universe,
-    merge_nse_universe,
-)
+from scanner.dynamic_universe import yahoo_symbol_for_bse_code
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.sector_mapping import sector_for_symbol
 
-TOP_CANDIDATES_TO_ANALYZE = 20
+TOP_CANDIDATES_TO_ANALYZE = 40
 DISPLAY_COUNT = 20
 DOWNLOAD_CHUNK_SIZE = 40
-MAX_CANDIDATES_PER_EXCHANGE = 10
+MAX_CANDIDATES_PER_EXCHANGE = 20
 ANALYSIS_PERIOD = "1y"
 
 
-def _ticker(symbol: str, exchange: str) -> str:
-    suffix = "NS" if exchange == "NSE" else "BO"
-    return f"{symbol}.{suffix}"
+def _ticker(symbol: str, exchange: str) -> str | None:
+    """Return a Yahoo ticker, resolving BSE scrip codes to their company symbols."""
+    normalized = str(symbol).strip().upper()
+    if exchange == "NSE":
+        yahoo_symbol = {"ZOMATO": "ETERNAL", "TATAMOTORS": "TMPV"}.get(normalized, normalized)
+        return f"{yahoo_symbol}.NS"
+    if exchange != "BSE":
+        raise ValueError(f"Unsupported exchange: {exchange}")
+    yahoo_symbol = yahoo_symbol_for_bse_code(normalized)
+    return f"{yahoo_symbol}.BO" if yahoo_symbol else None
 
 
 def _extract_series(history: pd.DataFrame, ticker: str, field: str) -> pd.Series:
@@ -66,7 +73,8 @@ def _extract_history_frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
         return pd.DataFrame()
 
     frame = frame.loc[:, required].apply(pd.to_numeric, errors="coerce")
-    return frame.dropna(subset=required)
+    finite_rows = frame.apply(lambda column: column.map(math.isfinite)).all(axis=1)
+    return frame.loc[finite_rows].copy()
 
 
 def _download_chunk(chunk: list[str]) -> pd.DataFrame:
@@ -139,16 +147,27 @@ def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
 
 def _batch_change_screen(
     candidates: dict[str, list[str]],
+    coverage: dict[str, dict[str, int]] | None = None,
 ) -> list[tuple[str, str, float, float]]:
-    """Find price movers across the current NSE and BSE universes without a liquidity exclusion."""
+    """Find price movers from the bounded candidate basket using batched data."""
     ranked: list[tuple[str, str, float, float]] = []
 
     for exchange, symbols in candidates.items():
-        tickers = [_ticker(symbol, exchange) for symbol in symbols]
+        stats = coverage.setdefault(exchange, {}) if coverage is not None else {}
+        tickers = [
+            ticker for symbol in symbols if (ticker := _ticker(symbol, exchange)) is not None
+        ]
+        if coverage is not None:
+            stats["tickers_requested"] = len(tickers)
+
         for start in range(0, len(tickers), DOWNLOAD_CHUNK_SIZE):
             chunk = tickers[start : start + DOWNLOAD_CHUNK_SIZE]
+            if coverage is not None:
+                stats["screen_chunks_requested"] = stats.get("screen_chunks_requested", 0) + 1
             history = _download_chunk(chunk)
             if history.empty:
+                if coverage is not None:
+                    stats["screen_chunks_empty"] = stats.get("screen_chunks_empty", 0) + 1
                 continue
 
             for ticker in chunk:
@@ -161,11 +180,22 @@ def _batch_change_screen(
                     latest = float(close.iloc[-1])
                     previous = float(close.iloc[-2])
                     average_volume = float(volume.tail(5).mean())
-                    if previous == 0:
+                    if (
+                        not all(
+                            math.isfinite(value) for value in (latest, previous, average_volume)
+                        )
+                        or previous <= 0
+                        or latest <= 0
+                        or average_volume < 0
+                    ):
                         continue
 
                     change_pct = ((latest - previous) / previous) * 100
                     average_turnover = latest * average_volume
+                    if not math.isfinite(average_turnover):
+                        continue
+                    if coverage is not None:
+                        stats["histories_returned"] = stats.get("histories_returned", 0) + 1
                     ranked.append((ticker, exchange, change_pct, average_turnover))
                 except (KeyError, TypeError, ValueError, IndexError):
                     continue
@@ -220,6 +250,8 @@ def _analyze_history(
             "ATR": round(float(last["ATR"]), 2),
             "AI Score": signal["Score"],
             "Confidence": signal["Confidence"],
+            "Confidence Status": signal.get("Confidence Status", "Not calibrated"),
+            "Data Frequency": "Daily",
             "Risk": signal.get("Risk", "Medium"),
             "Recommendation": signal["Recommendation"],
         }
@@ -227,19 +259,55 @@ def _analyze_history(
         return None
 
 
-def market_scan() -> pd.DataFrame:
-    """Scan a refreshed universe using batched market data and local analysis."""
-    candidates = {
-        "NSE": merge_nse_universe(),
-        "BSE": merge_bse_universe(),
+def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
+    """Scan the fast curated NSE/BSE basket and attach timing and coverage diagnostics."""
+    if exchange_filter not in {"NSE", "BSE", "NSE + BSE"}:
+        raise ValueError(f"Unsupported exchange filter: {exchange_filter}")
+
+    started = time.perf_counter()
+    selected = ("NSE", "BSE") if exchange_filter == "NSE + BSE" else (exchange_filter,)
+    timings: dict[str, float] = {}
+    coverage: dict[str, dict[str, int]] = {
+        exchange: {
+            "candidates": 0,
+            "tickers_requested": 0,
+            "histories_returned": 0,
+            "screen_chunks_requested": 0,
+            "screen_chunks_empty": 0,
+            "analysis_requested": 0,
+            "analysis_download_failed": 0,
+            "analyses_completed": 0,
+            "final_rows": 0,
+        }
+        for exchange in selected
     }
-    movers = _batch_change_screen(candidates)
+
+    def finish(frame: pd.DataFrame) -> pd.DataFrame:
+        timings["total_seconds"] = round(time.perf_counter() - started, 6)
+        frame.attrs["scanner_timings"] = dict(timings)
+        frame.attrs["scanner_coverage"] = {
+            exchange: dict(values) for exchange, values in coverage.items()
+        }
+        return frame
+
+    universe_started = time.perf_counter()
+    candidates = {
+        exchange: list(NSE_CANDIDATES if exchange == "NSE" else BSE_CANDIDATES)
+        for exchange in selected
+    }
+    for exchange, symbols in candidates.items():
+        coverage[exchange]["candidates"] = len(symbols)
+    timings["universe_build_seconds"] = round(time.perf_counter() - universe_started, 6)
+
+    screen_started = time.perf_counter()
+    movers = _batch_change_screen(candidates, coverage)
+    timings["screen_seconds"] = round(time.perf_counter() - screen_started, 6)
     if not movers:
-        return pd.DataFrame()
+        return finish(pd.DataFrame())
 
     analysis_tickers: list[str] = []
     seen: set[str] = set()
-    exchange_counts = {"NSE": 0, "BSE": 0}
+    exchange_counts = {exchange: 0 for exchange in selected}
     for ticker, exchange, _change, _turnover in movers:
         if ticker in seen or exchange_counts[exchange] >= MAX_CANDIDATES_PER_EXCHANGE:
             continue
@@ -249,27 +317,40 @@ def market_scan() -> pd.DataFrame:
         if len(analysis_tickers) >= TOP_CANDIDATES_TO_ANALYZE:
             break
 
+    for exchange, count in exchange_counts.items():
+        coverage[exchange]["analysis_requested"] = count
     if not analysis_tickers:
-        return pd.DataFrame()
+        return finish(pd.DataFrame())
 
+    analysis_download_started = time.perf_counter()
     history = _download_analysis_chunk(analysis_tickers)
+    timings["analysis_download_seconds"] = round(time.perf_counter() - analysis_download_started, 6)
     if history.empty:
-        return pd.DataFrame()
+        for exchange, count in exchange_counts.items():
+            coverage[exchange]["analysis_download_failed"] = count
+        return finish(pd.DataFrame())
 
     turnover_by_ticker = {ticker: turnover for ticker, _exchange, _change, turnover in movers}
+    ticker_exchange = {ticker: exchange for ticker, exchange, _change, _turnover in movers}
 
+    analysis_started = time.perf_counter()
     rows: list[dict[str, Any]] = []
     for ticker in analysis_tickers:
         row = _analyze_history(ticker, history, turnover_by_ticker.get(ticker))
         if row is not None:
             rows.append(row)
+            exchange = ticker_exchange[ticker]
+            coverage[exchange]["analyses_completed"] += 1
+            coverage[exchange]["final_rows"] += 1
+    timings["analysis_seconds"] = round(time.perf_counter() - analysis_started, 6)
 
-    df = pd.DataFrame(rows)
-    if df.empty:
-        return df
+    result = pd.DataFrame(rows)
+    if result.empty:
+        return finish(result)
 
-    return (
-        df.sort_values(by=["AI Score", "Confidence"], ascending=[False, False])
+    result = (
+        result.sort_values(by="AI Score", ascending=False)
         .head(DISPLAY_COUNT)
         .reset_index(drop=True)
     )
+    return finish(result)
