@@ -71,7 +71,6 @@ def _show_data_quality(df: pd.DataFrame) -> None:
     )
 
 
-
 def _show_scan_diagnostics(df: pd.DataFrame) -> None:
     """Show how much of the selected exchange universe was actually screened."""
     coverage = df.attrs.get("scanner_coverage", {})
@@ -80,7 +79,9 @@ def _show_scan_diagnostics(df: pd.DataFrame) -> None:
     mode = df.attrs.get("scanner_universe_mode", "unknown")
 
     with st.expander("Universe coverage and scan diagnostics", expanded=mode == "full"):
-        st.caption(f"Scan mode: {mode}. These counts describe screening coverage, not just displayed rows.")
+        st.caption(
+            f"Scan mode: {mode}. These counts describe screening coverage, not just displayed rows."
+        )
         for exchange, stats in coverage.items():
             st.markdown(f"**{exchange}**")
             cols = st.columns(4)
@@ -96,7 +97,9 @@ def _show_scan_diagnostics(df: pd.DataFrame) -> None:
                 )
             reason = stats.get("source_reason")
             if reason:
-                st.warning(f"{exchange} official list unavailable: {reason}. Full-universe coverage was not claimed.")
+                st.warning(
+                    f"{exchange} official list unavailable: {reason}. Full-universe coverage was not claimed."
+                )
         if timings:
             st.caption("Stage timings (seconds)")
             st.json(timings)
