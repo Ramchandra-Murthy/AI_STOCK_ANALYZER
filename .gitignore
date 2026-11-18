@@ -41,10 +41,5 @@ htmlcov/
 .idea/
 
 
-# Runtime databases and local persistence (never commit user data)
-*.db
-*.sqlite
+# EROS runtime persistence
 *.sqlite3
-
-# Local paper-trading evidence log (generated at runtime, never committed)
-generated_reports/paper_trading/

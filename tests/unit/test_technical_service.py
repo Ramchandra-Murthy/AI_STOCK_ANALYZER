@@ -16,11 +16,7 @@ def test_get_price_history_excludes_zero_volume_rows(monkeypatch):
         index=dates,
     )
 
-    monkeypatch.setattr(
-        technical_service,
-        "download_symbol_frames",
-        lambda *args, **kwargs: ({"RELIANCE.NS": frame}, []),
-    )
+    monkeypatch.setattr(technical_service.yf, "download", lambda *args, **kwargs: frame)
 
     result = technical_service.get_price_history("RELIANCE.NS")
 
@@ -42,10 +38,6 @@ def test_get_price_history_returns_none_when_all_rows_have_zero_volume(monkeypat
         index=pd.date_range("2026-10-01", periods=1),
     )
 
-    monkeypatch.setattr(
-        technical_service,
-        "download_symbol_frames",
-        lambda *args, **kwargs: ({"RELIANCE.NS": frame}, []),
-    )
+    monkeypatch.setattr(technical_service.yf, "download", lambda *args, **kwargs: frame)
 
     assert technical_service.get_price_history("RELIANCE.NS") is None

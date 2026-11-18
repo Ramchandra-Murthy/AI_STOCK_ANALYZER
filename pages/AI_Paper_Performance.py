@@ -1,4 +1,4 @@
-"""Streamlit page for persistent AI paper-trading performance analytics."""
+"""Streamlit page for AI paper-trading performance analytics."""
 
 from __future__ import annotations
 
@@ -7,7 +7,6 @@ import streamlit as st
 
 from ai_trading.paper_trading import PaperPortfolio
 from ai_trading.performance import build_equity_curve, build_performance_report
-from services.ai_paper_trading_store import PaperPortfolioStoreError, load_portfolio
 
 st.set_page_config(
     page_title="AI Paper Performance",
@@ -16,24 +15,13 @@ st.set_page_config(
 )
 
 st.title("📊 AI Paper Trading Performance")
-st.caption(
-    "Performance analytics for the saved AI paper-trading portfolio. "
-    "Latest unrealized P&L uses the most recent prices held in this browser session."
-)
+st.caption("Analytics for the current in-memory AI paper-trading session.")
 
 portfolio = st.session_state.get("ai_paper_portfolio")
-if not isinstance(portfolio, PaperPortfolio):
-    try:
-        portfolio = load_portfolio()
-        if portfolio is not None:
-            st.session_state.ai_paper_portfolio = portfolio
-    except PaperPortfolioStoreError as exc:
-        st.error(f"Could not load the saved paper portfolio: {exc}")
-        st.stop()
-
 prices = st.session_state.get("ai_paper_prices", {})
+
 if not isinstance(portfolio, PaperPortfolio):
-    st.info("No saved paper portfolio yet. Run the AI Paper Trading page first.")
+    st.info("Run the AI Paper Trading page first to create a paper portfolio.")
     st.stop()
 
 equity = portfolio.equity(prices)
@@ -55,7 +43,7 @@ m1, m2, m3, m4 = st.columns(4)
 m1.metric("Paper equity", f"₹{report.current_equity:,.2f}")
 m2.metric("Total return", f"{report.total_return_pct:.2f}%")
 m3.metric("Total P&L", f"₹{report.total_pnl:,.2f}")
-m4.metric("Realized-trade drawdown", f"{report.max_drawdown_pct:.2f}%")
+m4.metric("Max drawdown", f"{report.max_drawdown_pct:.2f}%")
 
 m5, m6, m7, m8 = st.columns(4)
 m5.metric("Realized P&L", f"₹{report.realized_pnl:,.2f}")
@@ -79,9 +67,7 @@ else:
     latest_drawdown = float(curve.iloc[-1]["drawdown_pct"])
     c1, c2 = st.columns(2)
     c1.metric("Latest cycle return", f"{latest_return:.2f}%")
-    c2.metric("Current recorded drawdown", f"{latest_drawdown:.2f}%")
-    max_recorded_drawdown = float(curve["drawdown_pct"].max())
-    st.metric("Maximum recorded mark-to-market drawdown", f"{max_recorded_drawdown:.2f}%")
+    c2.metric("Current drawdown", f"{latest_drawdown:.2f}%")
     st.dataframe(curve, use_container_width=True, hide_index=True)
 
 st.subheader("Performance breakdown")
@@ -93,7 +79,7 @@ breakdown = pd.DataFrame(
         {"metric": "Unrealized P&L", "value": report.unrealized_pnl},
         {"metric": "Total P&L", "value": report.total_pnl},
         {"metric": "Gross exposure %", "value": report.gross_exposure_pct},
-        {"metric": "Realized-trade drawdown %", "value": report.max_drawdown_pct},
+        {"metric": "Max drawdown %", "value": report.max_drawdown_pct},
         {"metric": "Trade count", "value": report.trade_count},
     ]
 )
@@ -101,7 +87,7 @@ st.dataframe(breakdown, use_container_width=True, hide_index=True)
 
 st.subheader("Trade outcomes")
 if portfolio.trades:
-    st.dataframe(
+    journal = pd.DataFrame(
         [
             {
                 "symbol": trade.symbol,
@@ -112,9 +98,8 @@ if portfolio.trades:
                 "cash_after": trade.cash_after,
             }
             for trade in portfolio.trades
-        ],
-        use_container_width=True,
-        hide_index=True,
+        ]
     )
+    st.dataframe(journal, use_container_width=True, hide_index=True)
 else:
     st.info("No paper trades yet.")

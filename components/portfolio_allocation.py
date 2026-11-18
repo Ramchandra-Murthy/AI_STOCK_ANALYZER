@@ -15,10 +15,9 @@ def show_portfolio_allocation(df):
         st.warning("Current Value column not found.")
         return
 
-    chart_df = df.dropna(subset=["Current Value"]).copy()
-    if chart_df.empty:
-        st.info("Portfolio allocation is unavailable because no holdings have current prices.")
-        return
+    chart_df = df.copy()
+
+    chart_df["Current Value"] = chart_df["Current Value"].fillna(0)
 
     fig = px.pie(chart_df, names="symbol", values="Current Value", hole=0.55)
 
@@ -26,9 +25,4 @@ def show_portfolio_allocation(df):
 
     fig.update_layout(height=420, margin=dict(l=20, r=20, t=20, b=20), showlegend=True)
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True,
-        config={"displayModeBar": False, "responsive": True},
-        key="dashboard_portfolio_allocation_chart",
-    )
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})

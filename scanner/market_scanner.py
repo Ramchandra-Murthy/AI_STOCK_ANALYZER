@@ -1,6 +1,3 @@
-import math
-import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
 import pandas as pd
@@ -17,32 +14,21 @@ from indicators.rsi import calculate_rsi
 from indicators.support_resistance import calculate_support_resistance
 from indicators.trend import detect_trend
 from scanner.dynamic_universe import (
-    dynamic_bse_symbols,
-    dynamic_nse_symbols,
-    universe_source_status,
-    yahoo_symbol_for_bse_code,
+    merge_bse_universe,
+    merge_nse_universe,
 )
-from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.sector_mapping import sector_for_symbol
 
-TOP_CANDIDATES_TO_ANALYZE = 40
+TOP_CANDIDATES_TO_ANALYZE = 20
 DISPLAY_COUNT = 20
 DOWNLOAD_CHUNK_SIZE = 40
-MAX_CANDIDATES_PER_EXCHANGE = 20
-SCREEN_DOWNLOAD_WORKERS = 3
+MAX_CANDIDATES_PER_EXCHANGE = 10
 ANALYSIS_PERIOD = "1y"
 
 
-def _ticker(symbol: str, exchange: str) -> str | None:
-    """Return a Yahoo ticker, resolving BSE scrip codes to their company symbols."""
-    normalized = str(symbol).strip().upper()
-    if exchange == "NSE":
-        yahoo_symbol = {"ZOMATO": "ETERNAL", "TATAMOTORS": "TMPV"}.get(normalized, normalized)
-        return f"{yahoo_symbol}.NS"
-    if exchange != "BSE":
-        raise ValueError(f"Unsupported exchange: {exchange}")
-    yahoo_symbol = yahoo_symbol_for_bse_code(normalized)
-    return f"{yahoo_symbol}.BO" if yahoo_symbol else None
+def _ticker(symbol: str, exchange: str) -> str:
+    suffix = "NS" if exchange == "NSE" else "BO"
+    return f"{symbol}.{suffix}"
 
 
 def _extract_series(history: pd.DataFrame, ticker: str, field: str) -> pd.Series:
@@ -80,23 +66,21 @@ def _extract_history_frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
         return pd.DataFrame()
 
     frame = frame.loc[:, required].apply(pd.to_numeric, errors="coerce")
-    finite_rows = frame.apply(lambda column: column.map(math.isfinite)).all(axis=1)
-    return frame.loc[finite_rows].copy()
+    return frame.dropna(subset=required)
 
 
-def _download_chunk(chunk: list[str], interval: str = "1d") -> pd.DataFrame:
-    """Download a mover-screen chunk, retrying once without nested threading."""
-    period = "1d" if interval != "1d" else "5d"
+def _download_chunk(chunk: list[str]) -> pd.DataFrame:
+    """Download a mover-screen chunk, retrying once without threading."""
     try:
         history = yf.download(
             tickers=chunk,
-            period=period,
-            interval=interval,
+            period="5d",
+            interval="1d",
             auto_adjust=True,
             progress=False,
             group_by="ticker",
-            threads=False,
-            timeout=15,
+            threads=True,
+            timeout=10,
         )
         if history is not None and not history.empty:
             return history
@@ -106,8 +90,8 @@ def _download_chunk(chunk: list[str], interval: str = "1d") -> pd.DataFrame:
     try:
         history = yf.download(
             tickers=chunk,
-            period=period,
-            interval=interval,
+            period="5d",
+            interval="1d",
             auto_adjust=True,
             progress=False,
             group_by="ticker",
@@ -155,98 +139,36 @@ def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
 
 def _batch_change_screen(
     candidates: dict[str, list[str]],
-    coverage: dict[str, dict[str, Any]] | None = None,
-    interval: str = "1d",
 ) -> list[tuple[str, str, float, float]]:
-    """Screen all supplied symbols in bounded concurrent Yahoo Finance batches."""
+    """Find price movers across the current NSE and BSE universes without a liquidity exclusion."""
     ranked: list[tuple[str, str, float, float]] = []
-    jobs: list[tuple[str, list[str]]] = []
 
     for exchange, symbols in candidates.items():
-        stats = coverage.setdefault(exchange, {}) if coverage is not None else {}
-        if coverage is not None:
-            stats["screen_frequency"] = interval
-            stats.setdefault("stale_histories", 0)
-        mapped = [(symbol, _ticker(symbol, exchange)) for symbol in symbols]
-        tickers = [ticker for _symbol, ticker in mapped if ticker is not None]
-        if coverage is not None:
-            stats["tickers_requested"] = len(tickers)
-            stats["unmapped_symbols"] = sum(ticker is None for _symbol, ticker in mapped)
-
-        for offset in range(0, len(tickers), DOWNLOAD_CHUNK_SIZE):
-            jobs.append((exchange, tickers[offset : offset + DOWNLOAD_CHUNK_SIZE]))
-
-        if coverage is not None:
-            stats["screen_chunks_requested"] = sum(
-                1 for job_exchange, _chunk in jobs if job_exchange == exchange
-            )
-
-    def screen_result(exchange: str, chunk: list[str], history: pd.DataFrame) -> None:
-        stats = coverage.setdefault(exchange, {}) if coverage is not None else {}
-        if history.empty:
-            if coverage is not None:
-                stats["screen_chunks_empty"] = stats.get("screen_chunks_empty", 0) + 1
-            return
-
-        for ticker in chunk:
-            try:
-                close = _extract_series(history, ticker, "Close")
-                volume = _extract_series(history, ticker, "Volume")
-                if len(close) < 2 or volume.empty:
-                    continue
-
-                if interval == "5m":
-                    latest_bar = pd.Timestamp(close.index[-1])
-                    if latest_bar.tzinfo is None:
-                        latest_bar = latest_bar.tz_localize("Asia/Kolkata")
-                    else:
-                        latest_bar = latest_bar.tz_convert("Asia/Kolkata")
-                    now = pd.Timestamp.now(tz="Asia/Kolkata")
-                    if (
-                        latest_bar.date() != now.date()
-                        or latest_bar > now + pd.Timedelta(minutes=2)
-                        or now - latest_bar > pd.Timedelta(minutes=20)
-                    ):
-                        if coverage is not None:
-                            stats["stale_histories"] = stats.get("stale_histories", 0) + 1
-                        continue
-                    if coverage is not None:
-                        stats["latest_bar_at"] = latest_bar.isoformat()
-
-                latest = float(close.iloc[-1])
-                previous = float(close.iloc[-2])
-                average_volume = float(volume.tail(5).mean())
-                if (
-                    not all(math.isfinite(value) for value in (latest, previous, average_volume))
-                    or previous <= 0
-                    or latest <= 0
-                    or average_volume < 0
-                ):
-                    continue
-
-                change_pct = ((latest - previous) / previous) * 100
-                average_turnover = latest * average_volume
-                if not math.isfinite(average_turnover):
-                    continue
-                if coverage is not None:
-                    stats["histories_returned"] = stats.get("histories_returned", 0) + 1
-                ranked.append((ticker, exchange, change_pct, average_turnover))
-            except (KeyError, TypeError, ValueError, IndexError):
+        tickers = [_ticker(symbol, exchange) for symbol in symbols]
+        for start in range(0, len(tickers), DOWNLOAD_CHUNK_SIZE):
+            chunk = tickers[start : start + DOWNLOAD_CHUNK_SIZE]
+            history = _download_chunk(chunk)
+            if history.empty:
                 continue
 
-    if jobs:
-        with ThreadPoolExecutor(max_workers=SCREEN_DOWNLOAD_WORKERS) as executor:
-            future_jobs = {
-                executor.submit(_download_chunk, chunk, interval): (exchange, chunk)
-                for exchange, chunk in jobs
-            }
-            for future in as_completed(future_jobs):
-                exchange, chunk = future_jobs[future]
+            for ticker in chunk:
                 try:
-                    history = future.result()
-                except Exception:
-                    history = pd.DataFrame()
-                screen_result(exchange, chunk, history)
+                    close = _extract_series(history, ticker, "Close")
+                    volume = _extract_series(history, ticker, "Volume")
+                    if len(close) < 2 or volume.empty:
+                        continue
+
+                    latest = float(close.iloc[-1])
+                    previous = float(close.iloc[-2])
+                    average_volume = float(volume.tail(5).mean())
+                    if previous == 0:
+                        continue
+
+                    change_pct = ((latest - previous) / previous) * 100
+                    average_turnover = latest * average_volume
+                    ranked.append((ticker, exchange, change_pct, average_turnover))
+                except (KeyError, TypeError, ValueError, IndexError):
+                    continue
 
     ranked.sort(key=lambda row: abs(row[2]), reverse=True)
     return ranked
@@ -298,8 +220,6 @@ def _analyze_history(
             "ATR": round(float(last["ATR"]), 2),
             "AI Score": signal["Score"],
             "Confidence": signal["Confidence"],
-            "Confidence Status": signal.get("Confidence Status", "Not calibrated"),
-            "Data Frequency": "Daily",
             "Risk": signal.get("Risk", "Medium"),
             "Recommendation": signal["Recommendation"],
         }
@@ -307,139 +227,49 @@ def _analyze_history(
         return None
 
 
-def market_scan(exchange_filter: str = "NSE + BSE", universe_mode: str = "fast") -> pd.DataFrame:
-    """Screen a curated basket or the official NSE/BSE equity universes."""
-    if exchange_filter not in {"NSE", "BSE", "NSE + BSE"}:
-        raise ValueError(f"Unsupported exchange filter: {exchange_filter}")
-    if universe_mode not in {"fast", "full"}:
-        raise ValueError(f"Unsupported universe mode: {universe_mode}")
-
-    started = time.perf_counter()
-    selected = ("NSE", "BSE") if exchange_filter == "NSE + BSE" else (exchange_filter,)
-    timings: dict[str, float] = {}
-    coverage: dict[str, dict[str, Any]] = {
-        exchange: {
-            "candidates": 0,
-            "tickers_requested": 0,
-            "histories_returned": 0,
-            "screen_chunks_requested": 0,
-            "screen_chunks_empty": 0,
-            "analysis_requested": 0,
-            "analysis_download_failed": 0,
-            "analyses_completed": 0,
-            "final_rows": 0,
-        }
-        for exchange in selected
+def market_scan() -> pd.DataFrame:
+    """Scan a refreshed universe using batched market data and local analysis."""
+    candidates = {
+        "NSE": merge_nse_universe(),
+        "BSE": merge_bse_universe(),
     }
-
-    def finish(frame: pd.DataFrame) -> pd.DataFrame:
-        timings["total_seconds"] = round(time.perf_counter() - started, 6)
-        frame.attrs["scanner_timings"] = dict(timings)
-        frame.attrs["scanner_coverage"] = {
-            exchange: dict(values) for exchange, values in coverage.items()
-        }
-        frame.attrs["scanner_universe_mode"] = universe_mode
-        if universe_mode == "full":
-            frame.attrs["scanner_universe_sources"] = universe_source_status()
-        return frame
-
-    universe_started = time.perf_counter()
-    if universe_mode == "fast":
-        candidates = {
-            exchange: list(NSE_CANDIDATES if exchange == "NSE" else BSE_CANDIDATES)
-            for exchange in selected
-        }
-        for exchange, symbols in candidates.items():
-            coverage[exchange]["source"] = "curated basket"
-            coverage[exchange]["candidates"] = len(symbols)
-    else:
-        candidates = {}
-        for exchange in selected:
-            symbols = dynamic_nse_symbols() if exchange == "NSE" else dynamic_bse_symbols()
-            source = universe_source_status()[exchange]
-            is_official = source.get("origin") == "official"
-            # Never label a curated fallback as a full-universe scan.
-            candidates[exchange] = list(symbols) if is_official else []
-            coverage[exchange]["source"] = source.get("source", "unknown")
-            coverage[exchange]["source_status"] = source.get("official_source_status", "unknown")
-            coverage[exchange]["source_symbols"] = int(source.get("source_symbols", 0))
-            coverage[exchange]["source_reason"] = source.get("reason", "")
-            coverage[exchange]["candidates"] = len(candidates[exchange])
-    timings["universe_build_seconds"] = round(time.perf_counter() - universe_started, 6)
-
-    screen_started = time.perf_counter()
-    screen_interval = "5m" if universe_mode == "full" else "1d"
-    movers = (
-        _batch_change_screen(candidates, coverage)
-        if screen_interval == "1d"
-        else _batch_change_screen(candidates, coverage, interval=screen_interval)
-    )
-    timings["screen_seconds"] = round(time.perf_counter() - screen_started, 6)
+    movers = _batch_change_screen(candidates)
     if not movers:
-        return finish(pd.DataFrame())
+        return pd.DataFrame()
 
     analysis_tickers: list[str] = []
-    seen_companies: set[str] = set()
-    exchange_counts = {exchange: 0 for exchange in selected}
+    seen: set[str] = set()
+    exchange_counts = {"NSE": 0, "BSE": 0}
     for ticker, exchange, _change, _turnover in movers:
-        company_key = ticker.rsplit(".", maxsplit=1)[0]
-        company_key = {"TATAMOTORS": "TMPV", "ZOMATO": "ETERNAL"}.get(company_key, company_key)
-        if (
-            company_key in seen_companies
-            or exchange_counts[exchange] >= MAX_CANDIDATES_PER_EXCHANGE
-        ):
+        if ticker in seen or exchange_counts[exchange] >= MAX_CANDIDATES_PER_EXCHANGE:
             continue
         analysis_tickers.append(ticker)
-        seen_companies.add(company_key)
+        seen.add(ticker)
         exchange_counts[exchange] += 1
         if len(analysis_tickers) >= TOP_CANDIDATES_TO_ANALYZE:
             break
 
-    for exchange, count in exchange_counts.items():
-        coverage[exchange]["analysis_requested"] = count
     if not analysis_tickers:
-        return finish(pd.DataFrame())
+        return pd.DataFrame()
 
-    analysis_download_started = time.perf_counter()
     history = _download_analysis_chunk(analysis_tickers)
-    timings["analysis_download_seconds"] = round(time.perf_counter() - analysis_download_started, 6)
     if history.empty:
-        for exchange, count in exchange_counts.items():
-            coverage[exchange]["analysis_download_failed"] = count
-        return finish(pd.DataFrame())
+        return pd.DataFrame()
 
     turnover_by_ticker = {ticker: turnover for ticker, _exchange, _change, turnover in movers}
-    change_by_ticker = {ticker: change for ticker, _exchange, change, _turnover in movers}
-    ticker_exchange = {ticker: exchange for ticker, exchange, _change, _turnover in movers}
 
-    analysis_started = time.perf_counter()
     rows: list[dict[str, Any]] = []
     for ticker in analysis_tickers:
-        row = _analyze_history(
-            ticker,
-            history,
-            None if universe_mode == "full" else turnover_by_ticker.get(ticker),
-        )
+        row = _analyze_history(ticker, history, turnover_by_ticker.get(ticker))
         if row is not None:
-            row["Screen Change (%)"] = round(change_by_ticker.get(ticker, 0.0), 2)
-            row["Screen Frequency"] = screen_interval
-            if universe_mode == "full":
-                row["Average 5-minute Candle Turnover (₹)"] = round(
-                    turnover_by_ticker.get(ticker, 0.0), 0
-                )
             rows.append(row)
-            exchange = ticker_exchange[ticker]
-            coverage[exchange]["analyses_completed"] += 1
-            coverage[exchange]["final_rows"] += 1
-    timings["analysis_seconds"] = round(time.perf_counter() - analysis_started, 6)
 
-    result = pd.DataFrame(rows)
-    if result.empty:
-        return finish(result)
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return df
 
-    result = (
-        result.sort_values(by="AI Score", ascending=False)
+    return (
+        df.sort_values(by=["AI Score", "Confidence"], ascending=[False, False])
         .head(DISPLAY_COUNT)
         .reset_index(drop=True)
     )
-    return finish(result)

@@ -2,10 +2,9 @@ import streamlit as st
 
 
 def show_ai_score(score=80):
-    """Display the AI Portfolio Health score or explain why it is unavailable."""
-    if score is None:
-        st.info("ℹ️ Portfolio not configured. Add holdings to assess portfolio health.")
-        return
+    """
+    Display AI Portfolio Health Score.
+    """
 
     score = max(0, min(100, score))
 

@@ -6,10 +6,7 @@ import pandas as pd
 import streamlit as st
 
 from api.main import _SCAN_MANAGER
-from scanner.day_trader_opportunity import (
-    scan_day_trader_opportunities,
-    scan_has_provider_data,
-)
+from scanner.day_trader_opportunity import scan_day_trader_opportunities
 from scanner.price_jump_history import append_price_jump_snapshot
 from scanner.price_jump_history_analytics import summarize_price_jump_history
 from services.price_jump_watchlist_delta import compare_watchlists
@@ -24,9 +21,7 @@ from services.intraday_auto_refresh import (
     market_is_open,
     next_refresh_seconds,
     refresh_label,
-    seconds_until_first_scan,
 )
-
 from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_exchange_summary import exchange_summary
 from services.intraday_health import assess_scan_health
@@ -38,13 +33,7 @@ from services.intraday_market_regime import classify_scan_regime
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
 from services.intraday_position_sizing import calculate_position_size
 from services.intraday_quality_dashboard import dashboard_summary
-from services.intraday_risk_planning import (
-    DEFAULT_INTRADAY_CAPITAL,
-    DEFAULT_INTRADAY_RISK_BUDGET,
-    MAX_INTRADAY_CAPITAL,
-    MAX_INTRADAY_LOSS_PER_TRADE,
-    risk_plan_frame,
-)
+from services.intraday_risk_planning import risk_plan_frame
 from services.intraday_scan_delta import snapshot_delta_frame
 from services.intraday_scan_snapshot import record_scan_snapshot, snapshot_frame
 from services.intraday_session import reset_intraday_session
@@ -69,25 +58,6 @@ from services.intraday_trade_analytics import (
 )
 from services.intraday_trade_journal import add_trade, journal_frame, journal_summary
 from services.market_status import describe_market_status
-
-
-def _show_universe_provenance(scan_stats: dict) -> None:
-    """Show whether the day-trader scan used official lists or a curated basket."""
-    st.caption(str(scan_stats.get("universe_description", "Universe source unavailable.")))
-    for exchange, provenance in scan_stats.get("universe_provenance", {}).items():
-        st.caption(
-            f"{exchange}: {provenance.get('source', 'source unavailable')} · official "
-            f"symbols: {provenance.get('source_symbols', 0)} · curated additions: "
-            f"{provenance.get('curated_additions', 0)} · merged: "
-            f"{provenance.get('merged_symbols', 0)} · cache age: "
-            f"{provenance.get('cache_age_seconds', 0)}s"
-        )
-        reason = str(provenance.get("reason", ""))
-        if provenance.get("official_source_status") == "source unavailable":
-            st.warning(
-                f"{exchange} official source unavailable; curated fallback is active. {reason}"
-            )
-
 
 # fmt: off
 
@@ -187,8 +157,8 @@ elif options_result.status == "AVAILABLE":
     metric_right.metric("Provider", options_result.provider_symbol.split(":")[0])
 
     option_summary = summarize_option_chain(options_result.chain)
-    st.dataframe(option_summary, width="stretch", hide_index=True)
-    st.dataframe(options_result.chain, width="stretch", hide_index=True)
+    st.dataframe(option_summary, use_container_width=True, hide_index=True)
+    st.dataframe(options_result.chain, use_container_width=True, hide_index=True)
     st.download_button(
         "Download option chain CSV",
         options_result.chain.to_csv(index=False).encode("utf-8"),
@@ -278,19 +248,8 @@ def _live_market_mode_controller():
         return
 
     last_scan = st.session_state.get("intraday_last_scan_at")
-    if last_scan is None:
-        initial_wait = seconds_until_first_scan(now)
-        if initial_wait > 0:
-            st.info(
-                "🟢 Live Market Mode: READY · first automatic scan starts at 09:25 IST "
-                f"({refresh_label(initial_wait)} remaining) to let opening volatility settle."
-            )
-            return
-        st.session_state["intraday_auto_refresh_pending"] = True
-        st.rerun()
-
     remaining = next_refresh_seconds(last_scan, refresh_interval, now)
-    if remaining <= 0:
+    if last_scan is None or remaining <= 0:
         st.session_state["intraday_auto_refresh_pending"] = True
         st.rerun()
 
@@ -306,101 +265,69 @@ scan_requested = st.button("Scan now", type="primary")
 auto_scan_requested = st.session_state.pop("intraday_auto_refresh_pending", False)
 
 if scan_requested or auto_scan_requested:
-    if st.session_state.get("intraday_scan_in_progress", False):
-        st.info("An intraday scan is already running. Please wait for it to finish.")
-    else:
-        st.session_state["intraday_scan_in_progress"] = True
-        try:
-            previous_results = st.session_state.get("day_trader_opportunities")
-            with st.spinner("Scanning the current NSE+BSE candidate universe…"):
-                results = scan_day_trader_opportunities(
-                    limit=100,
-                    exchange_category=exchange,
-                    cap_category=cap_category,
-                    max_price=price_limit,
-                    lookback_minutes=lookback,
-                    min_change_percent=min_change,
-                    min_volume_surge=min_volume,
-                    low_price_only=low_price_only,
-                    exclude_flagged=exclude_flagged,
-                )
-
-            scan_stats = results.attrs.get("scan_stats", {}) if results is not None else {}
-            if results is None or not scan_has_provider_data(scan_stats):
-                st.session_state["intraday_last_scan_status"] = "FAILED"
-                st.session_state["intraday_scan_stats"] = scan_stats
-                st.error(
-                    "The scan could not retrieve usable market-data chunks. "
-                    "Your previous successful results have been preserved. "
-                    "Check the connection/provider and retry."
-                )
-            else:
-                results = results.head(limit).reset_index(drop=True)
-                scan_at = pd.Timestamp.now(tz="Asia/Kolkata")
-                st.session_state["intraday_scan_stats"] = scan_stats
-                st.session_state["intraday_market_regime"] = classify_scan_regime(results)
-                snapshot_history = st.session_state.get("intraday_scan_snapshots", [])
-                st.session_state["intraday_scan_snapshots"] = record_scan_snapshot(
-                    snapshot_history,
-                    results,
-                    scan_at.to_pydatetime(),
-                )
-                st.session_state["day_trader_opportunities"] = results
-                st.session_state["intraday_last_scan_at"] = scan_at
-                st.session_state["intraday_last_scan_status"] = "SUCCESS"
-                if previous_results is not None:
-                    alerts = detect_intraday_alerts(
-                        previous_results,
-                        results,
-                        scan_at.to_pydatetime(),
-                    )
-                    alert_history = st.session_state.get("intraday_alert_history", [])
-                    st.session_state["intraday_alert_history"] = append_alert_history(
-                        alert_history,
-                        alerts,
-                    )
-                scan_health = assess_scan_health(results, scan_at.to_pydatetime())
-                health_history = st.session_state.get("intraday_health_history", [])
-                st.session_state["intraday_health_history"] = record_health_observation(
-                    health_history,
-                    scan_health,
-                    scan_at.to_pydatetime(),
-                )
-                previous_states = st.session_state.get("intraday_setup_states", {})
-                updated_states, transitions = record_setup_state_transitions(
-                    previous_states,
-                    results,
-                    pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
-                )
-                st.session_state["intraday_setup_states"] = updated_states
-                previous_monitor = st.session_state.get("intraday_setup_monitor", {})
-                st.session_state["intraday_setup_monitor"] = record_setup_observations(
-                    previous_monitor,
-                    results,
-                    pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
-                )
-                previous_outcomes = st.session_state.get("intraday_setup_outcomes", {})
-                st.session_state["intraday_setup_outcomes"] = record_setup_outcomes(
-                    previous_outcomes,
-                    results,
-                    pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
-                )
-                previous_windows = st.session_state.get("intraday_multi_window_outcomes", {})
-                st.session_state["intraday_multi_window_outcomes"] = record_multi_window_outcomes(
-                    previous_windows,
-                    results,
-                    pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
-                )
-                history = st.session_state.get("intraday_state_transitions", [])
-                st.session_state["intraday_state_transitions"] = transitions + history
-        except Exception as exc:
-            st.session_state["intraday_last_scan_status"] = "FAILED"
-            st.error(
-                "Intraday scan failed. The previous successful results have been preserved. "
-                f"Details: {exc}"
-            )
-        finally:
-            st.session_state["intraday_scan_in_progress"] = False
+    previous_results = st.session_state.get("day_trader_opportunities")
+    with st.spinner("Scanning the current NSE+BSE candidate universe…"):
+        results = scan_day_trader_opportunities(
+            limit=100,
+            exchange_category=exchange,
+            cap_category=cap_category,
+            max_price=price_limit,
+            lookback_minutes=lookback,
+            min_change_percent=min_change,
+            min_volume_surge=min_volume,
+            low_price_only=low_price_only,
+        )
+    scan_stats = results.attrs.get("scan_stats", {}) if results is not None else {}
+    st.session_state["intraday_scan_stats"] = scan_stats
+    results = results.head(limit).reset_index(drop=True)
+    scan_at = pd.Timestamp.now(tz="Asia/Kolkata")
+    st.session_state["intraday_market_regime"] = classify_scan_regime(results)
+    snapshot_history = st.session_state.get("intraday_scan_snapshots", [])
+    st.session_state["intraday_scan_snapshots"] = record_scan_snapshot(
+        snapshot_history,
+        results,
+        scan_at.to_pydatetime(),
+    )
+    st.session_state["day_trader_opportunities"] = results
+    st.session_state["intraday_last_scan_at"] = scan_at
+    if previous_results is not None:
+        alerts = detect_intraday_alerts(previous_results, results, scan_at.to_pydatetime())
+        alert_history = st.session_state.get("intraday_alert_history", [])
+        st.session_state["intraday_alert_history"] = append_alert_history(alert_history, alerts)
+    scan_health = assess_scan_health(results, scan_at.to_pydatetime())
+    health_history = st.session_state.get("intraday_health_history", [])
+    st.session_state["intraday_health_history"] = record_health_observation(
+        health_history,
+        scan_health,
+        scan_at.to_pydatetime(),
+    )
+    previous_states = st.session_state.get("intraday_setup_states", {})
+    updated_states, transitions = record_setup_state_transitions(
+        previous_states,
+        results,
+        pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
+    )
+    st.session_state["intraday_setup_states"] = updated_states
+    previous_monitor = st.session_state.get("intraday_setup_monitor", {})
+    st.session_state["intraday_setup_monitor"] = record_setup_observations(
+        previous_monitor,
+        results,
+        pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
+    )
+    previous_outcomes = st.session_state.get("intraday_setup_outcomes", {})
+    st.session_state["intraday_setup_outcomes"] = record_setup_outcomes(
+        previous_outcomes,
+        results,
+        pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
+    )
+    previous_windows = st.session_state.get("intraday_multi_window_outcomes", {})
+    st.session_state["intraday_multi_window_outcomes"] = record_multi_window_outcomes(
+        previous_windows,
+        results,
+        pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
+    )
+    history = st.session_state.get("intraday_state_transitions", [])
+    st.session_state["intraday_state_transitions"] = transitions + history
 
 raw_results = st.session_state.get("day_trader_opportunities")
 last_scan_at = st.session_state.get("intraday_last_scan_at")
@@ -425,7 +352,7 @@ if market_regime:
         "Descriptive breadth and volume context from the latest completed scan; "
         "not a forecast."
     )
-    st.dataframe(pd.DataFrame([market_regime]), width="stretch", hide_index=True)
+    st.dataframe(pd.DataFrame([market_regime]), use_container_width=True, hide_index=True)
 
 exchange_pulse = exchange_summary(raw_results)
 st.subheader("NSE / BSE intraday pulse")
@@ -436,7 +363,7 @@ st.caption(
 if exchange_pulse.empty:
     st.caption("Run a scan with both exchanges selected to populate the exchange pulse.")
 else:
-    st.dataframe(exchange_pulse, width="stretch", hide_index=True)
+    st.dataframe(exchange_pulse, use_container_width=True, hide_index=True)
 @st.fragment(run_every=60 if auto_refresh else None, key="price_jump_watchlist")
 def _price_jump_watchlist():
     price_jump_col, price_jump_status = st.columns([4, 1])
@@ -483,22 +410,17 @@ def _price_jump_watchlist():
 
     if auto_refresh:
         st.caption(
-            "🟢 Live Price-Jump Watchlist: refreshes at the selected interval during NSE "
-            "market hours. The selected price-jump window is evaluated on each refresh."
+            "🟢 Live Price-Jump Watchlist: refreshes every 1 minute during NSE market hours. "
+            "The selected price-jump window is evaluated on each refresh."
         )
 
     pulse_scan = st.button("Run Price-Jump Pulse", type="primary", key="run_price_jump_pulse")
-    pulse_now = pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime()
-    last_pulse_attempt = st.session_state.get("price_jump_last_attempt_at")
-    pulse_refresh_due = (
-        last_pulse_attempt is None
-        or next_refresh_seconds(last_pulse_attempt, refresh_interval, pulse_now) <= 0
+    should_auto_scan = auto_refresh and market_is_open(
+        pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime()
     )
-    should_auto_scan = auto_refresh and market_is_open(pulse_now) and pulse_refresh_due
     active_job_id = st.session_state.get("price_jump_scan_job_id")
 
     if (pulse_scan or should_auto_scan) and not active_job_id:
-        st.session_state["price_jump_last_attempt_at"] = pulse_now
         active_job_id = _SCAN_MANAGER.start_price_jump_scan(
             limit=30,
             cap_category=jump_cap,
@@ -545,7 +467,6 @@ def _price_jump_watchlist():
             st.session_state["price_jump_scan_time"] = pulse_at.tz_convert(
                 "Asia/Kolkata"
             ).strftime("%d %b %Y, %H:%M:%S IST")
-            st.session_state["price_jump_last_success_at"] = pulse_at.to_pydatetime()
             st.session_state["price_jump_scan_stats"] = dict(job.get("scan_stats", {}))
             st.session_state["price_jump_scan_window"] = jump_window
             st.session_state["price_jump_history"] = append_price_jump_snapshot(
@@ -582,7 +503,7 @@ def _price_jump_watchlist():
             ]
             if column in pulse_results.columns
         ]
-        st.dataframe(pulse_results[pulse_columns], width="stretch", hide_index=True)
+        st.dataframe(pulse_results[pulse_columns], use_container_width=True, hide_index=True)
 
         st.subheader("⭐ Top 10 Price-Jump Watchlist")
         if st.session_state.get("price_jump_scan_window") == 1:
@@ -616,7 +537,7 @@ def _price_jump_watchlist():
         ]
         st.dataframe(
             watchlist[watchlist_columns],
-            width="stretch",
+            use_container_width=True,
             hide_index=True,
         )
         st.download_button(
@@ -636,7 +557,7 @@ def _price_jump_watchlist():
             )
             st.dataframe(
                 watchlist_delta,
-                width="stretch",
+                use_container_width=True,
                 hide_index=True,
             )
         elif st.session_state.get("price_jump_top10_watchlist") is not None:
@@ -644,29 +565,12 @@ def _price_jump_watchlist():
 
     pulse_stats = st.session_state.get("price_jump_scan_stats", {})
     if pulse_stats:
-        st.caption("Yahoo Finance is a research data source, not an execution feed.")
         st.caption(
             f"Candidates checked: {pulse_stats.get('candidate_count', 0)} · "
             f"Usable candles: {pulse_stats.get('usable_count', 0)} · "
             f"Matches before limit: {pulse_stats.get('matches_before_limit', 0)} · "
             f"Interval: {pulse_stats.get('interval', '—')}"
         )
-        rejected = {
-            "incomplete": pulse_stats.get("rejected_incomplete_candles", 0),
-            "future": pulse_stats.get("rejected_future_candles", 0),
-            "duplicates": pulse_stats.get("rejected_duplicate_candles", 0),
-            "invalid timestamps": pulse_stats.get("rejected_invalid_timestamps", 0),
-            "missing OHLCV": pulse_stats.get("rejected_missing_ohlcv", 0),
-            "invalid OHLCV": pulse_stats.get("rejected_invalid_ohlcv", 0),
-            "stale symbols": pulse_stats.get("rejected_stale_symbols", 0),
-            "missing OHLCV columns": pulse_stats.get("rejected_missing_ohlcv_columns", 0),
-        }
-        rejected = {reason: count for reason, count in rejected.items() if count}
-        if rejected:
-            st.warning(
-                "Excluded provider data: "
-                + " · ".join(f"{reason}: {count}" for reason, count in rejected.items())
-            )
 
     price_jump_history = st.session_state.get("price_jump_history")
     if price_jump_history is not None and not price_jump_history.empty:
@@ -676,7 +580,7 @@ def _price_jump_watchlist():
                 "Repeated observations in this Streamlit session show price-jump persistence "
                 "by symbol and exchange."
             )
-            st.dataframe(pulse_history.head(20), width="stretch", hide_index=True)
+            st.dataframe(pulse_history.head(20), use_container_width=True, hide_index=True)
 
 
 _price_jump_watchlist()
@@ -688,7 +592,7 @@ st.caption(
 if snapshots.empty:
     st.caption("No completed scan snapshots are available yet.")
 else:
-    st.dataframe(snapshots.tail(50), width="stretch", hide_index=True)
+    st.dataframe(snapshots.tail(50), use_container_width=True, hide_index=True)
     st.download_button(
         "Download scan snapshot history CSV",
         snapshots.to_csv(index=False).encode("utf-8"),
@@ -705,7 +609,7 @@ st.caption(
 if snapshot_deltas.empty:
     st.caption("Run at least two completed scans to populate scan-change history.")
 else:
-    st.dataframe(snapshot_deltas, width="stretch", hide_index=True)
+    st.dataframe(snapshot_deltas, use_container_width=True, hide_index=True)
     st.download_button(
         "Download scan change history CSV",
         snapshot_deltas.to_csv(index=False).encode("utf-8"),
@@ -722,7 +626,7 @@ st.caption(
 if alert_history.empty:
     st.caption("No changes have been detected between scans yet.")
 else:
-    st.dataframe(alert_history.head(100), width="stretch", hide_index=True)
+    st.dataframe(alert_history.head(100), use_container_width=True, hide_index=True)
     st.download_button(
         "Download intraday alert history CSV",
         alert_history.to_csv(index=False).encode("utf-8"),
@@ -792,11 +696,11 @@ if journal_submit:
         st.rerun()
 
 journal_summary_frame = journal_summary(st.session_state.get("intraday_trade_journal", []))
-st.dataframe(journal_summary_frame, width="stretch", hide_index=True)
+st.dataframe(journal_summary_frame, use_container_width=True, hide_index=True)
 if journal.empty:
     st.caption("No journal entries recorded in this session yet.")
 else:
-    st.dataframe(journal.head(100), width="stretch", hide_index=True)
+    st.dataframe(journal.head(100), use_container_width=True, hide_index=True)
     st.download_button(
         "Download trade journal CSV",
         journal.to_csv(index=False).encode("utf-8"),
@@ -814,11 +718,11 @@ st.caption(
     "Descriptive statistics from journaled closed trades. They summarize recorded history "
     "and are not a forecast of future performance."
 )
-st.dataframe(performance, width="stretch", hide_index=True)
+st.dataframe(performance, use_container_width=True, hide_index=True)
 if not setup_stats.empty:
-    st.dataframe(setup_stats, width="stretch", hide_index=True)
+    st.dataframe(setup_stats, use_container_width=True, hide_index=True)
 if not side_stats.empty:
-    st.dataframe(side_stats, width="stretch", hide_index=True)
+    st.dataframe(side_stats, use_container_width=True, hide_index=True)
 
 health_history = health_history_frame(st.session_state.get("intraday_health_history", []))
 st.subheader("Intraday scan health history")
@@ -829,7 +733,7 @@ st.caption(
 if health_history.empty:
     st.caption("No completed scan health observations are available yet.")
 else:
-    st.dataframe(health_history.head(50), width="stretch", hide_index=True)
+    st.dataframe(health_history.head(50), use_container_width=True, hide_index=True)
     st.download_button(
         "Download scan health history CSV",
         health_history.to_csv(index=False).encode("utf-8"),
@@ -846,32 +750,10 @@ elif raw_results.empty:
         "the cause is missing intraday data or the selected filters."
     )
     if scan_stats:
-        _show_universe_provenance(scan_stats)
         diagnostics = {
             "Candidate universe": scan_stats.get("candidate_count", 0),
-            "Universe symbols accounted for": scan_stats.get("attempted_count", 0),
-            "Yahoo-mapped symbols": scan_stats.get("mapped_symbol_count", 0),
-            "Unmapped symbols": scan_stats.get("unmapped_symbol_count", 0),
+            "Symbols attempted": scan_stats.get("attempted_count", 0),
             "Usable intraday data": scan_stats.get("usable_data_count", 0),
-            "Stale candles rejected": scan_stats.get("stale_candle_count", 0),
-            "Incomplete candles excluded": scan_stats.get("incomplete_candle_count", 0),
-            "Future candles excluded": scan_stats.get("future_candle_count", 0),
-            "Duplicate candles removed": scan_stats.get("duplicate_candle_count", 0),
-            "Invalid timestamps rejected": scan_stats.get("invalid_timestamp_count", 0),
-            "Missing / non-finite OHLCV candles": scan_stats.get(
-                "missing_or_nonfinite_candle_count", 0
-            ),
-            "Missing OHLCV columns": scan_stats.get("missing_ohlcv_column_count", 0),
-            "Physically invalid OHLCV candles": scan_stats.get("invalid_ohlcv_count", 0),
-            "Oldest accepted candle age (min)": scan_stats.get("max_candle_age_minutes", 0),
-            "No usable intraday data": scan_stats.get("no_usable_data_count", 0),
-            "Data coverage (%)": scan_stats.get("data_coverage_pct", 0),
-            "Universe resolution (%)": scan_stats.get("universe_resolution_pct", 0),
-            "Scan completed": scan_stats.get("scan_completed", False),
-            "Total scan duration (s)": scan_stats.get("scan_duration_seconds", 0),
-            "Yahoo download time (s)": scan_stats.get("download_seconds", 0),
-            "Signal analysis time (s)": scan_stats.get("analysis_seconds", 0),
-            "Safety check time (s)": scan_stats.get("safety_filter_seconds", 0),
             "Strategy data available": scan_stats.get("strategy_count", 0),
             "Price-change filter pass": scan_stats.get("price_change_pass_count", 0),
             "Volume-surge filter pass": scan_stats.get("volume_surge_pass_count", 0),
@@ -886,73 +768,17 @@ elif raw_results.empty:
         st.subheader("Scan diagnostics")
         st.dataframe(
             pd.DataFrame([diagnostics]),
-            width="stretch",
+            use_container_width=True,
             hide_index=True,
         )
-    exchange_diagnostics = scan_stats.get("exchange_diagnostics", {})
-    if exchange_diagnostics:
-        st.subheader("Exchange coverage and scan performance")
-        exchange_frame = pd.DataFrame.from_dict(exchange_diagnostics, orient="index")
-        exchange_frame.index.name = "Exchange"
-        st.dataframe(exchange_frame.reset_index(), width="stretch", hide_index=True)
 else:
     results = raw_results.copy()
     scan_stats = st.session_state.get("intraday_scan_stats", {})
     if scan_stats:
-        _show_universe_provenance(scan_stats)
         st.caption(
-            "Candle checks: "
-            f"{scan_stats.get('incomplete_candle_count', 0)} incomplete excluded · "
-            f"{scan_stats.get('future_candle_count', 0)} future excluded · "
-            f"{scan_stats.get('duplicate_candle_count', 0)} duplicates removed · "
-            f"{scan_stats.get('invalid_timestamp_count', 0)} invalid timestamps · "
-            f"{scan_stats.get('missing_ohlcv_column_count', 0)} missing OHLCV columns · "
-            f"{scan_stats.get('missing_or_nonfinite_candle_count', 0)} missing/non-finite OHLCV · "
-            f"{scan_stats.get('invalid_ohlcv_count', 0)} invalid OHLCV"
-        )
-        st.caption(
-            f"Universe: {scan_stats.get('candidate_count', 0)} symbols • "
-            f"{scan_stats.get('usable_data_count', 0)} usable "
-            f"({scan_stats.get('data_coverage_pct', 0)}% coverage) • "
+            f"Scan: {scan_stats.get('attempted_count', 0)} attempted • "
+            f"{scan_stats.get('usable_data_count', 0)} usable • "
             f"{scan_stats.get('matches_before_safety', 0)} matched filters"
-        )
-        timing_columns = st.columns(4)
-        timing_columns[0].metric(
-            "Total scan",
-            f"{scan_stats.get('scan_duration_seconds', 0)} s",
-        )
-        timing_columns[1].metric(
-            "Yahoo download",
-            f"{scan_stats.get('download_seconds', 0)} s",
-        )
-        timing_columns[2].metric(
-            "Signal analysis",
-            f"{scan_stats.get('analysis_seconds', 0)} s",
-        )
-        timing_columns[3].metric(
-            "Safety checks",
-            f"{scan_stats.get('safety_filter_seconds', 0)} s",
-        )
-    exchange_diagnostics = scan_stats.get("exchange_diagnostics", {})
-    if exchange_diagnostics:
-        st.subheader("NSE / BSE scan coverage")
-        exchange_frame = pd.DataFrame.from_dict(exchange_diagnostics, orient="index")
-        exchange_frame.index.name = "Exchange"
-        exchange_frame = exchange_frame.rename(
-            columns={
-                "candidate_count": "Candidates",
-                "mapped_symbol_count": "Yahoo mapped",
-                "chunks_attempted": "Chunks attempted",
-                "chunks_succeeded": "Chunks succeeded",
-                "chunks_failed": "Chunks failed",
-                "usable_data_count": "Usable data",
-                "download_seconds": "Download seconds",
-            }
-        )
-        st.dataframe(
-            exchange_frame.reset_index(),
-            width="stretch",
-            hide_index=True,
         )
     if "Latest candle" in results.columns:
         observed = pd.to_datetime(results["Latest candle"], errors="coerce").dropna()
@@ -991,17 +817,15 @@ else:
         risk_budget = st.number_input(
             "Risk budget per candidate (₹)",
             min_value=0.0,
-            max_value=MAX_INTRADAY_LOSS_PER_TRADE,
-            value=DEFAULT_INTRADAY_RISK_BUDGET,
+            value=1000.0,
             step=100.0,
         )
     with risk_right:
         capital_limit = st.number_input(
             "Capital limit per candidate (₹)",
             min_value=0.0,
-            max_value=MAX_INTRADAY_CAPITAL,
-            value=DEFAULT_INTRADAY_CAPITAL,
-            step=1000.0,
+            value=100000.0,
+            step=5000.0,
         )
     minimum_live_score = st.slider(
         "Minimum composite score",
@@ -1035,18 +859,16 @@ else:
             sizing_capital = st.number_input(
                 "Sizing capital (₹)",
                 min_value=0.0,
-                max_value=MAX_INTRADAY_CAPITAL,
-                value=DEFAULT_INTRADAY_CAPITAL,
-                step=1000.0,
+                value=100000.0,
+                step=5000.0,
                 key="sizing_capital",
             )
             sizing_risk = st.number_input(
                 "Risk per trade (%)",
                 min_value=0.0,
-                max_value=5.0,
-                value=5.0,
+                max_value=100.0,
+                value=1.0,
                 step=0.25,
-                help="Capped at ₹500 per trade. At ₹10,000 capital, 5% equals ₹500.",
                 key="sizing_risk",
             )
         with size_mid:
@@ -1104,7 +926,7 @@ else:
                         "Planned R:R": sizing_result.planned_rr,
                     }]
                 ),
-                width="stretch",
+                use_container_width=True,
                 hide_index=True,
             )
     st.subheader("Intraday quality dashboard")
@@ -1112,7 +934,7 @@ else:
         "Consolidated session metrics from the observed setup history. "
         "These metrics describe the current session and do not predict future returns."
     )
-    st.dataframe(quality_summary, width="stretch", hide_index=True)
+    st.dataframe(quality_summary, use_container_width=True, hide_index=True)
 
     validation = build_signal_validation_frame(
         st.session_state.get("intraday_setup_outcomes", {}),
@@ -1143,7 +965,7 @@ else:
     if validation.empty:
         st.caption("No observed setup outcomes are available for validation yet.")
     else:
-        st.dataframe(validation.head(50), width="stretch", hide_index=True)
+        st.dataframe(validation.head(50), use_container_width=True, hide_index=True)
         st.download_button(
             "Download signal validation CSV",
             validation.to_csv(index=False).encode("utf-8"),
@@ -1229,37 +1051,11 @@ else:
             ]
             if column in risk_results.columns
         ]
-        directional_tabs = st.tabs(["🟢 LONG", "⚪ NEUTRAL", "🔴 SHORT", "All directions"])
-        direction_groups = [
-            ("LONG", directional_tabs[0]),
-            ("NEUTRAL", directional_tabs[1]),
-            ("SHORT", directional_tabs[2]),
-        ]
-        for direction, tab in direction_groups:
-            directional_rows = risk_results[
-                risk_results.get("Direction", pd.Series("", index=risk_results.index))
-                .fillna("NEUTRAL")
-                .astype(str)
-                .str.upper()
-                .eq(direction)
-            ]
-            with tab:
-                st.metric(f"{direction} candidates", len(directional_rows))
-                if directional_rows.empty:
-                    st.info(f"No {direction} candidates meet the current filters.")
-                else:
-                    st.dataframe(
-                        directional_rows[risk_columns],
-                        width="stretch",
-                        hide_index=True,
-                    )
-        with directional_tabs[3]:
-            st.metric("All filtered candidates", len(risk_results))
-            st.dataframe(
-                risk_results[risk_columns],
-                width="stretch",
-                hide_index=True,
-            )
+        st.dataframe(
+            risk_results[risk_columns],
+            use_container_width=True,
+            hide_index=True,
+        )
     st.download_button(
         "Download opportunity CSV",
         risk_results.to_csv(index=False).encode("utf-8"),
@@ -1272,7 +1068,7 @@ else:
     if transition_history.empty:
         st.caption("No setup-state changes have been observed in this session yet.")
     else:
-        st.dataframe(transition_history.head(50), width="stretch", hide_index=True)
+        st.dataframe(transition_history.head(50), use_container_width=True, hide_index=True)
         st.download_button(
             "Download state-change history CSV",
             transition_history.to_csv(index=False).encode("utf-8"),
@@ -1292,7 +1088,7 @@ else:
     if monitor.empty:
         st.caption("No setup observations are available yet.")
     else:
-        st.dataframe(monitor.head(50), width="stretch", hide_index=True)
+        st.dataframe(monitor.head(50), use_container_width=True, hide_index=True)
         st.download_button(
             "Download setup monitoring CSV",
             monitor.to_csv(index=False).encode("utf-8"),
@@ -1311,7 +1107,7 @@ else:
     if outcomes.empty:
         st.caption("No repeated setup observations are available yet.")
     else:
-        st.dataframe(outcomes.head(50), width="stretch", hide_index=True)
+        st.dataframe(outcomes.head(50), use_container_width=True, hide_index=True)
         st.download_button(
             "Download setup outcome CSV",
             outcomes.to_csv(index=False).encode("utf-8"),
@@ -1328,7 +1124,7 @@ else:
     if window_outcomes.empty:
         st.caption("No multi-window observations are available yet.")
     else:
-        st.dataframe(window_outcomes.head(50), width="stretch", hide_index=True)
+        st.dataframe(window_outcomes.head(50), use_container_width=True, hide_index=True)
         st.download_button(
             "Download multi-window outcome CSV",
             window_outcomes.to_csv(index=False).encode("utf-8"),
@@ -1344,7 +1140,7 @@ else:
     if statistics.empty:
         st.caption("Not enough observed outcomes for statistics yet.")
     else:
-        st.dataframe(statistics, width="stretch", hide_index=True)
+        st.dataframe(statistics, use_container_width=True, hide_index=True)
         st.download_button(
             "Download setup statistics CSV",
             statistics.to_csv(index=False).encode("utf-8"),
@@ -1360,7 +1156,7 @@ else:
     if regime.empty:
         st.caption("Not enough observations for session-phase analysis yet.")
     else:
-        st.dataframe(regime, width="stretch", hide_index=True)
+        st.dataframe(regime, use_container_width=True, hide_index=True)
         st.download_button(
             "Download session-phase statistics CSV",
             regime.to_csv(index=False).encode("utf-8"),

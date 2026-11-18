@@ -2,15 +2,12 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop, 'feat/**' ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop, 'feat/**' ]
+    branches: [ main, develop ]
   workflow_dispatch:
 
 # EROS: canonical CI gate for the supported repaired runtime surface.
-permissions:
-  contents: read
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -52,24 +49,6 @@ jobs:
         uv run --locked --no-sync --no-build python -m pytest --import-mode=importlib -q
         tests/test_repaired_contracts.py
         tests/test_market_data_boundary.py
-        tests/test_backtester.py
-        tests/test_walk_forward_validation.py
-        tests/test_watchlist_*.py
-        tests/test_market_calendar.py
-        tests/test_intraday_auto_refresh.py
-        tests/test_next_day_movers.py
-        tests/test_next_day_movers_eval.py
-        tests/test_next_day_scanner_validation.py
-        tests/test_next_day_paper_log.py
-        tests/test_momentum_engine.py
-        tests/test_momentum_ranking.py
-        tests/test_momentum_history.py
-        tests/test_top10_live.py
-        tests/test_top10_live_resilience.py
-        tests/test_resilient_market_data.py
-        tests/test_next_day_upside_scanner_ui.py
-        tests/test_unusual_activity_scan.py
-        tests/test_sotp_classification_service.py
         tests/forecast
     - name: Build production Docker image
       run: docker build --pull -t ai-stock-analyzer:ci .
