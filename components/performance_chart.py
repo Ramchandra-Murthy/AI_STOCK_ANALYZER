@@ -11,10 +11,7 @@ def show_performance_chart(df):
         st.info("No holdings available.")
         return
 
-    chart_df = df.dropna(subset=["Profit"]).copy()
-    if chart_df.empty:
-        st.info("Portfolio performance is unavailable because no holdings have current prices.")
-        return
+    chart_df = df.copy()
 
     chart_df["Status"] = chart_df["Profit"].apply(lambda x: "Profit" if x >= 0 else "Loss")
 
@@ -37,9 +34,4 @@ def show_performance_chart(df):
         margin=dict(l=20, r=20, t=20, b=20),
     )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True,
-        config={"displayModeBar": False, "responsive": True},
-        key="dashboard_performance_chart",
-    )
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})

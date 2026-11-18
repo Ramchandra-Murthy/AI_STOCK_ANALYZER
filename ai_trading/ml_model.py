@@ -5,7 +5,6 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, roc_auc_score
@@ -33,8 +32,6 @@ class ModelValidation:
     train_samples: int
     test_samples: int
     positive_rate: float
-    train_positive_rate: float
-    test_positive_rate: float
 
 
 def make_training_dataset(
@@ -46,20 +43,12 @@ def make_training_dataset(
     """Build explicit two-sided future-return direction labels without leakage."""
     if horizon < 1:
         raise ValueError("horizon must be at least 1")
-    if not math.isfinite(threshold) or threshold < 0:
-        raise ValueError("threshold must be finite and non-negative")
-    if not frame.index.is_unique:
-        raise ValueError("market data index must be unique")
-    if not frame.index.is_monotonic_increasing:
-        raise ValueError("market data must be ordered chronologically by index")
+    if threshold < 0:
+        raise ValueError("threshold must be non-negative")
 
     features = build_features(frame)[FEATURE_COLUMNS].copy()
-    features = features.apply(pd.to_numeric, errors="coerce")
-    features = features.where(np.isfinite(features))
     close = pd.to_numeric(frame["Close"], errors="coerce")
-    valid_close = close.where(close.gt(0.0) & close.map(math.isfinite))
-    future_return = valid_close.shift(-horizon) / valid_close - 1.0
-    future_return = future_return.where(np.isfinite(future_return))
+    future_return = close.shift(-horizon) / close - 1.0
 
     if math.isclose(threshold, 0.0, abs_tol=1e-12):
         labels = (future_return > 0.0).astype("float")
@@ -83,15 +72,8 @@ def train_model(
     horizon: int = 5,
     threshold: float = 0.01,
     test_fraction: float = 0.2,
-    refit_full: bool = False,
 ) -> tuple[Pipeline, ModelValidation]:
-    """Train a logistic model using a chronological, non-random split.
-
-    When refit_full is true, the returned model is refit on all labelled
-    observations after the chronological holdout has been scored. This keeps
-    validation strictly out of sample while allowing a walk-forward prediction
-    to use every observation that was available before its decision timestamp.
-    """
+    """Train a logistic model using a chronological, non-random split."""
     if not 0.1 <= test_fraction <= 0.5:
         raise ValueError("test_fraction must be between 0.1 and 0.5")
 
@@ -102,18 +84,11 @@ def train_model(
         raise ValueError("training data must contain both target classes")
 
     split = int(len(x) * (1.0 - test_fraction))
-    if split >= len(x):
+    if split < 20 or len(x) - split < 5:
         raise ValueError("training and test windows are too small")
 
-    # Purge training rows whose future-label window reaches validation.
-    positions = frame.index.get_indexer(x.index)
-    validation_start = positions[split]
-    train_mask = positions[:split] + horizon < validation_start
-    x_train = x.iloc[:split].iloc[train_mask]
-    y_train = y.iloc[:split].iloc[train_mask]
-    x_test, y_test = x.iloc[split:], y.iloc[split:]
-    if len(x_train) < 20 or len(x_test) < 5:
-        raise ValueError("training and test windows are too small after purging overlapping labels")
+    x_train, x_test = x.iloc[:split], x.iloc[split:]
+    y_train, y_test = y.iloc[:split], y.iloc[split:]
     if y_train.nunique() < 2 or y_test.nunique() < 2:
         raise ValueError("both chronological windows must contain both target classes")
 
@@ -133,39 +108,18 @@ def train_model(
         roc_auc=roc_auc,
         train_samples=len(x_train),
         test_samples=len(x_test),
-        # Keep the legacy field as a test-set statistic for compatibility.
-        positive_rate=float(y_test.mean()),
-        train_positive_rate=float(y_train.mean()),
-        test_positive_rate=float(y_test.mean()),
+        positive_rate=float(y.mean()),
     )
-
-    if refit_full:
-        model.fit(x, y)
-
     return model, validation
 
 
 def predict_latest(model: Pipeline, frame: pd.DataFrame) -> dict[str, float | str]:
     """Return the latest model probability and directional classification."""
-    if frame.empty:
-        raise ValueError("market history must not be empty")
-    if not frame.index.is_unique:
-        raise ValueError("market history index must be unique")
-    if not frame.index.is_monotonic_increasing:
-        raise ValueError("market history must be ordered chronologically by index")
-    latest_close = pd.to_numeric(frame["Close"].iloc[-1], errors="coerce")
-    if not math.isfinite(float(latest_close)) or latest_close <= 0.0:
-        raise ValueError("latest close price must be finite and positive")
-
     features = build_features(frame)[FEATURE_COLUMNS]
     if features.empty:
         raise ValueError("not enough market history for a prediction")
 
-    latest = features.iloc[[-1]]
-    if not all(math.isfinite(float(value)) for value in latest.to_numpy().ravel()):
-        raise ValueError("latest feature row must contain only finite values")
-
-    probability = float(model.predict_proba(latest)[0, 1])
+    probability = float(model.predict_proba(features.iloc[[-1]])[0, 1])
     signal = "LONG" if probability >= 0.5 else "SHORT"
     confidence = abs(probability - 0.5) * 2.0
     return {

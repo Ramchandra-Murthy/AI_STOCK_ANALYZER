@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import logging
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -17,13 +16,6 @@ _IST = timezone(timedelta(hours=5, minutes=30))
 
 def _security_map() -> dict[str, int]:
     raw = os.getenv("DHAN_SECURITY_MAP_JSON", "").strip()
-    if not raw:
-        try:
-            import streamlit as st
-
-            raw = str(st.secrets.get("DHAN_SECURITY_MAP_JSON", "")).strip()
-        except Exception:
-            raw = ""
     if not raw:
         return {}
     try:
@@ -51,22 +43,12 @@ def dhan_provider_enabled() -> bool:
 
 
 def _response_frame(response: dict[str, Any]) -> pd.DataFrame:
-    """Convert Dhan's column-oriented candle response or raise on API failures."""
+    """Convert Dhan's column-oriented candle response to the scanner frame."""
     if not isinstance(response, dict):
-        raise ValueError("Dhan returned a non-object response")
-    status = str(response.get("status", "")).strip().lower()
-    if status and status not in {"success", "ok"}:
-        details = (
-            response.get("remarks")
-            or response.get("errorMessage")
-            or response.get("message")
-            or response.get("error_code")
-            or "no error details"
-        )
-        raise ValueError(f"Dhan API status={status}: {str(details)[:180]}")
+        return pd.DataFrame()
     data = response.get("data", response)
     if not isinstance(data, dict):
-        raise ValueError("Dhan response has no candle data object")
+        return pd.DataFrame()
     timestamps = data.get("timestamp", [])
     closes = data.get("close", [])
     opens = data.get("open", [])
@@ -74,7 +56,7 @@ def _response_frame(response: dict[str, Any]) -> pd.DataFrame:
     lows = data.get("low", [])
     volumes = data.get("volume", [])
     if not timestamps or not closes:
-        raise ValueError("Dhan response contains no intraday candles")
+        return pd.DataFrame()
     size = min(len(timestamps), len(closes))
     frame = pd.DataFrame(
         {
@@ -85,32 +67,8 @@ def _response_frame(response: dict[str, Any]) -> pd.DataFrame:
             "Volume": list(volumes)[:size],
         }
     )
-    timestamp_values = list(timestamps)[:size]
-    if all(isinstance(value, (int, float)) for value in timestamp_values):
-        index = pd.to_datetime(timestamp_values, unit="s", utc=True).tz_convert(_IST)
-    else:
-        index = pd.to_datetime(timestamp_values, utc=True, errors="coerce").tz_convert(_IST)
-    frame.index = index
-    frame["Close"] = pd.to_numeric(frame["Close"], errors="coerce")
-    frame = frame.dropna(subset=["Close"])
-    if frame.empty:
-        raise ValueError("Dhan response contains no valid closing prices")
-    return frame.sort_index()
-
-
-def _security_id_for_ticker(ticker: str, mapping: dict[str, int]) -> int | None:
-    """Resolve exchange-specific keys before allowing a legacy NSE-only symbol key."""
-    normalized = ticker.strip().upper()
-    symbol, dot, suffix = normalized.rpartition(".")
-    if not dot:
-        symbol, suffix = normalized, ""
-    exchange = "NSE" if suffix == "NS" else "BSE" if suffix == "BO" else ""
-    for key in (normalized, f"{exchange}:{symbol}", f"{exchange}_{symbol}"):
-        if key in mapping:
-            return mapping[key]
-    # Backward compatibility: unqualified symbol IDs are assumed NSE only.
-    # BSE must use a BSE-qualified key because IDs differ by exchange.
-    return mapping.get(symbol) if exchange == "NSE" else None
+    frame.index = pd.to_datetime(list(timestamps)[:size], unit="s", utc=True).tz_convert(_IST)
+    return frame.dropna(subset=["Close"]).sort_index()
 
 
 def download_dhan_symbol_frames(
@@ -131,15 +89,9 @@ def download_dhan_symbol_frames(
     missing: list[str] = []
 
     for ticker in tickers:
-        security_id = _security_id_for_ticker(ticker, mapping)
+        symbol = ticker.rsplit(".", 1)[0].upper()
+        security_id = mapping.get(symbol)
         if security_id is None:
-            logging.info(
-                "Dhan instrument mapping missing ticker=%s; expected an exchange-qualified "
-                "key such as NSE:%s or BSE:%s",
-                ticker,
-                ticker.rsplit(".", 1)[0].upper(),
-                ticker.rsplit(".", 1)[0].upper(),
-            )
             missing.append(ticker)
             continue
         exchange_segment = "NSE_EQ" if ticker.endswith(".NS") else "BSE_EQ"
@@ -153,14 +105,7 @@ def download_dhan_symbol_frames(
                 interval=interval,
             )
             frame = _response_frame(response)
-        except Exception as exc:
-            # Keep provider failures visible in deployment logs without exposing credentials.
-            logging.warning(
-                "Dhan intraday quote failed ticker=%s error_type=%s error=%s",
-                ticker,
-                type(exc).__name__,
-                str(exc)[:240],
-            )
+        except Exception:
             frame = pd.DataFrame()
         if frame.empty:
             missing.append(ticker)

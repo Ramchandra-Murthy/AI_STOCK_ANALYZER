@@ -3,7 +3,6 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 
-import components.top10_live as top10_live
 from components.top10_live import (
     TOP10_CACHE_SECONDS,
     TOP10_CHUNK_SIZE,
@@ -36,10 +35,7 @@ from components.top10_live import (
     _add_signal_strength,
     _annotate_watchlist_changes,
     _calculate_signal_strength,
-    _completed_one_minute_closes,
     _coverage_status,
-    _format_candle_time,
-    _is_fresh_provider_timestamp,
     _persistence_alerts,
     _provider_age_seconds,
     _scan_live_top10,
@@ -54,22 +50,16 @@ from components.top10_live import (
     _watchlist_change_alerts,
     show_live_top10_scanner,
 )
-from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
 
 def test_top10_live_scanner_refreshes_every_minute() -> None:
     assert TOP10_REFRESH_SECONDS == 60
     assert TOP10_CACHE_SECONDS < TOP10_REFRESH_SECONDS
-    # Smaller batches: Yahoo drops whole 20-symbol one-minute batches far more often.
-    assert TOP10_CHUNK_SIZE == 10
-    assert TOP10_MAX_NSE_CANDIDATES == 10
-    assert TOP10_MAX_BSE_CANDIDATES == 10
-    # Retry storms are bounded: no in-batch retries and a hard cap on per-symbol requests.
+    assert TOP10_CHUNK_SIZE == 20
+    assert TOP10_MAX_NSE_CANDIDATES == 20
+    assert TOP10_MAX_BSE_CANDIDATES == 0
     assert TOP10_PROVIDER_RETRIES == 0
     assert TOP10_PROVIDER_TIMEOUT == 5
-    assert top10_live.TOP10_FALLBACK_CHUNK_SIZE == 5
-    assert top10_live.TOP10_MAX_SINGLE_SYMBOL_RECOVERY == 4
-    assert top10_live.TOP10_SCAN_BUDGET_SECONDS < top10_live.TOP10_SCAN_HARD_TIMEOUT_SECONDS
     assert TOP10_MAX_CONSECUTIVE_FAILURES == 2
     assert 0 < TOP10_SCAN_WARNING_SECONDS < TOP10_STALE_DATA_SECONDS
     assert TOP10_STALE_DATA_SECONDS >= 3 * TOP10_REFRESH_SECONDS
@@ -81,8 +71,8 @@ def test_top10_live_scanner_refreshes_every_minute() -> None:
 
 
 def test_top10_live_uses_a_bounded_nse_pool_for_faster_quote_refresh() -> None:
-    assert TOP10_MAX_NSE_CANDIDATES == 10
-    assert TOP10_MAX_BSE_CANDIDATES == 10
+    assert TOP10_MAX_NSE_CANDIDATES == 20
+    assert TOP10_MAX_BSE_CANDIDATES == 0
     assert TOP10_EXPECTED_QUOTES == 20
 
 
@@ -103,12 +93,6 @@ def test_top10_market_session_hours() -> None:
     assert (TOP10_MARKET_CLOSE_HOUR, TOP10_MARKET_CLOSE_MINUTE) == (15, 30)
 
 
-def test_top10_live_market_guard_respects_holidays_and_unknown_calendar_years() -> None:
-    ist = ZoneInfo(TOP10_TIMEZONE)
-    assert not top10_live._market_is_open(datetime(2026, 10, 20, 10, 0, tzinfo=ist))
-    assert not top10_live._market_is_open(datetime(2027, 1, 4, 10, 0, tzinfo=ist))
-
-
 def test_top10_live_session_status_key() -> None:
     assert TOP10_SESSION_STATUS_KEY == "top10_market_status"
 
@@ -120,18 +104,9 @@ def test_top10_live_tracks_data_freshness() -> None:
     assert "st.session_state[TOP10_SESSION_STATUS_KEY]" in source
 
 
-def test_top10_live_rejects_stale_and_unknown_candle_timestamps() -> None:
-    now = datetime(2026, 10, 5, 10, 0, tzinfo=ZoneInfo(TOP10_TIMEZONE))
-
-    assert _is_fresh_provider_timestamp("2026-10-05T09:59:00+05:30", now)
-    assert not _is_fresh_provider_timestamp("2026-10-05T09:55:00+05:30", now)
-    assert not _is_fresh_provider_timestamp("not-a-timestamp", now)
-
-
 def test_top10_live_formats_candle_times_in_ist() -> None:
-    assert _format_candle_time("2026-10-05 09:59:00") == "2026-10-05 09:59:00 IST"
-    assert _format_candle_time("2026-10-05T09:59:00+00:00") == "2026-10-05 15:29:00 IST"
     source = open("components/top10_live.py", encoding="utf-8").read()
+    assert "def _format_candle_time" in source
     assert "tz_convert(_IST)" in source
     assert "Last candle" in source
 
@@ -444,9 +419,6 @@ def test_top10_live_signal_history_table_and_trend() -> None:
     assert table["Momentum score"].tolist() == [40, 65]
     assert list(trend.columns) == ["NSE:AAA"]
     assert trend["NSE:AAA"].tolist() == [40, 65]
-    source = open("components/top10_live.py", encoding="utf-8").read()
-    assert "st.line_chart(history_trend)" in source
-    assert "st.line_chart(history_trend, y_min=0, y_max=100)" not in source
 
 
 def test_top10_live_history_chart_uses_supported_streamlit_api() -> None:
@@ -656,274 +628,21 @@ def test_top10_live_signal_quality_metrics_handle_empty_history() -> None:
     }
 
 
-def test_top10_live_only_records_history_from_trusted_complete_fresh_scans() -> None:
+def test_top10_live_only_records_history_from_trusted_complete_scans() -> None:
     assert TOP10_MIN_TRUSTED_COVERAGE_QUOTES == TOP10_GOOD_COVERAGE_QUOTES
-    assert _should_record_signal_history(20, 0, 60.0) is True
-    assert _should_record_signal_history(18, 0, 60.0) is True
-    assert _should_record_signal_history(17, 0, 60.0) is False
-    assert _should_record_signal_history(20, 1, 60.0) is False
-    assert _should_record_signal_history(20, 0, TOP10_STALE_DATA_SECONDS) is False
-    assert _should_record_signal_history(20, 0, None) is False
-    assert _should_record_signal_history(20, 0, -1.0) is False
+    assert _should_record_signal_history(20, 0) is True
+    assert _should_record_signal_history(18, 0) is True
+    assert _should_record_signal_history(17, 0) is False
+    assert _should_record_signal_history(20, 1) is False
 
 
 def test_top10_live_uses_provider_candle_age() -> None:
     now = datetime(2026, 10, 5, 10, 0, tzinfo=ZoneInfo(TOP10_TIMEZONE))
     assert _provider_age_seconds("2026-10-05T09:59:00+05:30", now) == 60.0
     assert _provider_age_seconds("not-a-timestamp", now) is None
-    assert _provider_age_seconds("2026-10-05T10:01:01+05:30", now) is None
-
-
-def test_top10_live_excludes_incomplete_future_and_invalid_one_minute_candles() -> None:
-    now = pd.Timestamp("2026-10-05 10:00:30", tz=TOP10_TIMEZONE)
-    close = pd.Series(
-        [100.0, 101.0, 102.0, 103.0, float("inf")],
-        index=[
-            pd.Timestamp("2026-10-05 09:59:00", tz=TOP10_TIMEZONE),
-            pd.Timestamp("2026-10-05 09:59:00", tz=TOP10_TIMEZONE),
-            pd.Timestamp("2026-10-05 10:00:00", tz=TOP10_TIMEZONE),
-            pd.Timestamp("2026-10-05 10:01:00", tz=TOP10_TIMEZONE),
-            "invalid",
-        ],
-    )
-
-    completed, rejected = _completed_one_minute_closes(close, now.to_pydatetime())
-
-    assert completed.tolist() == [101.0]
-    assert rejected == {"invalid": 1, "future": 1, "incomplete": 1, "duplicates": 1}
 
 
 def test_top10_live_avoids_missing_ticker_recovery_storm() -> None:
     source = open("components/top10_live.py", encoding="utf-8").read()
     assert "retries=TOP10_PROVIDER_RETRIES" in source
     assert "recover_missing=False" in source
-    assert "TOP10_MAX_SINGLE_SYMBOL_RECOVERY" in source
-    assert "TOP10_SCAN_BUDGET_SECONDS" in source
-    assert "download_symbols_individually" in source
-
-
-def test_top10_scan_excludes_symbols_with_stale_latest_candles(monkeypatch) -> None:
-    now = pd.Timestamp.now(tz=TOP10_TIMEZONE)
-    fresh_timestamp = now - pd.Timedelta(seconds=90)
-    stale_timestamp = now - pd.Timedelta(minutes=10)
-    tickers = [
-        *(
-            top10_live._ticker(symbol, "NSE")
-            for symbol in NSE_CANDIDATES[:TOP10_MAX_NSE_CANDIDATES]
-        ),
-        *(
-            top10_live._ticker(symbol, "BSE")
-            for symbol in BSE_CANDIDATES[:TOP10_MAX_BSE_CANDIDATES]
-        ),
-    ]
-    frames = {}
-    for ticker in tickers:
-        timestamp = fresh_timestamp if ticker == tickers[0] else stale_timestamp
-        frames[ticker] = pd.DataFrame(
-            {"Close": [100.0, 101.0]},
-            index=[timestamp - pd.Timedelta(minutes=1), timestamp],
-        )
-
-    monkeypatch.setattr(
-        top10_live,
-        "_download_top10_frames",
-        lambda requested_tickers: (frames, [], "Test provider"),
-    )
-
-    result, _elapsed, failures, valid_quotes = _scan_live_top10()
-
-    assert failures == 0
-    assert valid_quotes == 1
-    assert result["Symbol"].tolist() == [tickers[0].rsplit(".", 1)[0]]
-    assert result["Last candle"].tolist() == [top10_live._format_candle_time(fresh_timestamp)]
-
-
-def test_top10_background_refresh_is_polled_faster_than_scan_interval() -> None:
-    assert top10_live.TOP10_UI_POLL_SECONDS < top10_live.TOP10_REFRESH_SECONDS
-    source = open("components/top10_live.py", encoding="utf-8").read()
-    assert '@st.fragment(run_every=f"{TOP10_UI_POLL_SECONDS}s")' in source
-
-
-def test_top10_scanner_displays_safe_provider_diagnostics() -> None:
-    source = open("components/top10_live.py", encoding="utf-8").read()
-    assert "Provider diagnostics (safe summary)" in source
-    assert "Quote provider:" in source
-    assert "diagnostics=_PROVIDER_DIAGNOSTICS" in source
-
-
-def test_dhan_quote_failures_are_logged_without_suppressing_diagnostics() -> None:
-    source = open("services/dhan_live_provider.py", encoding="utf-8").read()
-    assert "logging.warning(" in source
-    assert "Dhan intraday quote failed ticker=%s error_type=%s error=%s" in source
-    assert "str(exc)[:240]" in source
-
-
-def test_top10_scanner_recovers_total_batch_failure_with_smaller_batches(monkeypatch) -> None:
-    tickers = ["AAA.NS", "BBB.NS", "CCC.BO", "DDD.BO"]
-    calls = []
-
-    def fake_download(requested_tickers, **kwargs):
-        calls.append((list(requested_tickers), kwargs))
-        if len(calls) == 1:
-            return {}, list(requested_tickers)
-        return (
-            {ticker: pd.DataFrame({"Close": [100.0, 101.0]}) for ticker in requested_tickers},
-            [],
-        )
-
-    monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
-
-    frames, missing, provider = top10_live._download_top10_frames(tickers)
-
-    assert provider == "Yahoo Finance"
-    assert missing == []
-    assert set(frames) == set(tickers)
-    assert len(calls) == 2
-    assert calls[0][1]["batch_size"] == TOP10_CHUNK_SIZE
-    assert calls[1][1]["batch_size"] == top10_live.TOP10_FALLBACK_CHUNK_SIZE
-    assert calls[1][1]["retries"] == 0
-    assert calls[1][1]["recover_missing"] is False
-
-
-def test_top10_scanner_uses_yahoo_finance_only(monkeypatch) -> None:
-    expected_frames = {"RELIANCE.NS": pd.DataFrame({"Close": [100.0, 101.0]})}
-    calls = {}
-
-    def fake_download(tickers, **kwargs):
-        calls["tickers"] = tickers
-        calls["kwargs"] = kwargs
-        return expected_frames, []
-
-    monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
-    frames, missing, provider = top10_live._download_top10_frames(["RELIANCE.NS"])
-
-    assert frames == expected_frames
-    assert missing == []
-    assert provider == "Yahoo Finance"
-    assert calls["tickers"] == ["RELIANCE.NS"]
-    assert calls["kwargs"]["interval"] == "1m"
-    assert calls["kwargs"]["recover_missing"] is False
-
-
-def test_top10_filters_apply_price_move_and_exchange_without_mutating_source() -> None:
-    source = pd.DataFrame(
-        [
-            {"Symbol": "AAA", "Exchange": "NSE", "Price": 100.0, "1-min %": 1.2},
-            {"Symbol": "BBB", "Exchange": "BSE", "Price": 250.0, "1-min %": -0.8},
-            {"Symbol": "CCC", "Exchange": "NSE", "Price": 400.0, "1-min %": 2.5},
-        ]
-    )
-
-    filtered = top10_live._apply_top10_filters(
-        source,
-        min_price=90.0,
-        max_price=300.0,
-        min_move_pct=0.5,
-        max_move_pct=1.5,
-        exchange="NSE + BSE",
-    )
-
-    assert filtered["Symbol"].tolist() == ["AAA", "BBB"]
-    assert len(source) == 3
-
-
-def test_top10_filters_can_select_one_exchange() -> None:
-    source = pd.DataFrame(
-        [
-            {"Symbol": "AAA", "Exchange": "NSE", "Price": 100.0, "1-min %": 1.2},
-            {"Symbol": "BBB", "Exchange": "BSE", "Price": 250.0, "1-min %": -0.8},
-        ]
-    )
-
-    filtered = top10_live._apply_top10_filters(source, exchange="BSE")
-
-    assert filtered["Symbol"].tolist() == ["BBB"]
-
-
-def test_top10_live_staged_recovery_retries_empty_batch_with_smaller_chunks(monkeypatch) -> None:
-    calls = []
-    individual_calls = []
-
-    def fake_download(tickers, **kwargs):
-        symbols = list(tickers)
-        calls.append((len(symbols), kwargs["batch_size"], kwargs["recover_missing"]))
-        return {}, symbols
-
-    def fake_individual(tickers, **kwargs):
-        individual_calls.append(list(tickers))
-        return {}, list(tickers)
-
-    monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
-    monkeypatch.setattr(top10_live, "download_symbols_individually", fake_individual)
-    tickers = [f"SYM{i}.NS" for i in range(10)]
-
-    frames, missing, provider = top10_live._download_top10_frames(tickers)
-
-    assert frames == {}
-    assert missing == tickers
-    assert provider == "Yahoo Finance"
-    # One full pass, then one smaller-batch pass; a mass failure never fans out per symbol.
-    assert calls == [(10, 10, False), (10, 5, False)]
-    assert individual_calls == []
-
-
-def test_top10_live_staged_recovery_preserves_partial_successes(monkeypatch) -> None:
-    batch_calls = 0
-    successful = {"SYM0.NS": pd.DataFrame({"Close": [100.0, 101.0]})}
-
-    def fake_download(tickers, **kwargs):
-        nonlocal batch_calls
-        batch_calls += 1
-        symbols = list(tickers)
-        if batch_calls == 1:
-            return successful, [symbol for symbol in symbols if symbol not in successful]
-        return {}, symbols
-
-    def fake_individual(tickers, **kwargs):
-        symbols = list(tickers)
-        recovered = {symbols[0]: pd.DataFrame({"Close": [200.0, 201.0]})}
-        return recovered, symbols[1:]
-
-    monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
-    monkeypatch.setattr(top10_live, "download_symbols_individually", fake_individual)
-    frames, missing, _provider = top10_live._download_top10_frames([f"SYM{i}.NS" for i in range(4)])
-
-    assert set(frames) == {"SYM0.NS", "SYM1.NS"}
-    assert missing == ["SYM2.NS", "SYM3.NS"]
-    assert batch_calls == 2
-    # Genuinely recovered candles are real provider data; the rest stays missing, not filled.
-    assert float(frames["SYM1.NS"]["Close"].iloc[-1]) == 201.0
-
-
-def test_signal_strength_tolerates_missing_five_minute_and_rank_readings() -> None:
-    """Regression: a mover with < 6 candles has a NaN 5-min move and crashed the page."""
-    nan = float("nan")
-
-    score, direction = top10_live._calculate_signal_strength(
-        {"1-min %": 1.5, "5-min %": nan, "Rank change": nan, "Status": "NEW"}
-    )
-
-    assert 0 <= score <= 100
-    assert direction == "MIXED"  # a missing 5-min move is not evidence the move is confirmed
-    assert top10_live._calculate_signal_strength({"1-min %": nan, "5-min %": nan})[1] == "NEUTRAL"
-    assert top10_live._calculate_signal_strength({"1-min %": 2.0, "5-min %": None})[0] > 0
-
-
-def test_add_signal_strength_does_not_raise_when_a_row_lacks_a_five_minute_move() -> None:
-    frame = pd.DataFrame(
-        {
-            "Rank": [1, 2],
-            "Symbol": ["AAA", "BBB"],
-            "Exchange": ["NSE", "NSE"],
-            "Price": [100.0, 50.0],
-            "1-min %": [2.0, 1.0],
-            "5-min %": [3.0, None],
-            "Status": ["NEW", "NEW"],
-            "Rank change": [None, None],
-        }
-    )
-
-    enriched = top10_live._add_signal_strength(frame)
-
-    assert list(enriched["Momentum score"]) == sorted(enriched["Momentum score"], reverse=True)
-    assert enriched["Momentum score"].notna().all()

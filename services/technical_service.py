@@ -1,6 +1,5 @@
 import pandas as pd
-
-from services.resilient_market_data import download_symbol_frames
+import yfinance as yf
 
 
 def get_price_history(symbol, period="1y"):
@@ -15,21 +14,12 @@ def get_price_history(symbol, period="1y"):
         symbol += ".NS"
 
     try:
-        frames, missing = download_symbol_frames(
-            [symbol],
-            period=period,
-            interval="1d",
-            auto_adjust=False,
-            batch_size=1,
-            recover_missing=True,
-        )
-        df = frames.get(symbol)
-        if df is None or df.empty:
-            if missing:
-                print(f"Price History Error: no usable market data for {symbol}")
-            return None
+        df = yf.download(symbol, period=period, auto_adjust=False, progress=False)
     except Exception as error:
         print(f"Price History Error: {error}")
+        return None
+
+    if df is None or df.empty:
         return None
 
     # --------------------------------------------------------
@@ -56,7 +46,7 @@ def get_price_history(symbol, period="1y"):
 
     # Preserve provenance for downstream data-quality checks without
     # changing the DataFrame schema consumed by technical scoring.
-    df.attrs["data_source"] = "yfinance.resilient_market_data"
+    df.attrs["data_source"] = "yfinance.download"
     df.attrs["requested_period"] = period
     try:
         last_timestamp = df.index[-1]
