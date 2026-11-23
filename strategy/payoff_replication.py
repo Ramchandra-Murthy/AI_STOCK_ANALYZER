@@ -7,10 +7,10 @@ All monetary/quantity inputs use Decimal to avoid binary floating-point drift.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import StrEnum
-from typing import Iterable
 
 
 class OptionType(StrEnum):
