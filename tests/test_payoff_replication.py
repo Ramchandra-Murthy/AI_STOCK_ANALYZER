@@ -56,13 +56,12 @@ def test_book_example_matches_independent_values(book_example, underlying, expec
 
 
 def test_book_example_has_expected_call_slope_positions(book_example):
-    call_positions = [
+    slope_call_positions = [
         (leg.strike, leg.side, leg.quantity)
-        for leg in book_example.legs
+        for leg in book_example.legs[:4]
         if leg.option_type is OptionType.CALL
-        and leg.strike in {D("0"), D("70"), D("90"), D("100")}
     ]
-    assert call_positions == [
+    assert slope_call_positions == [
         (D("0"), PositionSide.LONG, D("4") / D("7")),
         (D("70"), PositionSide.LONG, D("17") / D("7")),
         (D("90"), PositionSide.SHORT, D("10")),
@@ -71,12 +70,17 @@ def test_book_example_has_expected_call_slope_positions(book_example):
 
 
 def test_constant_adjustment_is_four_option_package(book_example):
-    adjustment_legs = [leg for leg in book_example.legs if leg.option_type is OptionType.PUT]
-    assert len(adjustment_legs) == 2
-    assert book_example.expiration_payoff(D("0")) == D("10")
-    assert book_example.expiration_payoff(D("5")) - book_example.expiration_payoff(
-        D("0")
-    ) == D("20") / D("7")
+    adjustment_legs = book_example.legs[-4:]
+    assert {leg.option_type for leg in adjustment_legs} == {
+        OptionType.CALL,
+        OptionType.PUT,
+    }
+    for underlying in (D("0"), D("5"), D("10"), D("70"), D("150")):
+        adjustment_payoff = sum(
+            (leg.expiration_payoff(underlying) for leg in adjustment_legs),
+            start=D("0"),
+        )
+        assert adjustment_payoff == D("10")
 
 
 def test_replication_matches_target_over_dense_grid(book_example):
