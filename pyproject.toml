@@ -36,12 +36,12 @@ dev = [
 minversion = "6.0"
 addopts = "-ra -q"
 pythonpath = ["."]
-testpaths = ["tests"]
+testpaths = ["tests", "services/forecast"]
 
 
 [tool.black]
 line-length = 100
 target-version = ["py313"]
-exclude = '/(\.eggs|\.git|\.venv|build|dist|archive|backup_before_v2)/'
+exclude = '/(\\.eggs|\\.git|\\.venv|build|dist|archive|backup_before_v2)/'
 
 # EROS CI validation trigger after automated Black repair.
