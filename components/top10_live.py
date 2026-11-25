@@ -14,7 +14,6 @@ import pandas as pd
 import streamlit as st
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
-from services.dhan_live_provider import dhan_provider_enabled, download_dhan_symbol_frames
 from services.resilient_market_data import download_symbol_frames
 
 TOP10_REFRESH_SECONDS = 60
@@ -547,23 +546,7 @@ def _render_signal_quality_metrics(history: list[pd.DataFrame] | None) -> None:
 def _download_top10_frames(
     tickers: list[str],
 ) -> tuple[dict[str, pd.DataFrame], list[str], str]:
-    """Prefer Dhan candles when configured, with Yahoo fallback for gaps."""
-    if dhan_provider_enabled():
-        dhan_frames, dhan_missing = download_dhan_symbol_frames(tickers, interval=1)
-        if not dhan_missing:
-            return dhan_frames, [], "Dhan"
-        yahoo_frames, yahoo_missing = download_symbol_frames(
-            dhan_missing,
-            period="1d",
-            interval="1m",
-            auto_adjust=False,
-            batch_size=TOP10_CHUNK_SIZE,
-            timeout=TOP10_PROVIDER_TIMEOUT,
-            retries=TOP10_PROVIDER_RETRIES,
-            recover_missing=False,
-        )
-        merged = {**dhan_frames, **yahoo_frames}
-        return merged, yahoo_missing, "Dhan + Yahoo fallback"
+    """Download Top-10 one-minute candles through Yahoo Finance only."""
     frames, missing = download_symbol_frames(
         tickers,
         period="1d",
