@@ -702,9 +702,7 @@ def test_top10_live_downloads_one_minute_candles_from_yahoo_only(monkeypatch) ->
 
     monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
 
-    frames, missing, provider = top10_live._download_top10_frames(
-        ["RELIANCE.NS", "TCS.NS"]
-    )
+    frames, missing, provider = top10_live._download_top10_frames(["RELIANCE.NS", "TCS.NS"])
 
     assert frames is expected_frames
     assert missing == expected_missing
