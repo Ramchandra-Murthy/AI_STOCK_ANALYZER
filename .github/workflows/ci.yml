@@ -50,6 +50,7 @@ jobs:
         tests/test_repaired_contracts.py
         tests/test_market_data_boundary.py
         tests/forecast
+        services/forecast
     - name: Build production Docker image
       run: docker build --pull -t ai-stock-analyzer:ci .
     - name: Smoke test container runtime health
