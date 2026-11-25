@@ -687,3 +687,41 @@ def test_top10_live_history_preserves_fields_used_by_quality_metrics() -> None:
         "Direction consistency": 100.0,
         "Momentum consistency": 100.0,
     }
+
+def test_top10_live_downloads_one_minute_candles_from_yahoo_only(monkeypatch) -> None:
+    from components import top10_live
+
+    expected_frames = {"RELIANCE.NS": pd.DataFrame({"Close": [100.0]})}
+    expected_missing = ["TCS.NS"]
+    calls = []
+
+    def fake_download(tickers, **kwargs):
+        calls.append((tickers, kwargs))
+        return expected_frames, expected_missing
+
+    monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
+
+    frames, missing, provider = top10_live._download_top10_frames(
+        ["RELIANCE.NS", "TCS.NS"]
+    )
+
+    assert frames is expected_frames
+    assert missing == expected_missing
+    assert provider == "Yahoo"
+    assert calls == [
+        (
+            ["RELIANCE.NS", "TCS.NS"],
+            {
+                "period": "1d",
+                "interval": "1m",
+                "auto_adjust": False,
+                "batch_size": TOP10_CHUNK_SIZE,
+                "timeout": TOP10_PROVIDER_TIMEOUT,
+                "retries": TOP10_PROVIDER_RETRIES,
+                "recover_missing": False,
+            },
+        )
+    ]
+    source = open("components/top10_live.py", encoding="utf-8").read()
+    assert "services.dhan_live_provider" not in source
+    assert "download_dhan_symbol_frames" not in source
