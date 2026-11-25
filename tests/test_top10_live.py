@@ -647,6 +647,7 @@ def test_top10_live_avoids_missing_ticker_recovery_storm() -> None:
     assert "retries=TOP10_PROVIDER_RETRIES" in source
     assert "recover_missing=False" in source
 
+
 def test_top10_live_history_preserves_fields_used_by_quality_metrics() -> None:
     annotated = pd.DataFrame(
         [
