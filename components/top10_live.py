@@ -319,6 +319,10 @@ def _update_signal_history(
         "Exchange",
         "Momentum score",
         "Direction",
+        "Persistence",
+        "Persistent direction",
+        "Signal trend",
+        "Signal confirmation",
     ]
     snapshot = annotated[
         [column for column in snapshot_columns if column in annotated.columns]
