@@ -646,3 +646,43 @@ def test_top10_live_avoids_missing_ticker_recovery_storm() -> None:
     source = open("components/top10_live.py", encoding="utf-8").read()
     assert "retries=TOP10_PROVIDER_RETRIES" in source
     assert "recover_missing=False" in source
+
+def test_top10_live_history_preserves_fields_used_by_quality_metrics() -> None:
+    annotated = pd.DataFrame(
+        [
+            {
+                "Symbol": "AAA",
+                "Exchange": "NSE",
+                "Momentum score": 72,
+                "Direction": "UP",
+                "Persistence": 3,
+                "Persistent direction": "UP",
+                "Signal trend": "STRENGTHENING",
+                "Signal confirmation": "CONFIRMED",
+            }
+        ]
+    )
+
+    history = _update_signal_history([], annotated)
+
+    assert history[0][
+        [
+            "Persistence",
+            "Persistent direction",
+            "Signal trend",
+            "Signal confirmation",
+        ]
+    ].to_dict("records") == [
+        {
+            "Persistence": 3,
+            "Persistent direction": "UP",
+            "Signal trend": "STRENGTHENING",
+            "Signal confirmation": "CONFIRMED",
+        }
+    ]
+    assert _signal_quality_metrics(history) == {
+        "Confirmation rate": 100.0,
+        "Persistence rate": 100.0,
+        "Direction consistency": 100.0,
+        "Momentum consistency": 100.0,
+    }
