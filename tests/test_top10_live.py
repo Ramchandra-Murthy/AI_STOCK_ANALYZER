@@ -688,6 +688,7 @@ def test_top10_live_history_preserves_fields_used_by_quality_metrics() -> None:
         "Momentum consistency": 100.0,
     }
 
+
 def test_top10_live_downloads_one_minute_candles_from_yahoo_only(monkeypatch) -> None:
     from components import top10_live
 
