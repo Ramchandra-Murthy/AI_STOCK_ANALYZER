@@ -60,9 +60,16 @@ jobs:
         for i in $(seq 1 30); do
           if curl --fail --silent http://127.0.0.1:8501/_stcore/health >/dev/null; then
             echo "Streamlit health endpoint is healthy"
-            exit 0
+            break
+          fi
+          if [ "$i" -eq 30 ]; then
+            echo "Streamlit health endpoint did not become healthy"
+            exit 1
           fi
           sleep 2
         done
-        echo "Streamlit health endpoint did not become healthy"
-        exit 1
+        docker exec ai-stock-analyzer-ci python -c "import components.integrated_workflow; import components.top10_live; import engine.live_integrated_scanner; import engine.trading_pipeline"
+        if docker logs ai-stock-analyzer-ci 2>&1 | grep -E "ModuleNotFoundError|ImportError"; then
+          echo "Application startup reported an import error"
+          exit 1
+        fi

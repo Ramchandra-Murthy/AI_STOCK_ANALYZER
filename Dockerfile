@@ -10,9 +10,9 @@ RUN python -m pip install --no-cache-dir --only-binary=:all: "uv==0.12.1" \
 
 ENV PATH="/app/.venv/bin:${PATH}"
 
-# The current Streamlit entry point is the only runtime source needed by this image.
-# Keep legacy snapshots, tests and unrelated repository content out of the image.
-COPY interfaces/streamlit ./interfaces/streamlit
+# The Streamlit entry point imports shared application packages from the repository root.
+# Copy the complete non-archived source tree; .dockerignore excludes VCS, caches and backups.
+COPY . .
 
 # Run the application as an unprivileged user.
 RUN useradd --create-home --shell /usr/sbin/nologin appuser \
