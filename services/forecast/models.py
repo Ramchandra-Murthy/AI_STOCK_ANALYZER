@@ -73,6 +73,10 @@ class ForecastPackage:
             raise TypeError(
                 "ForecastPackage requires EBIT, capex, depreciation, working capital, and tax rate"
             )
+        assert capex is not None
+        assert depreciation is not None
+        assert working_capital is not None
+        assert tax_rate is not None
         object.__setattr__(self, "ticker", ticker)
         object.__setattr__(self, "years", tuple(years))
         object.__setattr__(self, "revenue", revenue)
