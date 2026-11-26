@@ -65,6 +65,8 @@ class AssumptionDerivationInput:
     # Appended to preserve positional construction of the pre-F-10A input contract.
     historical_tax_rates: tuple[float, ...] = ()
     explicit_tax_rate_fallback: float | None = None
+    # Appended for positional compatibility; used only when historical NWC is absent.
+    working_capital_pct_revenue_fallback: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -107,15 +109,16 @@ class AssumptionEngine:
 
         The five-year default is a maximum lookback, not a requirement that the
         last five calendar years all be present. Invalid observations are skipped
-        and recorded in metadata. Historical tax is preferred; an explicit
-        explicit tax-rate inputs or a configured statutory fallback are required
-        when no valid historical ETR exists.
+        and recorded in metadata. Historical working capital and tax rates are
+        preferred independently; explicit fallbacks are required for either
+        assumption when its historical observations are absent.
         """
         cfg = config or AssumptionValidationConfig()
         revenue = tuple(float(value) for value in data.historical_revenue)
         margins = tuple(float(value) for value in data.historical_margins)
         capex = tuple(float(value) for value in data.historical_capex)
         nwc = tuple(float(value) for value in data.historical_nwc)
+        working_capital_fallback = data.working_capital_pct_revenue_fallback
         pbt = tuple(float(value) for value in data.historical_pbt)
         tax = tuple(float(value) for value in data.historical_tax)
         tax_rates = tuple(float(value) for value in data.historical_tax_rates)
@@ -125,10 +128,17 @@ class AssumptionEngine:
         for name, values in (
             ("historical_margins", margins),
             ("historical_capex", capex),
-            ("historical_nwc", nwc),
         ):
             if len(values) != len(revenue):
                 raise ValueError(f"{name} must match historical_revenue length")
+        if nwc and len(nwc) != len(revenue):
+            raise ValueError("historical_nwc must match historical_revenue length")
+        if not nwc and working_capital_fallback is None:
+            raise ValueError(
+                "historical_nwc or an explicit working_capital_pct_revenue_assumption is required"
+            )
+        if working_capital_fallback is not None and not isfinite(float(working_capital_fallback)):
+            raise ValueError("working_capital_pct_revenue_assumption must be finite")
         if (
             bool(pbt) != bool(tax)
             or (pbt and len(pbt) != len(revenue))
@@ -188,14 +198,33 @@ class AssumptionEngine:
             raise ValueError("at least one valid CapEx/revenue observation is required")
         capex_pct = sum(capex_ratios) / len(capex_ratios)
 
-        nwc_ratios = [
-            nwc[index] / revenue[index]
-            for index in range(len(revenue))
-            if isfinite(nwc[index]) and isfinite(revenue[index]) and revenue[index] > 0.0
-        ][-cfg.lookback_periods :]
-        if not nwc_ratios:
-            raise ValueError("at least one valid NWC/revenue observation is required")
-        nwc_pct = sum(nwc_ratios) / len(nwc_ratios)
+        nwc_ratios = (
+            [
+                nwc[index] / revenue[index]
+                for index in range(len(revenue))
+                if isfinite(nwc[index]) and isfinite(revenue[index]) and revenue[index] > 0.0
+            ][-cfg.lookback_periods :]
+            if nwc
+            else []
+        )
+        if nwc:
+            if not nwc_ratios:
+                raise ValueError("at least one valid NWC/revenue observation is required")
+            nwc_pct = sum(nwc_ratios) / len(nwc_ratios)
+            nwc_metadata: dict[str, Any] = {
+                "method": "historical_nwc_to_revenue",
+                "observations_used": len(nwc_ratios),
+                "fallback_used": False,
+            }
+        else:
+            assert working_capital_fallback is not None
+            nwc_pct = float(working_capital_fallback)
+            nwc_metadata = {
+                "method": "explicit_input_fallback",
+                "observations_used": 0,
+                "fallback_used": True,
+                "source": "generate_scenario.working_capital_pct_revenue_assumption",
+            }
 
         valid_tax_indices = [
             index
@@ -332,6 +361,7 @@ class AssumptionEngine:
             "margin_periods_used": [years[index] for index in valid_margin_indices],
             "capex_observations_used": len(capex_ratios),
             "nwc_observations_used": len(nwc_ratios),
+            "working_capital": nwc_metadata,
             "tax": tax_metadata,
             "sector": data.sector,
             "peer_validation": peer_validation,
