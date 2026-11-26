@@ -7,6 +7,9 @@ Python Version: 3.13+
 
 from __future__ import annotations
 
+import pytest
+
+from services.forecast.exceptions import ForecastConfigurationError
 from services.forecast.models import ConfidenceLevel, ForecastMethod
 from services.forecast.service import ForecastService
 
@@ -71,3 +74,35 @@ def test_forecast_service_scenario() -> None:
     serialized = scenario.to_dict()
     reconstructed = scenario.from_dict(serialized)
     assert scenario == reconstructed
+
+
+
+def test_forecast_service_selects_linear_regression() -> None:
+    service = ForecastService()
+    forecast = service.generate_revenue_forecast(
+        historical=(10.0, 20.0, 30.0),
+        periods=2,
+        method=ForecastMethod.LINEAR_REGRESSION,
+    )
+
+    assert forecast.projected == pytest.approx((40.0, 50.0))
+    assert forecast.method == ForecastMethod.LINEAR_REGRESSION
+
+
+@pytest.mark.parametrize(
+    "method",
+    (
+        ForecastMethod.ROLLING_AVERAGE,
+        ForecastMethod.MANAGEMENT_GUIDANCE,
+        ForecastMethod.HISTORICAL_MEAN,
+    ),
+)
+def test_forecast_service_rejects_unsupported_methods(method: ForecastMethod) -> None:
+    service = ForecastService()
+
+    with pytest.raises(ForecastConfigurationError, match="not supported"):
+        service.generate_revenue_forecast(
+            historical=(100.0, 110.0, 121.0),
+            periods=2,
+            method=method,
+        )
