@@ -22,7 +22,7 @@ def test_forecast_line_item_immutability() -> None:
 
 def test_forecast_package_serialization() -> None:
     rev = ForecastLineItem("Revenue", (100.0, 120.0))
-    ni = ForecastLineItem("Net Income", (10.0, 15.0))
+    ebit = ForecastLineItem("EBIT", (10.0, 15.0))
     capex = ForecastLineItem("Capex", (5.0, 6.0))
     dep = ForecastLineItem("Depreciation", (2.0, 2.5))
     wc = ForecastLineItem("Working Capital", (20.0, 22.0))
@@ -32,7 +32,7 @@ def test_forecast_package_serialization() -> None:
         ticker="RELIANCE",
         years=(2026, 2027),
         revenue=rev,
-        net_income=ni,
+        ebit=ebit,
         capex=capex,
         depreciation=dep,
         working_capital=wc,
@@ -44,4 +44,24 @@ def test_forecast_package_serialization() -> None:
     assert reconstructed.ticker == "RELIANCE"
     assert reconstructed.years == (2026, 2027)
     assert reconstructed.revenue.values == (100.0, 120.0)
+    assert reconstructed.ebit == ebit
+    assert reconstructed.net_income == ebit
     assert reconstructed.metadata["model"] == "test"
+
+
+def test_forecast_package_reads_legacy_net_income_key_as_ebit() -> None:
+    legacy_data = {
+        "ticker": "RELIANCE",
+        "years": [2026],
+        "revenue": {"name": "Revenue", "values": [100.0]},
+        "net_income": {"name": "Net Income", "values": [20.0]},
+        "capex": {"name": "Capex", "values": [5.0]},
+        "depreciation": {"name": "Depreciation", "values": [2.0]},
+        "working_capital": {"name": "Working Capital", "values": [10.0]},
+        "tax_rate": {"name": "Tax Rate", "values": [0.25]},
+    }
+
+    package = ForecastPackage.from_dict(legacy_data)
+
+    assert package.ebit.name == "EBIT"
+    assert package.ebit.values == (20.0,)

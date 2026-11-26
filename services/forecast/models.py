@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, ClassVar
 
@@ -36,24 +36,76 @@ class ForecastLineItem:
         return cls(name=data["name"], values=tuple(data["values"]))
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class ForecastPackage:
+    """Forecast output package.
+
+    EBIT is operating profit calculated from revenue and EBIT margin.
+    The net_income attribute remains a deprecated compatibility alias for ebit;
+    this package does not calculate actual net income.
+    """
+
     ticker: str
     years: tuple[int, ...]
     revenue: ForecastLineItem
-    net_income: ForecastLineItem
+    ebit: ForecastLineItem
     capex: ForecastLineItem
     depreciation: ForecastLineItem
     working_capital: ForecastLineItem
     tax_rate: ForecastLineItem
-    metadata: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any]
+
+    def __init__(
+        self,
+        ticker: str,
+        years: tuple[int, ...],
+        revenue: ForecastLineItem,
+        net_income: ForecastLineItem | None = None,
+        capex: ForecastLineItem | None = None,
+        depreciation: ForecastLineItem | None = None,
+        working_capital: ForecastLineItem | None = None,
+        tax_rate: ForecastLineItem | None = None,
+        metadata: dict[str, Any] | None = None,
+        *,
+        ebit: ForecastLineItem | None = None,
+    ) -> None:
+        if ebit is not None and net_income is not None:
+            raise TypeError("Provide ebit; net_income is only a legacy alias.")
+        if ebit is not None:
+            operating_profit = ebit
+        elif net_income is not None:
+            operating_profit = ForecastLineItem("EBIT", net_income.values)
+        else:
+            operating_profit = None
+        if operating_profit is None:
+            raise TypeError("ForecastPackage requires an EBIT line item.")
+        if any(item is None for item in (capex, depreciation, working_capital, tax_rate)):
+            raise TypeError(
+                "ForecastPackage requires capex, depreciation, working_capital, and tax_rate."
+            )
+        object.__setattr__(self, "ticker", ticker)
+        object.__setattr__(self, "years", tuple(years))
+        object.__setattr__(self, "revenue", revenue)
+        object.__setattr__(self, "ebit", operating_profit)
+        object.__setattr__(self, "capex", capex)
+        object.__setattr__(self, "depreciation", depreciation)
+        object.__setattr__(self, "working_capital", working_capital)
+        object.__setattr__(self, "tax_rate", tax_rate)
+        object.__setattr__(self, "metadata", dict(metadata or {}))
+
+    @property
+    def net_income(self) -> ForecastLineItem:
+        """Deprecated alias; the returned line item represents EBIT, not net income."""
+        return self.ebit
 
     def to_dict(self) -> dict[str, Any]:
+        ebit_data = self.ebit.to_dict()
         return {
             "ticker": self.ticker,
             "years": list(self.years),
             "revenue": self.revenue.to_dict(),
-            "net_income": self.net_income.to_dict(),
+            "ebit": ebit_data,
+            "net_income": ebit_data,
             "capex": self.capex.to_dict(),
             "depreciation": self.depreciation.to_dict(),
             "working_capital": self.working_capital.to_dict(),
@@ -63,11 +115,17 @@ class ForecastPackage:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> ForecastPackage:
+        ebit_data = data.get("ebit")
+        if ebit_data is None:
+            legacy_item = data.get("net_income")
+            if legacy_item is None:
+                raise KeyError("ebit")
+            ebit_data = {"name": "EBIT", "values": legacy_item["values"]}
         return cls(
             ticker=data["ticker"],
             years=tuple(data["years"]),
             revenue=ForecastLineItem.from_dict(data["revenue"]),
-            net_income=ForecastLineItem.from_dict(data["net_income"]),
+            ebit=ForecastLineItem.from_dict(ebit_data),
             capex=ForecastLineItem.from_dict(data["capex"]),
             depreciation=ForecastLineItem.from_dict(data["depreciation"]),
             working_capital=ForecastLineItem.from_dict(data["working_capital"]),
