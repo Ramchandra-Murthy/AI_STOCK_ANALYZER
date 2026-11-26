@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 
 from core.exceptions import RepositoryError, ValidationError
@@ -103,24 +105,17 @@ def test_repository_preserves_prior_versions(valid_financial_statements, tmp_pat
     repo = FinancialStatementRepository(tmp_path / "financials.sqlite3")
     first_id = repo.save(valid_financial_statements)
 
-    revised = FinancialStatements(
-        company_name=valid_financial_statements.company_name,
-        ticker=valid_financial_statements.ticker,
-        currency=valid_financial_statements.currency,
-        fiscal_year=valid_financial_statements.fiscal_year,
-        income_statement=IncomeStatement(
-            **{
-                **valid_financial_statements.income_statement.__dict__
-            }
+    revised = replace(
+        valid_financial_statements,
+        income_statement=replace(
+            valid_financial_statements.income_statement,
+            revenue=225000.0,
         ),
-        balance_sheet=valid_financial_statements.balance_sheet,
-        cash_flow_statement=valid_financial_statements.cash_flow_statement,
         metadata={
             **valid_financial_statements.metadata,
             "source_reference": "restated-filing",
         },
     )
-    revised.income_statement.revenue = 225000.0
     second_id = repo.save(revised)
 
     assert second_id > first_id
