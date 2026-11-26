@@ -126,7 +126,7 @@ def test_execute_reports_operating_profit_as_ebit_not_net_income() -> None:
     assert result.status == "SUCCESS"
     assert result.package is not None
     assert result.package.ebit.name == "EBIT"
-    assert result.package.ebit.values == pytest.approx((121.0 * 0.25, 121.0 * 0.25))
+    assert result.package.ebit.values == pytest.approx((133.1 * 0.25, 146.41 * 0.25))
     assert result.ebit_forecast == result.package.ebit.values
     assert result.package.net_income is result.package.ebit
     serialized = result.package.to_dict()
