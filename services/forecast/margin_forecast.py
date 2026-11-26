@@ -74,5 +74,4 @@ class MarginForecastEngine:
             projected=projected,
             method=method_used,
             confidence=ConfidenceLevel.MEDIUM,
-            historical_mean_margin=round(mean_margin, 4),
         )
