@@ -28,6 +28,18 @@ def test_canonical_tax_algorithms_require_explicit_assumption_when_history_missi
         algorithm.calculate_taxes(inp)
 
 
+@pytest.mark.parametrize("algorithm", [CAGRForecastEngine(), LinearRegressionForecastEngine()])
+def test_canonical_tax_algorithms_use_explicit_assumption(algorithm):
+    inp = ForecastInput(
+        ticker="CONFIGURED-TAX", historical_years=(2023, 2024),
+        historical_revenue=(100.0, 110.0), historical_margins=(0.10, 0.11),
+        historical_capex=(5.0, 5.5), historical_depreciation=(2.0, 2.2),
+        historical_working_capital=(10.0, 11.0), historical_taxes=(),
+        forecast_years=(2025,), tax_rate_assumption=0.22,
+    )
+    assert algorithm.calculate_taxes(inp) == pytest.approx((0.22,))
+
+
 def test_legacy_tax_rate_excludes_nonpositive_pbt_periods():
     from services.forecast.tax_forecast import TaxForecastEngine
     inp = LegacyForecastInput(
