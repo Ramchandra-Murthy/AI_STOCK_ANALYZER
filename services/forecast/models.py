@@ -124,6 +124,7 @@ class ForecastPackage:
             metadata=dict(data.get("metadata", {})),
         )
 
+
 @dataclass(frozen=True, slots=True, init=False)
 class _ForecastSeries:
     values: tuple[float, ...]
