@@ -167,7 +167,11 @@ class ForecastService:
             method=method,
             confidence=confidence,
         )
-        if not historical_working_capital and not historical_tax_rates and tax_rate_assumption is None:
+        if (
+            not historical_working_capital
+            and not historical_tax_rates
+            and tax_rate_assumption is None
+        ):
             # Preserve the pre-F-10A scenario API during migration. New callers
             # should provide the missing financial observations/configuration.
             logger.warning(
