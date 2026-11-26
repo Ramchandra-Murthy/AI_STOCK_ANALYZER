@@ -19,40 +19,59 @@ from services.forecast.forecast_models import (
 )
 from services.forecast.forecast_result import ForecastResult
 from services.forecast.input import ForecastInput
+from services.forecast.tax_forecast import TaxForecastEngine
 from services.forecast.validation import ForecastValidator
 
 
-@pytest.mark.parametrize("algorithm", [CAGRForecastEngine(), LinearRegressionForecastEngine()])
-def test_canonical_tax_algorithms_require_explicit_assumption_when_history_missing(algorithm):
+@pytest.mark.parametrize(
+    "algorithm",
+    [CAGRForecastEngine(), LinearRegressionForecastEngine()],
+)
+def test_canonical_tax_algorithms_require_explicit_assumption_when_history_missing(
+    algorithm,
+):
     inp = ForecastInput(
-        ticker="NO-TAX-HISTORY", historical_years=(2023, 2024),
-        historical_revenue=(100.0, 110.0), historical_margins=(0.10, 0.11),
-        historical_capex=(5.0, 5.5), historical_depreciation=(2.0, 2.2),
-        historical_working_capital=(10.0, 11.0), historical_taxes=(),
+        ticker="NO-TAX-HISTORY",
+        historical_years=(2023, 2024),
+        historical_revenue=(100.0, 110.0),
+        historical_margins=(0.10, 0.11),
+        historical_capex=(5.0, 5.5),
+        historical_depreciation=(2.0, 2.2),
+        historical_working_capital=(10.0, 11.0),
+        historical_taxes=(),
         forecast_years=(2025,),
     )
     with pytest.raises(ForecastConfigurationError, match="tax_rate_assumption"):
         algorithm.calculate_taxes(inp)
 
 
-@pytest.mark.parametrize("algorithm", [CAGRForecastEngine(), LinearRegressionForecastEngine()])
+@pytest.mark.parametrize(
+    "algorithm",
+    [CAGRForecastEngine(), LinearRegressionForecastEngine()],
+)
 def test_canonical_tax_algorithms_use_explicit_assumption(algorithm):
     inp = ForecastInput(
-        ticker="CONFIGURED-TAX", historical_years=(2023, 2024),
-        historical_revenue=(100.0, 110.0), historical_margins=(0.10, 0.11),
-        historical_capex=(5.0, 5.5), historical_depreciation=(2.0, 2.2),
-        historical_working_capital=(10.0, 11.0), historical_taxes=(),
-        forecast_years=(2025,), tax_rate_assumption=0.22,
+        ticker="CONFIGURED-TAX",
+        historical_years=(2023, 2024),
+        historical_revenue=(100.0, 110.0),
+        historical_margins=(0.10, 0.11),
+        historical_capex=(5.0, 5.5),
+        historical_depreciation=(2.0, 2.2),
+        historical_working_capital=(10.0, 11.0),
+        historical_taxes=(),
+        forecast_years=(2025,),
+        tax_rate_assumption=0.22,
     )
     ForecastValidator.validate_input(inp)
     assert algorithm.calculate_taxes(inp) == pytest.approx((0.22,))
 
 
 def test_legacy_tax_rate_excludes_nonpositive_pbt_periods():
-    from services.forecast.tax_forecast import TaxForecastEngine
     inp = LegacyForecastInput(
-        symbol="MATCHED-HISTORY", historical_revenues=(100.0, 110.0, 120.0),
-        historical_pbt=(100.0, 0.0, -20.0), historical_tax=(20.0, 0.0, 5.0),
+        symbol="MATCHED-HISTORY",
+        historical_revenues=(100.0, 110.0, 120.0),
+        historical_pbt=(100.0, 0.0, -20.0),
+        historical_tax=(20.0, 0.0, 5.0),
         forecast_years=1,
     )
     result = TaxForecastEngine().forecast_tax(inp)
@@ -63,8 +82,10 @@ def test_legacy_tax_rate_excludes_nonpositive_pbt_periods():
 def test_nopat_and_fcff_convert_tax_rate_to_tax_expense():
     confidence = ConfidenceLevel.HIGH
     result = ForecastResult(
-        symbol="TAX-TEST", revenue=RevenueForecast(projected=(1000.0,)),
-        margin=MarginForecast(projected=(0.10,)), capex=CapexForecast(projected=(5.0,)),
+        symbol="TAX-TEST",
+        revenue=RevenueForecast(projected=(1000.0,)),
+        margin=MarginForecast(projected=(0.10,)),
+        capex=CapexForecast(projected=(5.0,)),
         depreciation=DepreciationForecast(projected=(10.0,)),
         working_capital=WorkingCapitalForecast(projected=(5.0,)),
         tax=TaxForecast(projected=(0.25,)),
@@ -74,6 +95,7 @@ def test_nopat_and_fcff_convert_tax_rate_to_tax_expense():
     assert result.projected_tax_expense == pytest.approx((25.0,))
     assert result.projected_nopat == pytest.approx((75.0,))
     assert result.projected_fcff == pytest.approx((75.0,))
+
     yearly = result.yearly_forecasts[0]
     assert yearly.tax_rate == pytest.approx(0.25)
     assert yearly.tax_expense == pytest.approx(25.0)
