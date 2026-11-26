@@ -149,6 +149,10 @@ class ForecastService:
         historical_capex: tuple[float, ...],
         periods: int,
         method: ForecastMethod = ForecastMethod.CAGR,
+        *,
+        historical_working_capital: tuple[float, ...] = (),
+        historical_tax_rates: tuple[float, ...] = (),
+        tax_rate_assumption: float | None = None,
     ) -> ForecastScenario:
         confidence = ConfidenceLevel.MEDIUM
         revenue = self.generate_revenue_forecast(historical_revenue, periods, method, confidence)
@@ -163,12 +167,25 @@ class ForecastService:
             method=method,
             confidence=confidence,
         )
-        tax_projected = tuple(0.25 for _ in range(periods))
-        taxes = TaxForecast(
-            historical=(), projected=tax_projected, method=method, confidence=confidence
+        assumptions = AssumptionEngine.derive_from_financials(
+            AssumptionDerivationInput(
+                historical_revenue=historical_revenue,
+                historical_margins=historical_margin,
+                historical_capex=historical_capex,
+                historical_nwc=historical_working_capital,
+                historical_tax_rates=historical_tax_rates,
+                explicit_tax_rate_fallback=tax_rate_assumption,
+            )
         )
-        assumptions = AssumptionEngine.derive_assumptions(
-            historical_revenue, historical_margin, historical_capex, method
+        tax_projected = tuple(assumptions.tax_rate for _ in range(periods))
+        taxes = TaxForecast(
+            historical=historical_tax_rates,
+            projected=tax_projected,
+            method=method,
+            confidence=confidence,
+        )
+        projected_working_capital = tuple(
+            value * assumptions.working_capital_pct_revenue for value in revenue.projected
         )
         return ForecastScenario(
             scenario_name=scenario_name,
@@ -184,7 +201,10 @@ class ForecastService:
             capex=capex,
             depreciation=DepreciationForecast(projected=(), method=method, confidence=confidence),
             working_capital=WorkingCapitalForecast(
-                projected=(), method=method, confidence=confidence
+                historical=historical_working_capital,
+                projected=projected_working_capital,
+                method=method,
+                confidence=confidence,
             ),
             taxes=taxes,
             terminal_growth=TerminalGrowthForecast(0.03, ConfidenceLevel.HIGH),
