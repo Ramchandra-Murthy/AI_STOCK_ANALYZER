@@ -109,15 +109,16 @@ class AssumptionEngine:
 
         The five-year default is a maximum lookback, not a requirement that the
         last five calendar years all be present. Invalid observations are skipped
-        and recorded in metadata. Historical tax is preferred; an explicit
-        explicit tax-rate inputs or a configured statutory fallback are required
-        when no valid historical ETR exists.
+        and recorded in metadata. Historical working capital and tax rates are
+        preferred independently; explicit fallbacks are required for either
+        assumption when its historical observations are absent.
         """
         cfg = config or AssumptionValidationConfig()
         revenue = tuple(float(value) for value in data.historical_revenue)
         margins = tuple(float(value) for value in data.historical_margins)
         capex = tuple(float(value) for value in data.historical_capex)
         nwc = tuple(float(value) for value in data.historical_nwc)
+        working_capital_fallback = data.working_capital_pct_revenue_fallback
         pbt = tuple(float(value) for value in data.historical_pbt)
         tax = tuple(float(value) for value in data.historical_tax)
         tax_rates = tuple(float(value) for value in data.historical_tax_rates)
@@ -132,12 +133,12 @@ class AssumptionEngine:
                 raise ValueError(f"{name} must match historical_revenue length")
         if nwc and len(nwc) != len(revenue):
             raise ValueError("historical_nwc must match historical_revenue length")
-        if not nwc and data.working_capital_pct_revenue_fallback is None:
+        if not nwc and working_capital_fallback is None:
             raise ValueError(
                 "historical_nwc or an explicit working_capital_pct_revenue_assumption is required"
             )
-        if data.working_capital_pct_revenue_fallback is not None and not isfinite(
-            float(data.working_capital_pct_revenue_fallback)
+        if working_capital_fallback is not None and not isfinite(
+            float(working_capital_fallback)
         ):
             raise ValueError("working_capital_pct_revenue_assumption must be finite")
         if (
@@ -214,7 +215,8 @@ class AssumptionEngine:
                 "fallback_used": False,
             }
         else:
-            nwc_pct = float(data.working_capital_pct_revenue_fallback)
+            assert working_capital_fallback is not None
+            nwc_pct = float(working_capital_fallback)
             nwc_metadata = {
                 "method": "explicit_input_fallback",
                 "observations_used": 0,
