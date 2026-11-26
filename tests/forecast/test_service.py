@@ -10,6 +10,7 @@ from __future__ import annotations
 import pytest
 
 from services.forecast.exceptions import ForecastConfigurationError
+from services.forecast.input import ForecastInput
 from services.forecast.models import ConfidenceLevel, ForecastMethod
 from services.forecast.service import ForecastService
 
@@ -105,3 +106,29 @@ def test_forecast_service_rejects_unsupported_methods(method: ForecastMethod) ->
             periods=2,
             method=method,
         )
+
+
+def test_execute_reports_operating_profit_as_ebit_not_net_income() -> None:
+    forecast_input = ForecastInput(
+        ticker="TEST",
+        historical_years=(2023, 2024, 2025),
+        historical_revenue=(100.0, 110.0, 121.0),
+        historical_margins=(0.20, 0.22, 0.25),
+        historical_capex=(5.0, 5.5, 6.0),
+        historical_depreciation=(2.0, 2.2, 2.4),
+        historical_working_capital=(10.0, 11.0, 12.0),
+        historical_taxes=(0.25, 0.25, 0.25),
+        forecast_years=(2026, 2027),
+    )
+
+    result = ForecastService().execute(forecast_input)
+
+    assert result.status == "SUCCESS"
+    assert result.package is not None
+    assert result.package.ebit.name == "EBIT"
+    assert result.package.ebit.values == pytest.approx((121.0 * 0.25, 121.0 * 0.25))
+    assert result.ebit_forecast == result.package.ebit.values
+    assert result.package.net_income is result.package.ebit
+    serialized = result.package.to_dict()
+    assert serialized["ebit"]["name"] == "EBIT"
+    assert serialized["net_income"] == serialized["ebit"]
