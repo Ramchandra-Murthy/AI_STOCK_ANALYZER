@@ -36,6 +36,7 @@ dev = [
 minversion = "6.0"
 addopts = "-ra -q"
 pythonpath = ["."]
+# Keep executable root-level test_*.py demos and Streamlit probes out of pytest collection.
 testpaths = ["tests"]
 
 
