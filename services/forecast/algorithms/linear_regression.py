@@ -62,8 +62,17 @@ class LinearRegressionForecastAlgorithm(BaseForecastAlgorithm):
 
     def calculate_taxes(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         taxes = forecast_input.historical_taxes
-        avg = (sum(taxes) / len(taxes)) if taxes else 0.25
-        return tuple(max(0.0, min(1.0, avg)) for _ in forecast_input.forecast_years)
+        if taxes:
+            rate = sum(taxes) / len(taxes)
+        elif forecast_input.tax_rate_assumption is not None:
+            rate = forecast_input.tax_rate_assumption
+        else:
+            from services.forecast.exceptions import ForecastConfigurationError
+
+            raise ForecastConfigurationError(
+                "A tax_rate_assumption is required when historical tax rates are unavailable."
+            )
+        return tuple(max(0.0, min(1.0, rate)) for _ in forecast_input.forecast_years)
 
 
 # Backward-compatible name used by the original forecast test suite.
