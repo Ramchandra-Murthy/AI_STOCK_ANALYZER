@@ -48,3 +48,8 @@ def test_forecast_package_serialization() -> None:
     assert reconstructed.ebit == ebit
     assert reconstructed.net_income == ebit
     assert data["ebit"] == data["net_income"]
+
+    legacy_data = dict(data)
+    legacy_data.pop("ebit")
+    legacy_package = ForecastPackage.from_dict(legacy_data)
+    assert legacy_package.ebit == ebit
