@@ -153,6 +153,7 @@ class ForecastService:
         historical_working_capital: tuple[float, ...] = (),
         historical_tax_rates: tuple[float, ...] = (),
         tax_rate_assumption: float | None = None,
+        working_capital_pct_revenue_assumption: float | None = None,
     ) -> ForecastScenario:
         confidence = ConfidenceLevel.MEDIUM
         revenue = self.generate_revenue_forecast(historical_revenue, periods, method, confidence)
@@ -171,12 +172,16 @@ class ForecastService:
             not historical_working_capital
             and not historical_tax_rates
             and tax_rate_assumption is None
+            and working_capital_pct_revenue_assumption is None
         ):
-            # Preserve the pre-F-10A scenario API during migration. New callers
-            # should provide the missing financial observations/configuration.
+            # Explicit compatibility contract: only a call with none of the
+            # F-10A working-capital or tax inputs uses pre-F-10A defaults.
+            # Any partially configured call enters validated derivation and
+            # must provide an independent source for each missing assumption.
             logger.warning(
-                "generate_scenario is using legacy assumption defaults; "
-                "supply historical_working_capital and historical_tax_rates "
+                "generate_scenario is using deprecated legacy assumption defaults; "
+                "provide historical_working_capital or "
+                "working_capital_pct_revenue_assumption, and historical_tax_rates "
                 "or tax_rate_assumption to use F-10A derivation"
             )
             assumptions = AssumptionEngine.derive_assumptions(
@@ -192,6 +197,9 @@ class ForecastService:
                     historical_nwc=historical_working_capital,
                     historical_tax_rates=historical_tax_rates,
                     explicit_tax_rate_fallback=tax_rate_assumption,
+                    working_capital_pct_revenue_fallback=(
+                        working_capital_pct_revenue_assumption
+                    ),
                 )
             )
             tax_history = historical_tax_rates
