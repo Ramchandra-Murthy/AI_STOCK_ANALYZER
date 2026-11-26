@@ -91,12 +91,8 @@ def test_legacy_margin_engine_supports_historical_mean_and_mean_reversion(
     base_input: ForecastInput,
 ) -> None:
     engine = MarginForecastEngine()
-    historical_mean = engine.forecast_margins(
-        base_input, method=ForecastMethod.HISTORICAL_MEAN
-    )
-    mean_reversion = engine.forecast_margins(
-        base_input, method=ForecastMethod.MEAN_REVERSION
-    )
+    historical_mean = engine.forecast_margins(base_input, method=ForecastMethod.HISTORICAL_MEAN)
+    mean_reversion = engine.forecast_margins(base_input, method=ForecastMethod.MEAN_REVERSION)
     assert historical_mean.projected == pytest.approx((0.2, 0.2))
     assert historical_mean.method == ForecastMethod.HISTORICAL_MEAN
     assert len(mean_reversion.projected) == base_input.forecast_years
@@ -105,10 +101,7 @@ def test_legacy_margin_engine_supports_historical_mean_and_mean_reversion(
 
 def test_legacy_margin_engine_rejects_unrelated_methods(base_input: ForecastInput) -> None:
     with pytest.raises(ForecastConfigurationError, match="not supported"):
-        MarginForecastEngine().forecast_margins(
-            base_input, method=ForecastMethod.LINEAR_REGRESSION
-        )
-
+        MarginForecastEngine().forecast_margins(base_input, method=ForecastMethod.LINEAR_REGRESSION)
 
 
 def test_tax_forecast_defaults_to_manual_method(base_input: ForecastInput) -> None:
