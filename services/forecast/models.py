@@ -80,7 +80,9 @@ class ForecastPackage:
         if operating_profit is None:
             raise TypeError("ForecastPackage requires an EBIT line item.")
         if any(item is None for item in (capex, depreciation, working_capital, tax_rate)):
-            raise TypeError("ForecastPackage requires capex, depreciation, working_capital, and tax_rate.")
+            raise TypeError(
+                "ForecastPackage requires capex, depreciation, working_capital, and tax_rate."
+            )
         object.__setattr__(self, "ticker", ticker)
         object.__setattr__(self, "years", tuple(years))
         object.__setattr__(self, "revenue", revenue)
