@@ -6,7 +6,7 @@ from services.forecast.algorithms.base import BaseForecastAlgorithm
 from services.forecast.algorithms.cagr import CAGRForecastEngine
 from services.forecast.algorithms.linear_regression import LinearRegressionForecastEngine
 from services.forecast.assumption_engine import AssumptionEngine
-from services.forecast.exceptions import ForecastError
+from services.forecast.exceptions import ForecastConfigurationError, ForecastError
 from services.forecast.input import ForecastInput
 from services.forecast.models import (
     CapexForecast,
@@ -172,6 +172,17 @@ class ForecastService:
 
     @staticmethod
     def _algorithm_for(method: ForecastMethod) -> BaseForecastAlgorithm:
+        """Return an implemented algorithm or reject an unsupported method.
+
+        The canonical service currently supports CAGR and linear regression.
+        Other enum members are retained for compatibility with other forecast
+        layers, but must not silently produce a CAGR projection.
+        """
+        if method == ForecastMethod.CAGR:
+            return CAGRForecastEngine()
         if method == ForecastMethod.LINEAR_REGRESSION:
             return LinearRegressionForecastEngine()
-        return CAGRForecastEngine()
+        raise ForecastConfigurationError(
+            f"Forecast method '{method}' is not supported by the canonical "
+            "forecast service. Supported methods: CAGR, LINEAR_REGRESSION."
+        )
