@@ -71,11 +71,12 @@ class ForecastPackage:
     ) -> None:
         if ebit is not None and net_income is not None:
             raise TypeError("Provide ebit; net_income is only a legacy alias.")
-        operating_profit = (
-            ebit
-            if ebit is not None
-            else ForecastLineItem("EBIT", net_income.values) if net_income is not None else None
-        )
+        if ebit is not None:
+            operating_profit = ebit
+        elif net_income is not None:
+            operating_profit = ForecastLineItem("EBIT", net_income.values)
+        else:
+            operating_profit = None
         if operating_profit is None:
             raise TypeError("ForecastPackage requires an EBIT line item.")
         if any(item is None for item in (capex, depreciation, working_capital, tax_rate)):
