@@ -84,7 +84,20 @@ class ForecastService:
             ebit_margin = ebits[-1] / revenues[-1] if revenues[-1] else 0.0
             projected_fcfs: list[float] = []
             yearly: list[YearlyForecast] = []
-            tax_rate = (tax[-1] / pbt[-1]) if tax and pbt and pbt[-1] else 0.25
+            valid_tax_rates = tuple(
+                tax_value / pbt_value
+                for tax_value, pbt_value in zip(tax, pbt, strict=False)
+                if pbt_value > 0 and 0.0 <= tax_value / pbt_value <= 1.0
+            )
+            if valid_tax_rates:
+                tax_rate = sum(valid_tax_rates) / len(valid_tax_rates)
+            elif forecast_input.tax_rate_assumption is not None:
+                tax_rate = forecast_input.tax_rate_assumption
+            else:
+                raise ValidationError(
+                    "A tax_rate_assumption is required when no valid positive-PBT "
+                    "historical effective tax rate is available."
+                )
             margin = max(0.0, min(1.0, ebit_margin))
             capex_ratio = abs(capex[-1] / revenues[-1]) if revenues[-1] else 0.0
             nwc_ratio = nwc[-1] / revenues[-1] if revenues[-1] else 0.0
