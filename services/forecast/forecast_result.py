@@ -149,7 +149,7 @@ class ForecastResult:
         nopats = self.projected_nopat
         deps = tuple(self.depreciation.projected)
         capex = tuple(self.capex.projected)
-        delta_nwc = tuple(self.working_capital.delta_nwc)
+        delta_nwc = tuple(self.working_capital.delta)
 
         return tuple(
             round(nopat + dep - cap - dnwc, 4)
@@ -169,7 +169,7 @@ class ForecastResult:
         ebits = self.projected_ebit
         capexs = tuple(self.capex.projected)
         deps = tuple(self.depreciation.projected)
-        nwcs = tuple(self.working_capital.delta_nwc)
+        nwcs = tuple(self.working_capital.delta)
         taxes = tuple(self.tax.projected)
 
         yearly = []
