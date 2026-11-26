@@ -9,9 +9,8 @@ from __future__ import annotations
 
 import pytest
 
-from services.forecast.input import ForecastInput
-
 from services.forecast.exceptions import ForecastConfigurationError
+from services.forecast.input import ForecastInput
 from services.forecast.models import ConfidenceLevel, ForecastMethod
 from services.forecast.service import ForecastService
 
