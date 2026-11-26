@@ -13,10 +13,10 @@ from __future__ import annotations
 from typing import Any
 
 from core.logger import logger
-from services.forecast.algorithms.mean_reversion import MeanReversionAlgorithm
+from services.forecast.algorithms.mean_reversion import MeanReversionCalculator
+from services.forecast.exceptions import ForecastConfigurationError
 from services.forecast.forecast_input import ForecastInput
 from services.forecast.forecast_models import (
-    AlgorithmInput,
     ConfidenceLevel,
     ForecastMethod,
     MarginForecast,
@@ -27,7 +27,7 @@ class MarginForecastEngine:
     """Subservice orchestrator for operating margin projections."""
 
     def __init__(self) -> None:
-        self._mean_reversion_algo = MeanReversionAlgorithm()
+        self._mean_reversion_algo = MeanReversionCalculator()
 
     def forecast_margins(
         self,
@@ -55,21 +55,19 @@ class MarginForecastEngine:
 
         selected_method = method or inp.method
 
-        if (
-            selected_method == ForecastMethod.LINEAR_REGRESSION
-            or selected_method == ForecastMethod.ROLLING_AVERAGE
-            or selected_method == ForecastMethod.MEAN_REVERSION
-        ):
-            algo_input = AlgorithmInput(
-                historical_values=historical_margins,
-                forecast_periods=inp.forecast_years,
+        if selected_method == ForecastMethod.MEAN_REVERSION:
+            projected = self._mean_reversion_algo.project(
+                historical_margins, inp.forecast_years
             )
-            res = self._mean_reversion_algo.project_series(algo_input)
-            projected = tuple(res.projected_values)
             method_used = ForecastMethod.MEAN_REVERSION
-        else:
+        elif selected_method in (ForecastMethod.CAGR, ForecastMethod.HISTORICAL_MEAN):
             projected = (round(mean_margin, 4),) * inp.forecast_years
             method_used = ForecastMethod.HISTORICAL_MEAN
+        else:
+            raise ForecastConfigurationError(
+                f"Forecast method '{selected_method}' is not supported by the legacy "
+                "margin forecast engine. Supported methods: HISTORICAL_MEAN, MEAN_REVERSION."
+            )
 
         return MarginForecast(
             historical=historical_margins,
