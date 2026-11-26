@@ -11,6 +11,7 @@ class ForecastInput:
     ticker: str
     historical_years: tuple[int, ...]
     historical_revenue: tuple[float, ...]
+    # Operating (EBIT) margin: EBIT divided by revenue, expressed as a ratio.
     historical_margins: tuple[float, ...]
     historical_capex: tuple[float, ...]
     historical_depreciation: tuple[float, ...]
