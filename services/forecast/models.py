@@ -71,7 +71,11 @@ class ForecastPackage:
     ) -> None:
         if ebit is not None and net_income is not None:
             raise TypeError("Provide ebit; net_income is only a legacy alias.")
-        operating_profit = ebit if ebit is not None else net_income
+        operating_profit = (
+            ebit
+            if ebit is not None
+            else ForecastLineItem("EBIT", net_income.values) if net_income is not None else None
+        )
         if operating_profit is None:
             raise TypeError("ForecastPackage requires an EBIT line item.")
         if any(item is None for item in (capex, depreciation, working_capital, tax_rate)):
@@ -108,9 +112,12 @@ class ForecastPackage:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> ForecastPackage:
-        ebit_data = data.get("ebit", data.get("net_income"))
+        ebit_data = data.get("ebit")
         if ebit_data is None:
-            raise KeyError("ebit")
+            legacy_item = data.get("net_income")
+            if legacy_item is None:
+                raise KeyError("ebit")
+            ebit_data = {"name": "EBIT", "values": legacy_item["values"]}
         return cls(
             ticker=data["ticker"],
             years=tuple(data["years"]),
