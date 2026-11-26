@@ -58,12 +58,9 @@ class ForecastService:
                 )
             )
             working_capital = tuple(
-                revenue * derived_assumptions.working_capital_pct_revenue
-                for revenue in revenues
+                revenue * derived_assumptions.working_capital_pct_revenue for revenue in revenues
             )
-            taxes = tuple(
-                derived_assumptions.tax_rate for _ in forecast_input.forecast_years
-            )
+            taxes = tuple(derived_assumptions.tax_rate for _ in forecast_input.forecast_years)
             ebit = tuple(r * m for r, m in zip(revenues, margins, strict=False))
             package = ForecastPackage(
                 ticker=forecast_input.ticker,
