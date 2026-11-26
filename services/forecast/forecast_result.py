@@ -40,9 +40,19 @@ class YearlyFinancialForecast:
     tax: float
 
     @property
+    def tax_rate(self) -> float:
+        """Explicit name for the tax-rate fraction retained in the legacy tax field."""
+        return self.tax
+
+    @property
+    def tax_expense(self) -> float:
+        """Tax expense in currency units: EBIT multiplied by the tax rate."""
+        return round(self.ebit * self.tax_rate, 4)
+
+    @property
     def free_cash_flow(self) -> float:
-        """Calculates Free Cash Flow to Firm for the year."""
-        nopat = self.ebit - self.tax
+        """Calculates FCFF using tax expense, not the tax-rate fraction."""
+        nopat = self.ebit - self.tax_expense
         return round(nopat + self.depreciation - self.capex - self.working_capital, 4)
 
 
@@ -116,11 +126,22 @@ class ForecastResult:
         )
 
     @property
+    def projected_tax_expense(self) -> tuple[float, ...]:
+        """Projected tax expense in currency units: EBIT multiplied by tax rate."""
+        return tuple(
+            round(ebit * rate, 4)
+            for ebit, rate in zip(self.projected_ebit, self.tax.projected, strict=False)
+        )
+
+    @property
     def projected_nopat(self) -> tuple[float, ...]:
-        """Calculates projected Net Operating Profit After Tax (NOPAT): EBIT - Tax."""
-        ebits = self.projected_ebit
-        taxes = tuple(self.tax.projected)
-        return tuple(round(ebit - tax, 4) for ebit, tax in zip(ebits, taxes, strict=False))
+        """Calculates NOPAT as EBIT less projected tax expense."""
+        return tuple(
+            round(ebit - tax_expense, 4)
+            for ebit, tax_expense in zip(
+                self.projected_ebit, self.projected_tax_expense, strict=False
+            )
+        )
 
     @property
     def projected_fcff(self) -> tuple[float, ...]:
