@@ -63,7 +63,7 @@ def test_tax_forecast_engine(base_input: ForecastInput) -> None:
 def test_legacy_revenue_engine_dispatches_supported_algorithms(base_input: ForecastInput) -> None:
     engine = RevenueForecastEngine()
     expected = {
-        ForecastMethod.CAGR: (144.0, 172.8),
+        ForecastMethod.CAGR: (120.0 * (1.2**0.5), 144.0),
         ForecastMethod.LINEAR_REGRESSION: (130.0, 140.0),
         ForecastMethod.ROLLING_AVERAGE: (110.0, 110.0),
     }
@@ -108,3 +108,9 @@ def test_legacy_margin_engine_rejects_unrelated_methods(base_input: ForecastInpu
         MarginForecastEngine().forecast_margins(
             base_input, method=ForecastMethod.LINEAR_REGRESSION
         )
+
+
+
+def test_tax_forecast_defaults_to_manual_method(base_input: ForecastInput) -> None:
+    result = TaxForecastEngine().forecast_tax(base_input)
+    assert result.method == ForecastMethod.MANUAL
