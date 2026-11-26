@@ -47,3 +47,21 @@ def test_forecast_package_serialization() -> None:
     assert reconstructed.ebit == ebit
     assert reconstructed.net_income == ebit
     assert reconstructed.metadata["model"] == "test"
+
+
+def test_forecast_package_reads_legacy_net_income_key_as_ebit() -> None:
+    legacy_data = {
+        "ticker": "RELIANCE",
+        "years": [2026],
+        "revenue": {"name": "Revenue", "values": [100.0]},
+        "net_income": {"name": "Net Income", "values": [20.0]},
+        "capex": {"name": "Capex", "values": [5.0]},
+        "depreciation": {"name": "Depreciation", "values": [2.0]},
+        "working_capital": {"name": "Working Capital", "values": [10.0]},
+        "tax_rate": {"name": "Tax Rate", "values": [0.25]},
+    }
+
+    package = ForecastPackage.from_dict(legacy_data)
+
+    assert package.ebit.name == "EBIT"
+    assert package.ebit.values == (20.0,)
