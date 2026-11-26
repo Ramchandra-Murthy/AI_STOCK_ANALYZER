@@ -57,13 +57,14 @@ class AssumptionDerivationInput:
     historical_nwc: tuple[float, ...]
     historical_pbt: tuple[float, ...] = ()
     historical_tax: tuple[float, ...] = ()
-    historical_tax_rates: tuple[float, ...] = ()
-    explicit_tax_rate_fallback: float | None = None
     historical_years: tuple[int, ...] = ()
     statutory_tax_fallback: StatutoryTaxFallback | None = None
     management_guidance: ManagementGuidance | None = None
     sector: str | None = None
     sector_peer_values: Mapping[str, tuple[float, ...]] = field(default_factory=dict)
+    # Appended to preserve positional construction of the pre-F-10A input contract.
+    historical_tax_rates: tuple[float, ...] = ()
+    explicit_tax_rate_fallback: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -107,7 +108,8 @@ class AssumptionEngine:
         The five-year default is a maximum lookback, not a requirement that the
         last five calendar years all be present. Invalid observations are skipped
         and recorded in metadata. Historical tax is preferred; an explicit
-        statutory fallback is required when no valid historical ETR exists.
+        explicit tax-rate inputs or a configured statutory fallback are required
+        when no valid historical ETR exists.
         """
         cfg = config or AssumptionValidationConfig()
         revenue = tuple(float(value) for value in data.historical_revenue)
@@ -357,8 +359,8 @@ class AssumptionEngine:
 
         New F-10 callers should use derive_from_financials so tax and working
         capital are based on supplied historical data and explicit tax fallback
-        configuration. This adapter is retained until the separately approved
-        service-integration workstream is completed.
+        configuration. This adapter remains only for callers that still depend
+        on the pre-F-10A compatibility contract.
         """
         logger.warning(
             "Legacy derive_assumptions uses compatibility defaults; migrate to "
