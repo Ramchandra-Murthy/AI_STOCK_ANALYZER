@@ -84,6 +84,20 @@ def test_forecast_service_scenario() -> None:
     assert scenario == reconstructed
 
 
+def test_forecast_service_scenario_preserves_legacy_callers() -> None:
+    scenario = ForecastService().generate_scenario(
+        scenario_name="Legacy Base Case",
+        probability=0.5,
+        historical_revenue=(1000.0, 1100.0),
+        historical_margin=(0.15, 0.16),
+        historical_capex=(50.0, 55.0),
+        periods=2,
+    )
+
+    assert scenario.assumptions.metadata["compatibility_mode"] is True
+    assert scenario.taxes.projected == pytest.approx((0.25, 0.25))
+
+
 def test_forecast_service_selects_linear_regression() -> None:
     service = ForecastService()
     forecast = service.generate_revenue_forecast(
