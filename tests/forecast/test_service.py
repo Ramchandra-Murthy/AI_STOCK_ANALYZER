@@ -211,9 +211,7 @@ def test_scenario_uses_historical_tax_with_explicit_working_capital_fallback() -
 
     assert scenario.assumptions.tax_rate == pytest.approx(0.22)
     assert scenario.assumptions.working_capital_pct_revenue == pytest.approx(0.12)
-    assert scenario.assumptions.metadata["working_capital"]["method"] == (
-        "explicit_input_fallback"
-    )
+    assert scenario.assumptions.metadata["working_capital"]["method"] == ("explicit_input_fallback")
     assert scenario.assumptions.metadata["tax"]["method"] == "historical_effective_tax_rate"
 
 
