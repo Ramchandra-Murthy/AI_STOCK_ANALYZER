@@ -175,3 +175,100 @@ def test_execute_uses_explicit_tax_rate_fallback_when_history_is_missing() -> No
     assert result.package is not None
     assert result.package.tax_rate.values == pytest.approx((0.22,))
     assert result.metadata["assumption_engine"]["tax"]["method"] == "explicit_input_fallback"
+
+
+def test_scenario_uses_historical_working_capital_with_explicit_tax_fallback() -> None:
+    scenario = ForecastService().generate_scenario(
+        scenario_name="Historical WC / Explicit Tax",
+        probability=0.5,
+        historical_revenue=(100.0, 110.0),
+        historical_margin=(0.15, 0.16),
+        historical_capex=(5.0, 5.5),
+        periods=2,
+        historical_working_capital=(10.0, 22.0),
+        tax_rate_assumption=0.23,
+    )
+
+    assert scenario.assumptions.working_capital_pct_revenue == pytest.approx(0.15)
+    assert scenario.assumptions.tax_rate == pytest.approx(0.23)
+    assert scenario.assumptions.metadata["working_capital"]["method"] == (
+        "historical_nwc_to_revenue"
+    )
+    assert scenario.assumptions.metadata["tax"]["method"] == "explicit_input_fallback"
+
+
+def test_scenario_uses_historical_tax_with_explicit_working_capital_fallback() -> None:
+    scenario = ForecastService().generate_scenario(
+        scenario_name="Historical Tax / Explicit WC",
+        probability=0.5,
+        historical_revenue=(100.0, 110.0),
+        historical_margin=(0.15, 0.16),
+        historical_capex=(5.0, 5.5),
+        periods=2,
+        historical_tax_rates=(0.20, 0.24),
+        working_capital_pct_revenue_assumption=0.12,
+    )
+
+    assert scenario.assumptions.tax_rate == pytest.approx(0.22)
+    assert scenario.assumptions.working_capital_pct_revenue == pytest.approx(0.12)
+    assert scenario.assumptions.metadata["working_capital"]["method"] == (
+        "explicit_input_fallback"
+    )
+    assert scenario.assumptions.metadata["tax"]["method"] == "historical_effective_tax_rate"
+
+
+def test_scenario_rejects_missing_working_capital_source_without_legacy_fallback() -> None:
+    with pytest.raises(ValueError, match="historical_nwc or an explicit"):
+        ForecastService().generate_scenario(
+            scenario_name="Missing WC Source",
+            probability=0.5,
+            historical_revenue=(100.0, 110.0),
+            historical_margin=(0.15, 0.16),
+            historical_capex=(5.0, 5.5),
+            periods=2,
+            historical_tax_rates=(0.20, 0.24),
+        )
+
+
+def test_scenario_rejects_missing_tax_source_without_legacy_fallback() -> None:
+    with pytest.raises(ValueError, match="historical tax rates"):
+        ForecastService().generate_scenario(
+            scenario_name="Missing Tax Source",
+            probability=0.5,
+            historical_revenue=(100.0, 110.0),
+            historical_margin=(0.15, 0.16),
+            historical_capex=(5.0, 5.5),
+            periods=2,
+            historical_working_capital=(10.0, 11.0),
+        )
+
+
+def test_scenario_supports_both_explicit_assumption_fallbacks() -> None:
+    scenario = ForecastService().generate_scenario(
+        scenario_name="Explicit Assumptions",
+        probability=0.5,
+        historical_revenue=(100.0, 110.0),
+        historical_margin=(0.15, 0.16),
+        historical_capex=(5.0, 5.5),
+        periods=2,
+        tax_rate_assumption=0.22,
+        working_capital_pct_revenue_assumption=0.13,
+    )
+
+    assert scenario.assumptions.tax_rate == pytest.approx(0.22)
+    assert scenario.assumptions.working_capital_pct_revenue == pytest.approx(0.13)
+    assert scenario.assumptions.metadata["tax"]["fallback_used"] is True
+    assert scenario.assumptions.metadata["working_capital"]["fallback_used"] is True
+
+
+def test_scenario_partial_inputs_do_not_silently_use_legacy_defaults() -> None:
+    with pytest.raises(ValueError, match="historical_nwc or an explicit"):
+        ForecastService().generate_scenario(
+            scenario_name="Partial Inputs",
+            probability=0.5,
+            historical_revenue=(100.0, 110.0),
+            historical_margin=(0.15, 0.16),
+            historical_capex=(5.0, 5.5),
+            periods=2,
+            historical_tax_rates=(0.20, 0.24),
+        )
