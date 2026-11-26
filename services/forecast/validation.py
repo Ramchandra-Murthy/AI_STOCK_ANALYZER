@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import math
 
@@ -8,6 +8,20 @@ from services.forecast.input import ForecastInput
 
 class ForecastValidator:
     """Validates ForecastInput payloads for structural and numerical integrity."""
+
+    @staticmethod
+    def _validate_annual_sequence(years: tuple[int, ...], name: str) -> None:
+        for previous, current in zip(years, years[1:], strict=False):
+            if current <= previous:
+                raise ForecastValidationError(
+                    f"{name} must be strictly increasing and contain no duplicate years; "
+                    f"found {previous}, {current}."
+                )
+            if current != previous + 1:
+                raise ForecastValidationError(
+                    f"{name} must contain consecutive annual periods; "
+                    f"found a gap between {previous} and {current}."
+                )
 
     @staticmethod
     def validate_input(forecast_input: ForecastInput) -> None:
@@ -25,6 +39,7 @@ class ForecastValidator:
 
         if not h_years:
             raise ForecastValidationError("Historical years sequence cannot be empty.")
+        ForecastValidator._validate_annual_sequence(h_years, "historical_years")
 
         n_years = len(h_years)
         series_map = {
@@ -60,6 +75,17 @@ class ForecastValidator:
 
         if not f_years:
             raise ForecastValidationError("Forecast years sequence cannot be empty.")
+        ForecastValidator._validate_annual_sequence(f_years, "forecast_years")
+        if f_years[0] <= h_years[-1]:
+            raise ForecastValidationError(
+                "forecast_years must begin after the final historical year; "
+                f"last historical year is {h_years[-1]} and first forecast year is {f_years[0]}."
+            )
+        if f_years[0] != h_years[-1] + 1:
+            raise ForecastValidationError(
+                "forecast_years must begin in the year immediately following "
+                f"the final historical year ({h_years[-1]})."
+            )
 
         for val in h_rev:
             if val <= 0.0:
