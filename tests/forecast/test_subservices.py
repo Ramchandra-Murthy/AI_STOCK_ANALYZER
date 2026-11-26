@@ -28,6 +28,8 @@ def base_input() -> ForecastInput:
         historical_capex=(5.0, 5.5, 6.0),
         historical_depreciation=(2.0, 2.2, 2.4),
         historical_nwc=(10.0, 11.0, 12.0),
+        historical_pbt=(80.0, 88.0, 96.0),
+        historical_tax=(20.0, 22.0, 24.0),
         method=ForecastMethod.CAGR,
     )
 
@@ -69,11 +71,29 @@ def test_working_capital_ratio_uses_matching_historical_periods() -> None:
     assert result.delta_nwc == pytest.approx([1.0, 1.0, 1.0])
 
 
-def test_tax_forecast_engine(base_input: ForecastInput) -> None:
-    tax_engine = TaxForecastEngine()
-    res = tax_engine.forecast_tax(base_input)
-    assert res is not None
-    assert len(res.projected) == base_input.forecast_years
+def test_tax_forecast_engine_returns_rates_not_tax_expense(base_input: ForecastInput) -> None:
+    result = TaxForecastEngine().forecast_tax(base_input, projected_ebit=(100.0, 120.0))
+    assert result.projected == pytest.approx((0.25, 0.25))
+    assert result.historical == pytest.approx((0.25, 0.25, 0.25))
+
+
+def test_tax_forecast_requires_assumption_without_valid_history() -> None:
+    inp = ForecastInput(
+        symbol="NO-TAX-HISTORY", historical_revenues=(100.0, 110.0),
+        historical_pbt=(0.0, -10.0), historical_tax=(0.0, 2.0), forecast_years=2,
+    )
+    with pytest.raises(ForecastConfigurationError, match="tax_rate_assumption"):
+        TaxForecastEngine().forecast_tax(inp)
+
+
+def test_tax_forecast_uses_explicit_assumption_without_valid_history() -> None:
+    inp = ForecastInput(
+        symbol="ASSUMED-TAX", historical_revenues=(100.0, 110.0),
+        historical_pbt=(0.0, -10.0), historical_tax=(0.0, 2.0),
+        forecast_years=2, tax_rate_assumption=0.22,
+    )
+    result = TaxForecastEngine().forecast_tax(inp)
+    assert result.projected == pytest.approx((0.22, 0.22))
 
 
 def test_legacy_revenue_engine_dispatches_supported_algorithms(base_input: ForecastInput) -> None:
