@@ -76,7 +76,6 @@ def test_forecast_service_scenario() -> None:
     assert scenario == reconstructed
 
 
-
 def test_forecast_service_selects_linear_regression() -> None:
     service = ForecastService()
     forecast = service.generate_revenue_forecast(
