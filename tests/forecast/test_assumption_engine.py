@@ -98,9 +98,7 @@ def test_canonical_derivation_requires_explicit_tax_fallback() -> None:
 
 
 def test_canonical_derivation_preserves_negative_working_capital() -> None:
-    data = _historical_input(
-        historical_nwc=(-10.0, -11.0, -12.1, -13.31, -14.641, -16.1051)
-    )
+    data = _historical_input(historical_nwc=(-10.0, -11.0, -12.1, -13.31, -14.641, -16.1051))
 
     assumption = AssumptionEngine.derive_from_financials(data)
 
@@ -108,9 +106,7 @@ def test_canonical_derivation_preserves_negative_working_capital() -> None:
 
 
 def test_canonical_derivation_skips_zero_revenue_and_records_periods() -> None:
-    data = _historical_input(
-        historical_revenue=(100.0, 0.0, 121.0, 133.1, 146.41, 161.051)
-    )
+    data = _historical_input(historical_revenue=(100.0, 0.0, 121.0, 133.1, 146.41, 161.051))
 
     assumption = AssumptionEngine.derive_from_financials(data)
 
@@ -171,7 +167,9 @@ def test_hybrid_validation_warns_on_configured_range_and_peer_percentile() -> No
 
     assumption = AssumptionEngine.derive_from_financials(data, config)
 
-    assert any("configured warning threshold" in warning for warning in assumption.metadata["warnings"])
+    assert any(
+        "configured warning threshold" in warning for warning in assumption.metadata["warnings"]
+    )
     assert any("95th percentile" in warning for warning in assumption.metadata["warnings"])
     assert assumption.metadata["peer_validation"]["capex_pct_revenue"]["sample_size"] == 10
 
