@@ -1,4 +1,4 @@
-﻿from services.financials.normalization import normalize_financial_statements
+from services.financials.normalization import normalize_financial_statements
 from services.financials.repository import FinancialStatementRepository
 
 repo = FinancialStatementRepository()
@@ -15,23 +15,27 @@ fs = normalize_financial_statements(
         "shareholdersEquity": 400000.0,
     },
     cashflow_raw={"operatingCashFlow": 45000.0},
+    )
+fs.metadata.update(
+    {
+        "period_type": "FY",
+        "source_type": "manual_demo",
+    }
 )
 
-print("=== REPOSITORY PATTERN VERIFICATION ===")
+print("=== SQLITE REPOSITORY VERIFICATION ===")
 
-# Save
-repo.save(fs)
-print(f"✓ Saved: {fs.company_name} ({fs.fiscal_year})")
+record_id = repo.save(fs)
+print(f"Saved record: {record_id} | {fs.company_name} ({fs.fiscal_year})")
 
-# Exists & Load
-if repo.exists("State Bank of India", "FY2026"):
-    loaded = repo.load("State Bank of India", "FY2026")
-    print(f"✓ Loaded: {loaded.company_name} | Assets: ₹{loaded.balance_sheet.total_assets:,.2f} Cr")
+loaded = repo.get("State Bank of India", "FY2026")
+print(
+    f"Loaded: {loaded.company_name} | "
+    f"Assets: ₹{loaded.balance_sheet.total_assets:,.2f}"
+)
 
-# List Companies
-keys = repo.list_companies()
-print(f"✓ Active Repository Keys: {keys}")
+versions = repo.list_versions("State Bank of India", "FY2026")
+print(f"Preserved versions: {[item['version'] for item in versions]}")
 
-# Delete
-deleted = repo.delete("State Bank of India", "FY2026")
-print(f"✓ Deleted: {deleted} | Remaining Keys: {repo.list_companies()}")
+latest_statements = repo.list(ticker="SBIN.NS")
+print(f"Latest statement packages for SBIN.NS: {len(latest_statements)}")
