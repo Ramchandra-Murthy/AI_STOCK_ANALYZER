@@ -4,10 +4,11 @@ import hashlib
 import json
 import os
 import sqlite3
+from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 from core.exceptions import RepositoryError
 from services.financials.balance_sheet import BalanceSheet
@@ -46,8 +47,17 @@ class FinancialStatementRepository:
         connection.execute("PRAGMA busy_timeout = 30000")
         return connection
 
+    @contextmanager
+    def _connection(self) -> Iterator[sqlite3.Connection]:
+        connection = self._connect()
+        try:
+            with connection:
+                yield connection
+        finally:
+            connection.close()
+
     def _initialize(self) -> None:
-        with self._connect() as connection:
+        with self._connection() as connection:
             connection.execute(
                 """
                 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -174,7 +184,7 @@ class FinancialStatementRepository:
         company_key = fs.company_name.casefold().strip()
 
         try:
-            with self._connect() as connection:
+            with self._connection() as connection:
                 row = connection.execute(
                     """
                     SELECT COALESCE(MAX(version), 0) AS current_version
