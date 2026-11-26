@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+from __future__ import annotations
+
+from dataclasses import replace
 
 import pytest
 
@@ -23,37 +25,59 @@ def valid_forecast_input() -> ForecastInput:
 
 
 def test_validator_passes_valid_input(valid_forecast_input: ForecastInput) -> None:
-    # Should not raise any exception
     ForecastValidator.validate_input(valid_forecast_input)
 
 
 def test_validator_fails_empty_ticker(valid_forecast_input: ForecastInput) -> None:
-    bad_input = ForecastInput(
-        ticker="",
-        historical_years=valid_forecast_input.historical_years,
-        historical_revenue=valid_forecast_input.historical_revenue,
-        historical_margins=valid_forecast_input.historical_margins,
-        historical_capex=valid_forecast_input.historical_capex,
-        historical_depreciation=valid_forecast_input.historical_depreciation,
-        historical_working_capital=valid_forecast_input.historical_working_capital,
-        historical_taxes=valid_forecast_input.historical_taxes,
-        forecast_years=valid_forecast_input.forecast_years,
-    )
+    bad_input = replace(valid_forecast_input, ticker="")
     with pytest.raises(ForecastValidationError):
         ForecastValidator.validate_input(bad_input)
 
 
 def test_validator_fails_length_mismatch(valid_forecast_input: ForecastInput) -> None:
-    bad_input = ForecastInput(
-        ticker=valid_forecast_input.ticker,
-        historical_years=valid_forecast_input.historical_years,
-        historical_revenue=(100.0, 110.0),  # Mismatch: 2 items for 3 years
-        historical_margins=valid_forecast_input.historical_margins,
-        historical_capex=valid_forecast_input.historical_capex,
-        historical_depreciation=valid_forecast_input.historical_depreciation,
-        historical_working_capital=valid_forecast_input.historical_working_capital,
-        historical_taxes=valid_forecast_input.historical_taxes,
-        forecast_years=valid_forecast_input.forecast_years,
-    )
-    with pytest.raises(ForecastValidationError):
+    bad_input = replace(valid_forecast_input, historical_revenue=(100.0, 110.0))
+    with pytest.raises(ForecastValidationError, match="historical_revenue length"):
+        ForecastValidator.validate_input(bad_input)
+
+
+@pytest.mark.parametrize("years", [(2023, 2023, 2024), (2024, 2023, 2025)])
+def test_validator_rejects_duplicate_or_unordered_historical_years(
+    valid_forecast_input: ForecastInput, years: tuple[int, ...]
+) -> None:
+    bad_input = replace(valid_forecast_input, historical_years=years)
+    with pytest.raises(ForecastValidationError, match="historical_years"):
+        ForecastValidator.validate_input(bad_input)
+
+
+def test_validator_rejects_gaps_in_historical_years(
+    valid_forecast_input: ForecastInput,
+) -> None:
+    bad_input = replace(valid_forecast_input, historical_years=(2022, 2024, 2025))
+    with pytest.raises(ForecastValidationError, match="consecutive annual"):
+        ForecastValidator.validate_input(bad_input)
+
+
+@pytest.mark.parametrize("years", [(2026, 2026), (2027, 2026)])
+def test_validator_rejects_duplicate_or_unordered_forecast_years(
+    valid_forecast_input: ForecastInput, years: tuple[int, ...]
+) -> None:
+    bad_input = replace(valid_forecast_input, forecast_years=years)
+    with pytest.raises(ForecastValidationError, match="forecast_years"):
+        ForecastValidator.validate_input(bad_input)
+
+
+def test_validator_rejects_gaps_in_forecast_years(
+    valid_forecast_input: ForecastInput,
+) -> None:
+    bad_input = replace(valid_forecast_input, forecast_years=(2026, 2028))
+    with pytest.raises(ForecastValidationError, match="consecutive annual"):
+        ForecastValidator.validate_input(bad_input)
+
+
+@pytest.mark.parametrize("years", [(2025, 2026), (2027, 2028)])
+def test_validator_requires_forecast_to_start_immediately_after_history(
+    valid_forecast_input: ForecastInput, years: tuple[int, ...]
+) -> None:
+    bad_input = replace(valid_forecast_input, forecast_years=years)
+    with pytest.raises(ForecastValidationError, match="forecast_years must"):
         ForecastValidator.validate_input(bad_input)
