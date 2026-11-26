@@ -62,9 +62,7 @@ class WorkingCapitalForecastEngine:
             avg_ratio = 0.10
 
         projected = (
-            [round(revenue * avg_ratio, 4) for revenue in revs]
-            if revs
-            else [15.0] * forecast_years
+            [round(revenue * avg_ratio, 4) for revenue in revs] if revs else [15.0] * forecast_years
         )
 
         # Calculate year-over-year Change in NWC from the last historical level.
