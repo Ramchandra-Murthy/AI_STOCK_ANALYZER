@@ -124,10 +124,14 @@ class AssumptionEngine:
         ):
             if len(values) != len(revenue):
                 raise ValueError(f"{name} must match historical_revenue length")
-        if bool(pbt) != bool(tax) or (pbt and len(pbt) != len(revenue)) or (
-            tax and len(tax) != len(revenue)
+        if (
+            bool(pbt) != bool(tax)
+            or (pbt and len(pbt) != len(revenue))
+            or (tax and len(tax) != len(revenue))
         ):
-            raise ValueError("historical_pbt and historical_tax must both be empty or match revenue")
+            raise ValueError(
+                "historical_pbt and historical_tax must both be empty or match revenue"
+            )
 
         years = (
             tuple(int(year) for year in data.historical_years)
@@ -150,15 +154,13 @@ class AssumptionEngine:
         elapsed_years = years[last_index] - years[first_index]
         if elapsed_years <= 0:
             raise ValueError("revenue CAGR requires a positive historical time interval")
-        revenue_growth = (revenue[last_index] / revenue[first_index]) ** (
-            1.0 / elapsed_years
-        ) - 1.0
+        revenue_growth = (revenue[last_index] / revenue[first_index]) ** (1.0 / elapsed_years) - 1.0
         if not isfinite(revenue_growth) or revenue_growth <= -1.0:
             raise ValueError("derived revenue growth must be finite and greater than -100%")
 
-        valid_margin_indices = [
-            index for index, value in enumerate(margins) if isfinite(value)
-        ][-cfg.lookback_periods :]
+        valid_margin_indices = [index for index, value in enumerate(margins) if isfinite(value)][
+            -cfg.lookback_periods :
+        ]
         if not valid_margin_indices:
             raise ValueError("at least one finite historical margin is required")
         ebitda_margin = margins[valid_margin_indices[-1]]
@@ -232,7 +234,9 @@ class AssumptionEngine:
             if guidance.revenue_cagr_override is not None:
                 override = float(guidance.revenue_cagr_override)
                 if not isfinite(override) or override <= -1.0:
-                    raise ValueError("revenue growth override must be finite and greater than -100%")
+                    raise ValueError(
+                        "revenue growth override must be finite and greater than -100%"
+                    )
                 values["revenue_growth_rate"] = override
             if guidance.target_ebit_margin_override is not None:
                 override = float(guidance.target_ebit_margin_override)
