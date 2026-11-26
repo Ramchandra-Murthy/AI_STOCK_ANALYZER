@@ -197,9 +197,7 @@ class ForecastService:
                     historical_nwc=historical_working_capital,
                     historical_tax_rates=historical_tax_rates,
                     explicit_tax_rate_fallback=tax_rate_assumption,
-                    working_capital_pct_revenue_fallback=(
-                        working_capital_pct_revenue_assumption
-                    ),
+                    working_capital_pct_revenue_fallback=(working_capital_pct_revenue_assumption),
                 )
             )
             tax_history = historical_tax_rates
