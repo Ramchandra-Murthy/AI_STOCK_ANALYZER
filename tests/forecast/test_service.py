@@ -61,6 +61,8 @@ def test_forecast_service_scenario() -> None:
         historical_capex=(50.0, 55.0),
         periods=3,
         method=ForecastMethod.CAGR,
+        historical_working_capital=(100.0, 110.0),
+        historical_tax_rates=(0.24, 0.25),
     )
 
     assert scenario.scenario_name == "Base Case"
@@ -70,6 +72,11 @@ def test_forecast_service_scenario() -> None:
     assert scenario.capex_forecast is not None
     assert scenario.tax_forecast is not None
     assert scenario.terminal_growth is not None
+    assert scenario.taxes.projected == pytest.approx((0.245, 0.245, 0.245))
+    assert scenario.working_capital.projected == pytest.approx(
+        tuple(value * 0.1 for value in scenario.revenue.projected)
+    )
+    assert scenario.assumptions.metadata["engine_version"] == "f10a-1"
 
     # Test round-trip dictionary serialization on the full scenario
     serialized = scenario.to_dict()
@@ -130,5 +137,5 @@ def test_execute_exposes_revenue_times_margin_as_ebit() -> None:
     assert result.package.ebit.values == pytest.approx(expected_ebit)
     assert result.ebit_forecast == pytest.approx(expected_ebit)
     assert result.package.tax_rate.values == (0.25, 0.25)
-    assert result.package.working_capital.values == pytest.approx((12.1, 13.31))
+    assert result.package.working_capital.values == pytest.approx((13.2733333333, 14.6006666667))
     assert result.metadata["assumption_engine"]["engine_version"] == "f10a-1"
