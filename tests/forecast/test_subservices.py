@@ -53,6 +53,22 @@ def test_working_capital_delta_calculation(base_input: ForecastInput):
     assert len(res.projected_nwc) == 2
 
 
+def test_working_capital_ratio_uses_matching_historical_periods() -> None:
+    inp = ForecastInput(
+        symbol="TCS.NS",
+        historical_revenues=(100.0, 110.0, 120.0),
+        historical_nwc=(10.0, 11.0, 12.0),
+        forecast_years=3,
+    )
+
+    result = WorkingCapitalForecastEngine().forecast_working_capital(
+        inp, projected_revenues=(130.0, 140.0, 150.0)
+    )
+
+    assert result.projected_nwc == pytest.approx([13.0, 14.0, 15.0])
+    assert result.delta_nwc == pytest.approx([1.0, 1.0, 1.0])
+
+
 def test_tax_forecast_engine(base_input: ForecastInput) -> None:
     tax_engine = TaxForecastEngine()
     res = tax_engine.forecast_tax(base_input)
