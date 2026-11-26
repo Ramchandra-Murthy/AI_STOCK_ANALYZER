@@ -46,7 +46,7 @@ class TaxForecastEngine:
         return TaxForecast(
             historical=(),
             projected=projected,
-            method=method or inp.method or ForecastMethod.MANUAL,
+            method=method or ForecastMethod.MANUAL,
             confidence=ConfidenceLevel.HIGH,
         )
 
