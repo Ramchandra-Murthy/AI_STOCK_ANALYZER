@@ -151,8 +151,11 @@ def test_execute_exposes_revenue_times_margin_as_ebit() -> None:
     assert result.package.ebit.values == pytest.approx(expected_ebit)
     assert result.ebit_forecast == pytest.approx(expected_ebit)
     assert result.package.tax_rate.values == (0.25, 0.25)
-    assert result.package.working_capital.values == pytest.approx((13.2733333333, 14.6006666667))
+    assert result.package.working_capital.values == pytest.approx(
+        (13.2733333333, 14.6006666667)
+    )
     assert result.metadata["assumption_engine"]["engine_version"] == "f10a-1"
+
 
 def test_execute_uses_explicit_tax_rate_fallback_when_history_is_missing() -> None:
     forecast_input = ForecastInput(
