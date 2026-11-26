@@ -1,11 +1,15 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
+import logging
 import time
 
 from services.forecast.algorithms.base import BaseForecastAlgorithm
 from services.forecast.algorithms.cagr import CAGRForecastEngine
 from services.forecast.algorithms.linear_regression import LinearRegressionForecastEngine
-from services.forecast.assumption_engine import AssumptionEngine
+from services.forecast.assumption_engine import (
+    AssumptionDerivationInput,
+    AssumptionEngine,
+)
 from services.forecast.exceptions import ForecastConfigurationError, ForecastError
 from services.forecast.input import ForecastInput
 from services.forecast.models import (
@@ -26,6 +30,8 @@ from services.forecast.models import (
 from services.forecast.result import ForecastResult
 from services.forecast.validation import ForecastValidator
 
+logger = logging.getLogger(__name__)
+
 
 class ForecastService:
     def __init__(self, algorithm: BaseForecastAlgorithm | None = None) -> None:
@@ -40,8 +46,21 @@ class ForecastService:
             margins = self.algorithm.calculate_margins(forecast_input)
             capex = self.algorithm.calculate_capex(forecast_input)
             depreciation = self.algorithm.calculate_depreciation(forecast_input)
-            working_capital = self.algorithm.calculate_working_capital(forecast_input)
-            taxes = self.algorithm.calculate_taxes(forecast_input)
+            derived_assumptions = AssumptionEngine.derive_from_financials(
+                AssumptionDerivationInput(
+                    historical_revenue=forecast_input.historical_revenue,
+                    historical_margins=forecast_input.historical_margins,
+                    historical_capex=forecast_input.historical_capex,
+                    historical_nwc=forecast_input.historical_working_capital,
+                    historical_tax_rates=forecast_input.historical_taxes,
+                    explicit_tax_rate_fallback=forecast_input.tax_rate_assumption,
+                    historical_years=forecast_input.historical_years,
+                )
+            )
+            working_capital = tuple(
+                revenue * derived_assumptions.working_capital_pct_revenue for revenue in revenues
+            )
+            taxes = tuple(derived_assumptions.tax_rate for _ in forecast_input.forecast_years)
             ebit = tuple(r * m for r, m in zip(revenues, margins, strict=False))
             package = ForecastPackage(
                 ticker=forecast_input.ticker,
@@ -58,9 +77,12 @@ class ForecastService:
                 package=package,
                 execution_time_ms=round(elapsed_ms, 3),
                 status="SUCCESS",
-                metadata={"algorithm": self.algorithm.__class__.__name__},
+                metadata={
+                    "algorithm": self.algorithm.__class__.__name__,
+                    "assumption_engine": derived_assumptions.metadata,
+                },
             )
-        except ForecastError as e:
+        except (ForecastError, ValueError) as e:
             elapsed_ms = (time.perf_counter() - start_time) * 1000.0
             empty_item = ForecastLineItem("", ())
             pkg = ForecastPackage(
@@ -127,6 +149,10 @@ class ForecastService:
         historical_capex: tuple[float, ...],
         periods: int,
         method: ForecastMethod = ForecastMethod.CAGR,
+        *,
+        historical_working_capital: tuple[float, ...] = (),
+        historical_tax_rates: tuple[float, ...] = (),
+        tax_rate_assumption: float | None = None,
     ) -> ForecastScenario:
         confidence = ConfidenceLevel.MEDIUM
         revenue = self.generate_revenue_forecast(historical_revenue, periods, method, confidence)
@@ -141,12 +167,43 @@ class ForecastService:
             method=method,
             confidence=confidence,
         )
-        tax_projected = tuple(0.25 for _ in range(periods))
+        if (
+            not historical_working_capital
+            and not historical_tax_rates
+            and tax_rate_assumption is None
+        ):
+            # Preserve the pre-F-10A scenario API during migration. New callers
+            # should provide the missing financial observations/configuration.
+            logger.warning(
+                "generate_scenario is using legacy assumption defaults; "
+                "supply historical_working_capital and historical_tax_rates "
+                "or tax_rate_assumption to use F-10A derivation"
+            )
+            assumptions = AssumptionEngine.derive_assumptions(
+                historical_revenue, historical_margin, historical_capex, method
+            )
+            tax_history: tuple[float, ...] = ()
+        else:
+            assumptions = AssumptionEngine.derive_from_financials(
+                AssumptionDerivationInput(
+                    historical_revenue=historical_revenue,
+                    historical_margins=historical_margin,
+                    historical_capex=historical_capex,
+                    historical_nwc=historical_working_capital,
+                    historical_tax_rates=historical_tax_rates,
+                    explicit_tax_rate_fallback=tax_rate_assumption,
+                )
+            )
+            tax_history = historical_tax_rates
+        tax_projected = tuple(assumptions.tax_rate for _ in range(periods))
         taxes = TaxForecast(
-            historical=(), projected=tax_projected, method=method, confidence=confidence
+            historical=tax_history,
+            projected=tax_projected,
+            method=method,
+            confidence=confidence,
         )
-        assumptions = AssumptionEngine.derive_assumptions(
-            historical_revenue, historical_margin, historical_capex, method
+        projected_working_capital = tuple(
+            value * assumptions.working_capital_pct_revenue for value in revenue.projected
         )
         return ForecastScenario(
             scenario_name=scenario_name,
@@ -162,7 +219,10 @@ class ForecastService:
             capex=capex,
             depreciation=DepreciationForecast(projected=(), method=method, confidence=confidence),
             working_capital=WorkingCapitalForecast(
-                projected=(), method=method, confidence=confidence
+                historical=historical_working_capital,
+                projected=projected_working_capital,
+                method=method,
+                confidence=confidence,
             ),
             taxes=taxes,
             terminal_growth=TerminalGrowthForecast(0.03, ConfidenceLevel.HIGH),

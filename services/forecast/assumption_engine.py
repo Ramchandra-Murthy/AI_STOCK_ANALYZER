@@ -62,6 +62,9 @@ class AssumptionDerivationInput:
     management_guidance: ManagementGuidance | None = None
     sector: str | None = None
     sector_peer_values: Mapping[str, tuple[float, ...]] = field(default_factory=dict)
+    # Appended to preserve positional construction of the pre-F-10A input contract.
+    historical_tax_rates: tuple[float, ...] = ()
+    explicit_tax_rate_fallback: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -105,7 +108,8 @@ class AssumptionEngine:
         The five-year default is a maximum lookback, not a requirement that the
         last five calendar years all be present. Invalid observations are skipped
         and recorded in metadata. Historical tax is preferred; an explicit
-        statutory fallback is required when no valid historical ETR exists.
+        explicit tax-rate inputs or a configured statutory fallback are required
+        when no valid historical ETR exists.
         """
         cfg = config or AssumptionValidationConfig()
         revenue = tuple(float(value) for value in data.historical_revenue)
@@ -114,6 +118,7 @@ class AssumptionEngine:
         nwc = tuple(float(value) for value in data.historical_nwc)
         pbt = tuple(float(value) for value in data.historical_pbt)
         tax = tuple(float(value) for value in data.historical_tax)
+        tax_rates = tuple(float(value) for value in data.historical_tax_rates)
 
         if len(revenue) < 2:
             raise ValueError("historical_revenue must contain at least two observations")
@@ -132,6 +137,15 @@ class AssumptionEngine:
             raise ValueError(
                 "historical_pbt and historical_tax must both be empty or match revenue"
             )
+        if tax_rates and len(tax_rates) != len(revenue):
+            raise ValueError("historical_tax_rates must match historical_revenue length")
+        if any(not isfinite(value) or not 0.0 <= value <= 1.0 for value in tax_rates):
+            raise ValueError("historical_tax_rates must be finite and between 0 and 1")
+        if data.explicit_tax_rate_fallback is not None and (
+            not isfinite(float(data.explicit_tax_rate_fallback))
+            or not 0.0 <= float(data.explicit_tax_rate_fallback) <= 1.0
+        ):
+            raise ValueError("explicit_tax_rate_fallback must be finite and between 0 and 1")
 
         years = (
             tuple(int(year) for year in data.historical_years)
@@ -188,13 +202,34 @@ class AssumptionEngine:
             for index in range(len(pbt))
             if isfinite(pbt[index]) and pbt[index] > 0.0 and isfinite(tax[index])
         ][-cfg.lookback_periods :]
-        if valid_tax_indices:
-            tax_rates = [tax[index] / pbt[index] for index in valid_tax_indices]
-            tax_rate = sum(tax_rates) / len(tax_rates)
+        if tax_rates:
+            selected_tax_rates = [
+                value for value in tax_rates[-cfg.lookback_periods :] if isfinite(value)
+            ]
+            if not selected_tax_rates:
+                raise ValueError("at least one finite historical tax-rate observation is required")
+            tax_rate = sum(selected_tax_rates) / len(selected_tax_rates)
             tax_metadata: dict[str, Any] = {
+                "method": "historical_effective_tax_rate",
+                "periods_used": list(years[-len(selected_tax_rates) :]),
+                "fallback_used": False,
+                "input_contract": "historical_tax_rates",
+            }
+        elif valid_tax_indices:
+            tax_rates_from_financials = [tax[index] / pbt[index] for index in valid_tax_indices]
+            tax_rate = sum(tax_rates_from_financials) / len(tax_rates_from_financials)
+            tax_metadata = {
                 "method": "historical_effective_tax_rate",
                 "periods_used": [years[index] for index in valid_tax_indices],
                 "fallback_used": False,
+                "input_contract": "historical_tax_expense_over_pbt",
+            }
+        elif data.explicit_tax_rate_fallback is not None:
+            tax_rate = float(data.explicit_tax_rate_fallback)
+            tax_metadata = {
+                "method": "explicit_input_fallback",
+                "fallback_used": True,
+                "source": "ForecastInput.tax_rate_assumption",
             }
         elif data.statutory_tax_fallback is not None:
             fallback = data.statutory_tax_fallback
@@ -210,8 +245,8 @@ class AssumptionEngine:
             }
         else:
             raise ValueError(
-                "a configured statutory_tax_fallback is required when valid historical "
-                "effective tax data is unavailable"
+                "historical tax rates, an explicit tax_rate_assumption, or a configured "
+                "statutory_tax_fallback is required"
             )
 
         values = {
@@ -324,8 +359,8 @@ class AssumptionEngine:
 
         New F-10 callers should use derive_from_financials so tax and working
         capital are based on supplied historical data and explicit tax fallback
-        configuration. This adapter is retained until the separately approved
-        service-integration workstream is completed.
+        configuration. This adapter remains only for callers that still depend
+        on the pre-F-10A compatibility contract.
         """
         logger.warning(
             "Legacy derive_assumptions uses compatibility defaults; migrate to "
