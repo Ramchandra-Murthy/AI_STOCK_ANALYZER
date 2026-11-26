@@ -82,7 +82,7 @@ class ForecastService:
                     "assumption_engine": derived_assumptions.metadata,
                 },
             )
-        except ForecastError as e:
+        except (ForecastError, ValueError) as e:
             elapsed_ms = (time.perf_counter() - start_time) * 1000.0
             empty_item = ForecastLineItem("", ())
             pkg = ForecastPackage(
