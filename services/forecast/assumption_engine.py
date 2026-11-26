@@ -137,9 +137,7 @@ class AssumptionEngine:
             raise ValueError(
                 "historical_nwc or an explicit working_capital_pct_revenue_assumption is required"
             )
-        if working_capital_fallback is not None and not isfinite(
-            float(working_capital_fallback)
-        ):
+        if working_capital_fallback is not None and not isfinite(float(working_capital_fallback)):
             raise ValueError("working_capital_pct_revenue_assumption must be finite")
         if (
             bool(pbt) != bool(tax)
