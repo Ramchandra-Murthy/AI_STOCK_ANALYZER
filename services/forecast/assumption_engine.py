@@ -221,7 +221,7 @@ class AssumptionEngine:
                 "method": "explicit_input_fallback",
                 "observations_used": 0,
                 "fallback_used": True,
-                "source": "ForecastService.generate_scenario.working_capital_pct_revenue_assumption",
+                "source": "generate_scenario.working_capital_pct_revenue_assumption",
             }
 
         valid_tax_indices = [
