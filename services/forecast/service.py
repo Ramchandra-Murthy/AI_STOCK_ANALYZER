@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import time
 
 from services.forecast.algorithms.base import BaseForecastAlgorithm
@@ -28,6 +29,8 @@ from services.forecast.models import (
 )
 from services.forecast.result import ForecastResult
 from services.forecast.validation import ForecastValidator
+
+logger = logging.getLogger(__name__)
 
 
 class ForecastService:
@@ -167,19 +170,33 @@ class ForecastService:
             method=method,
             confidence=confidence,
         )
-        assumptions = AssumptionEngine.derive_from_financials(
-            AssumptionDerivationInput(
-                historical_revenue=historical_revenue,
-                historical_margins=historical_margin,
-                historical_capex=historical_capex,
-                historical_nwc=historical_working_capital,
-                historical_tax_rates=historical_tax_rates,
-                explicit_tax_rate_fallback=tax_rate_assumption,
+        if not historical_working_capital and not historical_tax_rates and tax_rate_assumption is None:
+            # Preserve the pre-F-10A scenario API during migration. New callers
+            # should provide the missing financial observations/configuration.
+            logger.warning(
+                "generate_scenario is using legacy assumption defaults; "
+                "supply historical_working_capital and historical_tax_rates "
+                "or tax_rate_assumption to use F-10A derivation"
             )
-        )
+            assumptions = AssumptionEngine.derive_assumptions(
+                historical_revenue, historical_margin, historical_capex, method
+            )
+            tax_history: tuple[float, ...] = ()
+        else:
+            assumptions = AssumptionEngine.derive_from_financials(
+                AssumptionDerivationInput(
+                    historical_revenue=historical_revenue,
+                    historical_margins=historical_margin,
+                    historical_capex=historical_capex,
+                    historical_nwc=historical_working_capital,
+                    historical_tax_rates=historical_tax_rates,
+                    explicit_tax_rate_fallback=tax_rate_assumption,
+                )
+            )
+            tax_history = historical_tax_rates
         tax_projected = tuple(assumptions.tax_rate for _ in range(periods))
         taxes = TaxForecast(
-            historical=historical_tax_rates,
+            historical=tax_history,
             projected=tax_projected,
             method=method,
             confidence=confidence,
