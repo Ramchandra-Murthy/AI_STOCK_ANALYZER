@@ -9,7 +9,7 @@ def run_example() -> None:
     print("Initializing Forecast Domain Layer Example...")
 
     rev = ForecastLineItem("Revenue", (1000.0, 1150.0, 1322.5))
-    ni = ForecastLineItem("Net Income", (150.0, 180.0, 210.0))
+    ebit = ForecastLineItem("EBIT", (150.0, 180.0, 210.0))
     capex = ForecastLineItem("Capex", (50.0, 55.0, 60.0))
     dep = ForecastLineItem("Depreciation", (20.0, 22.0, 24.0))
     wc = ForecastLineItem("Working Capital", (200.0, 220.0, 240.0))
@@ -19,7 +19,7 @@ def run_example() -> None:
         ticker="TCS",
         years=(2026, 2027, 2028),
         revenue=rev,
-        net_income=ni,
+        ebit=ebit,
         capex=capex,
         depreciation=dep,
         working_capital=wc,
