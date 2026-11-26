@@ -33,8 +33,21 @@ class ForecastValidator:
             "historical_capex": h_capex,
             "historical_depreciation": h_dep,
             "historical_working_capital": h_wc,
-            "historical_taxes": h_tax,
         }
+        if h_tax:
+            if len(h_tax) != n_years:
+                raise ForecastValidationError(
+                    f"Length mismatch: historical_taxes length ({len(h_tax)}) "
+                    f"must match historical_years length ({n_years})."
+                )
+        elif forecast_input.tax_rate_assumption is None:
+            from services.forecast.exceptions import ForecastConfigurationError
+
+            raise ForecastConfigurationError(
+                "A tax_rate_assumption is required when historical tax rates are unavailable."
+            )
+        elif not 0.0 <= forecast_input.tax_rate_assumption <= 1.0:
+            raise ForecastValidationError("tax_rate_assumption must be between 0 and 1.")
 
         for name, series in series_map.items():
             if len(series) != n_years:
@@ -56,10 +69,7 @@ class ForecastValidator:
                     f"Historical revenue must be strictly positive, found: {val}"
                 )
 
-        for name, series in [
-            ("historical_margins", h_margins),
-            ("historical_taxes", h_tax),
-        ]:
+        for name, series in [("historical_margins", h_margins), ("historical_taxes", h_tax)]:
             for val in series:
                 if not (0.0 <= val <= 1.0):
                     raise ForecastValidationError(
