@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from services.forecast.exceptions import ForecastValidationError
 from services.forecast.forecast_models import (
     CapexForecast,
     DepreciationForecast,
@@ -163,27 +164,39 @@ class ForecastResult:
 
     @property
     def yearly_forecasts(self) -> tuple[YearlyFinancialForecast, ...]:
-        """Returns annual structured financial objects across the forecast horizon."""
-        revs = tuple(self.revenue.projected)
-        margins = tuple(self.margin.projected)
-        ebits = self.projected_ebit
-        capexs = tuple(self.capex.projected)
-        deps = tuple(self.depreciation.projected)
-        nwcs = tuple(self.working_capital.delta)
-        taxes = tuple(self.tax.projected)
+        """Returns annual structured financial objects using the source forecast years."""
+        series = {
+            "revenue": self.revenue,
+            "margin": self.margin,
+            "capex": self.capex,
+            "depreciation": self.depreciation,
+            "working_capital": self.working_capital,
+            "tax": self.tax,
+        }
+        forecast_years = tuple(self.revenue.years)
+        for name, forecast in series.items():
+            if tuple(forecast.years) != forecast_years:
+                raise ForecastValidationError(
+                    f"{name} forecast years must match revenue forecast years."
+                )
+            if len(forecast.projected) != len(forecast_years):
+                raise ForecastValidationError(
+                    f"{name} forecast values must match the forecast-year sequence."
+                )
 
+        ebits = self.projected_ebit
         yearly = []
-        for year_idx in range(len(revs)):
+        for index, year in enumerate(forecast_years):
             yearly.append(
                 YearlyFinancialForecast(
-                    year=year_idx + 1,
-                    revenue=revs[year_idx],
-                    margin=margins[year_idx] if year_idx < len(margins) else 0.0,
-                    ebit=ebits[year_idx] if year_idx < len(ebits) else 0.0,
-                    capex=capexs[year_idx] if year_idx < len(capexs) else 0.0,
-                    depreciation=deps[year_idx] if year_idx < len(deps) else 0.0,
-                    working_capital=nwcs[year_idx] if year_idx < len(nwcs) else 0.0,
-                    tax=taxes[year_idx] if year_idx < len(taxes) else 0.0,
+                    year=year,
+                    revenue=self.revenue.projected[index],
+                    margin=self.margin.projected[index],
+                    ebit=ebits[index],
+                    capex=self.capex.projected[index],
+                    depreciation=self.depreciation.projected[index],
+                    working_capital=self.working_capital.delta[index],
+                    tax=self.tax.projected[index],
                 )
             )
         return tuple(yearly)
