@@ -13,12 +13,12 @@ from __future__ import annotations
 from typing import Any
 
 from core.logger import logger
-from services.forecast.algorithms.cagr import CAGRAlgorithm
-from services.forecast.algorithms.linear_regression import LinearRegressionAlgorithm
-from services.forecast.algorithms.rolling_average import RollingAverageAlgorithm
+from services.forecast.algorithms.cagr import CAGRForecastEngine
+from services.forecast.algorithms.linear_regression import LinearRegressionForecastEngine
+from services.forecast.algorithms.rolling_average import RollingAverageForecastEngine
+from services.forecast.exceptions import ForecastConfigurationError
 from services.forecast.forecast_input import ForecastInput
 from services.forecast.forecast_models import (
-    AlgorithmInput,
     ConfidenceLevel,
     ForecastMethod,
     RevenueForecast,
@@ -29,9 +29,9 @@ class RevenueForecastEngine:
     """Subservice orchestrator for top-line revenue projections."""
 
     def __init__(self) -> None:
-        self._cagr_algo = CAGRAlgorithm()
-        self._rolling_avg_algo = RollingAverageAlgorithm()
-        self._linear_regression_algo = LinearRegressionAlgorithm()
+        self._cagr_algo = CAGRForecastEngine()
+        self._rolling_avg_algo = RollingAverageForecastEngine()
+        self._linear_regression_algo = LinearRegressionForecastEngine()
 
     def forecast_revenue(
         self,
@@ -62,28 +62,26 @@ class RevenueForecastEngine:
                 growth_rates=growth_rates,
                 method=ForecastMethod.MANAGEMENT_GUIDANCE,
                 confidence=ConfidenceLevel.HIGH,
-                guidance_override_applied=True,
             )
 
-        # 2. Prepare primitive input payload
+        # 2. Dispatch to the concrete calculation interface shared by the algorithms.
         hist_tuple = tuple(inp.historical_revenues)
-        algo_input = AlgorithmInput(
-            historical_values=hist_tuple,
-            forecast_periods=inp.forecast_years,
-        )
-
-        # 3. Strategy Dispatch
         if selected_method == ForecastMethod.LINEAR_REGRESSION:
-            algo_res = self._linear_regression_algo.project_series(algo_input)
+            algorithm = self._linear_regression_algo
             method_used = ForecastMethod.LINEAR_REGRESSION
         elif selected_method == ForecastMethod.ROLLING_AVERAGE:
-            algo_res = self._rolling_avg_algo.project_series(algo_input)
+            algorithm = self._rolling_avg_algo
             method_used = ForecastMethod.ROLLING_AVERAGE
-        else:
-            algo_res = self._cagr_algo.project_series(algo_input)
+        elif selected_method == ForecastMethod.CAGR:
+            algorithm = self._cagr_algo
             method_used = ForecastMethod.CAGR
+        else:
+            raise ForecastConfigurationError(
+                f"Forecast method '{selected_method}' is not supported by the legacy "
+                "revenue forecast engine."
+            )
 
-        projected_series = tuple(algo_res.projected_values)
+        projected_series = algorithm.calculate(hist_tuple, inp.forecast_years)
 
         # 4. Compute growth rate series safely handling tuple conversion
         growth_rates = tuple(
@@ -99,5 +97,4 @@ class RevenueForecastEngine:
             growth_rates=growth_rates,
             method=method_used,
             confidence=ConfidenceLevel.HIGH,
-            guidance_override_applied=False,
         )
