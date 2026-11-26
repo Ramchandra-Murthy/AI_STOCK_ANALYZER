@@ -202,9 +202,7 @@ class AssumptionEngine:
             [
                 nwc[index] / revenue[index]
                 for index in range(len(revenue))
-                if isfinite(nwc[index])
-                and isfinite(revenue[index])
-                and revenue[index] > 0.0
+                if isfinite(nwc[index]) and isfinite(revenue[index]) and revenue[index] > 0.0
             ][-cfg.lookback_periods :]
             if nwc
             else []
