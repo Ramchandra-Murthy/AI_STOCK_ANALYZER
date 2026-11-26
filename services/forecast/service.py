@@ -42,12 +42,12 @@ class ForecastService:
             depreciation = self.algorithm.calculate_depreciation(forecast_input)
             working_capital = self.algorithm.calculate_working_capital(forecast_input)
             taxes = self.algorithm.calculate_taxes(forecast_input)
-            net_income = tuple(r * m for r, m in zip(revenues, margins, strict=False))
+            ebit = tuple(r * m for r, m in zip(revenues, margins, strict=False))
             package = ForecastPackage(
                 ticker=forecast_input.ticker,
                 years=years,
                 revenue=ForecastLineItem("Revenue", revenues),
-                net_income=ForecastLineItem("Net Income", net_income),
+                ebit=ForecastLineItem("EBIT", ebit),
                 capex=ForecastLineItem("Capital Expenditures", capex),
                 depreciation=ForecastLineItem("Depreciation", depreciation),
                 working_capital=ForecastLineItem("Working Capital", working_capital),
@@ -67,7 +67,7 @@ class ForecastService:
                 ticker=forecast_input.ticker,
                 years=(),
                 revenue=empty_item,
-                net_income=empty_item,
+                ebit=empty_item,
                 capex=empty_item,
                 depreciation=empty_item,
                 working_capital=empty_item,
