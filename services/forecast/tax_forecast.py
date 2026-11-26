@@ -24,7 +24,7 @@ class TaxForecastEngine:
         *args: Any,
         **kwargs: Any,
     ) -> TaxForecast:
-        logger.info("[TAX FORECAST] Projecting tax rates for %s", inp.symbol)
+        logger.info(f"[TAX FORECAST] Projecting tax rates for {inp.symbol}")
         historical_rates = tuple(
             tax / pbt
             for tax, pbt in zip(inp.historical_tax, inp.historical_pbt, strict=False)
