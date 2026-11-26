@@ -3,6 +3,7 @@
 TaxForecast.projected contains effective tax-rate fractions, never currency
 amounts. Tax expense is calculated downstream as EBIT multiplied by this rate.
 """
+
 from __future__ import annotations
 
 from math import isfinite
