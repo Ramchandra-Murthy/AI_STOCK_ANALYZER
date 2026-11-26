@@ -56,9 +56,7 @@ class MarginForecastEngine:
         selected_method = method or inp.method
 
         if selected_method == ForecastMethod.MEAN_REVERSION:
-            projected = self._mean_reversion_algo.project(
-                historical_margins, inp.forecast_years
-            )
+            projected = self._mean_reversion_algo.project(historical_margins, inp.forecast_years)
             method_used = ForecastMethod.MEAN_REVERSION
         elif selected_method in (ForecastMethod.CAGR, ForecastMethod.HISTORICAL_MEAN):
             projected = (round(mean_margin, 4),) * inp.forecast_years
