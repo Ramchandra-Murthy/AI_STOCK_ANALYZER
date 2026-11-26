@@ -79,8 +79,11 @@ def test_tax_forecast_engine_returns_rates_not_tax_expense(base_input: ForecastI
 
 def test_tax_forecast_requires_assumption_without_valid_history() -> None:
     inp = ForecastInput(
-        symbol="NO-TAX-HISTORY", historical_revenues=(100.0, 110.0),
-        historical_pbt=(0.0, -10.0), historical_tax=(0.0, 2.0), forecast_years=2,
+        symbol="NO-TAX-HISTORY",
+        historical_revenues=(100.0, 110.0),
+        historical_pbt=(0.0, -10.0),
+        historical_tax=(0.0, 2.0),
+        forecast_years=2,
     )
     with pytest.raises(ForecastConfigurationError, match="tax_rate_assumption"):
         TaxForecastEngine().forecast_tax(inp)
@@ -88,9 +91,12 @@ def test_tax_forecast_requires_assumption_without_valid_history() -> None:
 
 def test_tax_forecast_uses_explicit_assumption_without_valid_history() -> None:
     inp = ForecastInput(
-        symbol="ASSUMED-TAX", historical_revenues=(100.0, 110.0),
-        historical_pbt=(0.0, -10.0), historical_tax=(0.0, 2.0),
-        forecast_years=2, tax_rate_assumption=0.22,
+        symbol="ASSUMED-TAX",
+        historical_revenues=(100.0, 110.0),
+        historical_pbt=(0.0, -10.0),
+        historical_tax=(0.0, 2.0),
+        forecast_years=2,
+        tax_rate_assumption=0.22,
     )
     result = TaxForecastEngine().forecast_tax(inp)
     assert result.projected == pytest.approx((0.22, 0.22))
