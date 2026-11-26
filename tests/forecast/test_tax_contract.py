@@ -7,12 +7,19 @@ from services.forecast.algorithms.linear_regression import LinearRegressionForec
 from services.forecast.exceptions import ForecastConfigurationError
 from services.forecast.forecast_input import ForecastInput as LegacyForecastInput
 from services.forecast.forecast_models import (
-    CapexForecast, ConfidenceLevel, DepreciationForecast, ForecastConfidence,
-    MarginForecast, RevenueForecast, TaxForecast, TerminalGrowthForecast,
+    CapexForecast,
+    ConfidenceLevel,
+    DepreciationForecast,
+    ForecastConfidence,
+    MarginForecast,
+    RevenueForecast,
+    TaxForecast,
+    TerminalGrowthForecast,
     WorkingCapitalForecast,
 )
 from services.forecast.forecast_result import ForecastResult
 from services.forecast.input import ForecastInput
+from services.forecast.validation import ForecastValidator
 
 
 @pytest.mark.parametrize("algorithm", [CAGRForecastEngine(), LinearRegressionForecastEngine()])
@@ -37,6 +44,7 @@ def test_canonical_tax_algorithms_use_explicit_assumption(algorithm):
         historical_working_capital=(10.0, 11.0), historical_taxes=(),
         forecast_years=(2025,), tax_rate_assumption=0.22,
     )
+    ForecastValidator.validate_input(inp)
     assert algorithm.calculate_taxes(inp) == pytest.approx((0.22,))
 
 
