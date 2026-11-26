@@ -2,7 +2,7 @@
 
 import math
 
-from services.forecast.exceptions import ForecastValidationError
+from services.forecast.exceptions import ForecastConfigurationError, ForecastValidationError
 from services.forecast.input import ForecastInput
 
 
@@ -41,8 +41,6 @@ class ForecastValidator:
                     f"must match historical_years length ({n_years})."
                 )
         elif forecast_input.tax_rate_assumption is None:
-            from services.forecast.exceptions import ForecastConfigurationError
-
             raise ForecastConfigurationError(
                 "A tax_rate_assumption is required when historical tax rates are unavailable."
             )
