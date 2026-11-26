@@ -81,7 +81,7 @@ class ForecastResult:
             object.__setattr__(self, "confidence_score", 0.0)
             object.__setattr__(self, "revenue_forecast", None)
             object.__setattr__(self, "margin_forecast", None)
-            object.__setattr__(self, "ebit_forecast", package.net_income.values if package else ())
+            object.__setattr__(self, "ebit_forecast", package.ebit.values if package else ())
             object.__setattr__(self, "capex_forecast", package.capex.values if package else ())
         object.__setattr__(self, "execution_time_ms", float(execution_time_ms))
         object.__setattr__(self, "status", status)
