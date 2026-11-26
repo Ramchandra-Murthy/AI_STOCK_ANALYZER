@@ -19,3 +19,4 @@ class ForecastInput:
     forecast_years: tuple[int, ...]
     custom_growth_rate: float | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+    tax_rate_assumption: float | None = None

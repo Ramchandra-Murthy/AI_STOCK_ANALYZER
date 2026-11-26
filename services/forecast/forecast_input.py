@@ -50,6 +50,7 @@ class ForecastInput:
     management_guidance_revenue: tuple[float, ...] | None = None
     scenario_overrides: ScenarioOverrides | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+    tax_rate_assumption: float | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.symbol, str) or not self.symbol.strip():
@@ -96,6 +97,13 @@ class ForecastInput:
         object.__setattr__(self, "historical_revenues", revenues)
         for name, values in normalized.items():
             object.__setattr__(self, name, values)
+        if self.tax_rate_assumption is not None and not (
+            0.0 <= float(self.tax_rate_assumption) <= 1.0
+        ):
+            raise ValuationError("tax_rate_assumption must be between 0 and 1.")
+        if self.tax_rate_assumption is not None:
+            object.__setattr__(self, "tax_rate_assumption", float(self.tax_rate_assumption))
+
         object.__setattr__(self, "forecast_horizon", horizon)
         object.__setattr__(self, "forecast_years", horizon)
 

@@ -1,27 +1,22 @@
-﻿"""
-==========================================================
-EQUITY VALUATION PLATFORM v5.1
-Module  : services.forecast.tax_forecast
-Layer   : Services / Forecast / Subservices
-Summary : Effective Tax Rate & Liability Forecast Subservice.
-==========================================================
+"""Tax-rate projection subservice for legacy forecast inputs.
+
+TaxForecast.projected contains effective tax-rate fractions, never currency
+amounts. Tax expense is calculated downstream as EBIT multiplied by this rate.
 """
 
 from __future__ import annotations
 
+from math import isfinite
 from typing import Any
 
 from core.logger import logger
+from services.forecast.exceptions import ForecastConfigurationError
 from services.forecast.forecast_input import ForecastInput
-from services.forecast.models import (
-    ConfidenceLevel,
-    ForecastMethod,
-    TaxForecast,
-)
+from services.forecast.models import ConfidenceLevel, ForecastMethod, TaxForecast
 
 
 class TaxForecastEngine:
-    """Subservice orchestrator for effective tax rate projections."""
+    """Project effective tax rates from matched historical tax and PBT data."""
 
     def forecast_tax(
         self,
@@ -30,25 +25,28 @@ class TaxForecastEngine:
         *args: Any,
         **kwargs: Any,
     ) -> TaxForecast:
-        """Projects tax liabilities based on historical tax rates."""
-        symbol = inp.symbol
-        logger.info(f"[TAX FORECAST] Projecting taxes for {symbol}")
-
-        effective_rate = 0.25  # Standard 25% corporate tax rate baseline
-
-        # Calculate projected taxes on projected EBIT if supplied, otherwise return empty
-        projected_ebits = kwargs.get("projected_ebit", ())
-        if projected_ebits:
-            projected = tuple(round(ebit * effective_rate, 4) for ebit in projected_ebits)
+        logger.info(f"[TAX FORECAST] Projecting tax rates for {inp.symbol}")
+        historical_rates = tuple(
+            tax / pbt
+            for tax, pbt in zip(inp.historical_tax, inp.historical_pbt, strict=False)
+            if pbt > 0 and isfinite(tax) and isfinite(pbt) and 0.0 <= tax / pbt <= 1.0
+        )
+        if historical_rates:
+            effective_rate = sum(historical_rates) / len(historical_rates)
+        elif inp.tax_rate_assumption is not None:
+            effective_rate = float(inp.tax_rate_assumption)
         else:
-            projected = (0.0,) * inp.forecast_years
+            raise ForecastConfigurationError(
+                "A tax_rate_assumption is required when no valid positive-PBT "
+                "historical effective tax rate is available."
+            )
 
         return TaxForecast(
-            historical=(),
-            projected=projected,
+            historical=historical_rates,
+            projected=(effective_rate,) * inp.forecast_years,
             method=method or ForecastMethod.MANUAL,
             confidence=ConfidenceLevel.HIGH,
         )
 
-    # Alias for method name compatibility
+    # Backward-compatible alias; projected values are tax rates, not tax expense.
     forecast_tax_rate = forecast_tax
