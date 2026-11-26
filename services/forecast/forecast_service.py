@@ -25,6 +25,16 @@ class YearlyForecast:
     tax: float
     fcf: float
 
+    @property
+    def tax_rate(self) -> float:
+        """Explicit name for the effective tax-rate fraction."""
+        return self.tax
+
+    @property
+    def tax_expense(self) -> float:
+        """Tax expense in currency units."""
+        return self.ebit * self.tax_rate
+
 
 @dataclass(frozen=True, slots=True)
 class ScenarioForecast:
