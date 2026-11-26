@@ -177,4 +177,3 @@ def test_execute_uses_explicit_tax_rate_fallback_when_history_is_missing() -> No
     assert result.package is not None
     assert result.package.tax_rate.values == pytest.approx((0.22,))
     assert result.metadata["assumption_engine"]["tax"]["method"] == "explicit_input_fallback"
-
