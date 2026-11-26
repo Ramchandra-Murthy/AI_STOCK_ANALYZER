@@ -198,11 +198,17 @@ class AssumptionEngine:
             raise ValueError("at least one valid CapEx/revenue observation is required")
         capex_pct = sum(capex_ratios) / len(capex_ratios)
 
-        nwc_ratios = [
-            nwc[index] / revenue[index]
-            for index in range(len(revenue))
-            if isfinite(nwc[index]) and isfinite(revenue[index]) and revenue[index] > 0.0
-        ][-cfg.lookback_periods :]
+        nwc_ratios = (
+            [
+                nwc[index] / revenue[index]
+                for index in range(len(revenue))
+                if isfinite(nwc[index])
+                and isfinite(revenue[index])
+                and revenue[index] > 0.0
+            ][-cfg.lookback_periods :]
+            if nwc
+            else []
+        )
         if nwc:
             if not nwc_ratios:
                 raise ValueError("at least one valid NWC/revenue observation is required")
