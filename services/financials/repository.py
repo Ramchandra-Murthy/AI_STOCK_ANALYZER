@@ -179,6 +179,10 @@ class FinancialStatementRepository:
         source_type = metadata.get("source_type")
         source_reference = metadata.get("source_reference")
         retrieved_at = metadata.get("retrieved_at")
+        source_provider = str(source_provider) if source_provider is not None else None
+        source_type = str(source_type) if source_type is not None else None
+        source_reference = str(source_reference) if source_reference is not None else None
+        retrieved_at = str(retrieved_at) if retrieved_at is not None else None
         payload = self._serialize(fs)
         digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
         company_key = fs.company_name.casefold().strip()
