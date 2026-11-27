@@ -365,9 +365,7 @@ def test_execute_linear_regression_uses_slope_over_latest_revenue() -> None:
     assert result.status == "SUCCESS"
     assert result.package is not None
     # Regression slope is 20; scalar growth is 20 / latest revenue (140).
-    assert result.package.revenue.values == pytest.approx(
-        (140.0 * (1.0 + 20.0 / 140.0),)
-    )
+    assert result.package.revenue.values == pytest.approx((140.0 * (1.0 + 20.0 / 140.0),))
     assert (
         result.metadata["assumption_engine"]["provenance"]["revenue_growth"]["method"]
         == "linear_regression_slope_over_latest_revenue"
