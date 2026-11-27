@@ -96,7 +96,11 @@ class ForecastService:
                 if forecast_input.capex_pct_revenue_assumption is not None
                 else float(derived.capex_pct_revenue)
             )
-            nwc_ratio = float(derived.working_capital_pct_revenue)
+            nwc_ratio = (
+                float(forecast_input.working_capital_pct_revenue_assumption)
+                if forecast_input.working_capital_pct_revenue_assumption is not None
+                else float(derived.working_capital_pct_revenue)
+            )
             tax_rate = float(derived.tax_rate)
 
             provenance = {
