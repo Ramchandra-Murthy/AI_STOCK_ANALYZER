@@ -327,17 +327,15 @@ class ForecastAssumption:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> ForecastAssumption:
+        margin = data.get("ebit_margin", data.get("ebitda_margin"))
+        if margin is None:
+            raise KeyError("Forecast assumption requires ebit_margin or legacy ebitda_margin")
         return cls(
-            **{
-                key: float(data[key])
-                for key in (
-                    "revenue_growth_rate",
-                    "ebitda_margin",
-                    "tax_rate",
-                    "capex_pct_revenue",
-                    "working_capital_pct_revenue",
-                )
-            },
+            revenue_growth_rate=float(data["revenue_growth_rate"]),
+            ebitda_margin=float(margin),
+            tax_rate=float(data["tax_rate"]),
+            capex_pct_revenue=float(data["capex_pct_revenue"]),
+            working_capital_pct_revenue=float(data["working_capital_pct_revenue"]),
             metadata=dict(data.get("metadata", {})),
         )
 
