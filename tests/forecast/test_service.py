@@ -294,9 +294,13 @@ def test_execute_all_five_assumptions_drive_canonical_projection_lines() -> None
     assert result.package is not None
     projected_revenue = (121.0 * 1.05, 121.0 * 1.05**2)
     assert result.package.revenue.values == pytest.approx(projected_revenue)
-    assert result.package.ebit.values == pytest.approx(tuple(v * 0.18 for v in projected_revenue))
+    assert result.package.ebit.values == pytest.approx(
+        tuple(value * 0.18 for value in projected_revenue)
+    )
     assert result.package.capex.values == pytest.approx(tuple(v * 0.07 for v in projected_revenue))
-    assert result.package.working_capital.values == pytest.approx(tuple(v * -0.08 for v in projected_revenue))
+    assert result.package.working_capital.values == pytest.approx(
+        tuple(value * -0.08 for value in projected_revenue)
+    )
     assert result.package.tax_rate.values == pytest.approx((0.21, 0.21))
     provenance = result.metadata["assumption_engine"]["provenance"]
     assert provenance["revenue_growth"]["method"] == "explicit_input"
@@ -334,7 +338,10 @@ def test_execute_management_guidance_overrides_explicit_revenue_and_margin() -> 
     assert result.package is not None
     assert result.package.revenue.values == pytest.approx((110.0 * 1.12,))
     assert result.package.ebit.values == pytest.approx((110.0 * 1.12 * 0.25,))
-    assert result.metadata["assumption_engine"]["provenance"]["revenue_growth"]["method"] == "management_override"
+    assert (
+        result.metadata["assumption_engine"]["provenance"]["revenue_growth"]["method"]
+        == "management_override"
+    )
 
 
 def test_execute_linear_regression_uses_slope_over_latest_revenue() -> None:
@@ -356,8 +363,13 @@ def test_execute_linear_regression_uses_slope_over_latest_revenue() -> None:
     assert result.status == "SUCCESS"
     assert result.package is not None
     # Regression slope is 20; scalar growth is 20 / latest revenue (140).
-    assert result.package.revenue.values == pytest.approx((140.0 * (1.0 + 20.0 / 140.0),))
-    assert result.metadata["assumption_engine"]["provenance"]["revenue_growth"]["method"] == "linear_regression_slope_over_latest_revenue"
+    assert result.package.revenue.values == pytest.approx(
+        (140.0 * (1.0 + 20.0 / 140.0),)
+    )
+    assert (
+        result.metadata["assumption_engine"]["provenance"]["revenue_growth"]["method"]
+        == "linear_regression_slope_over_latest_revenue"
+    )
 
 
 def test_execute_rejects_management_override_without_provenance() -> None:
