@@ -20,3 +20,7 @@ class ForecastInput:
     custom_growth_rate: float | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
     tax_rate_assumption: float | None = None
+    ebit_margin_assumption: float | None = None
+    capex_pct_revenue_assumption: float | None = None
+    working_capital_pct_revenue_assumption: float | None = None
+    management_guidance: Any | None = None
