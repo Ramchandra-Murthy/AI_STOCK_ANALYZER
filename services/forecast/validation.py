@@ -47,8 +47,20 @@ class ForecastValidator:
             "historical_margins": h_margins,
             "historical_capex": h_capex,
             "historical_depreciation": h_dep,
-            "historical_working_capital": h_wc,
         }
+        # Historical NWC is optional only when an explicit NWC/revenue
+        # assumption is supplied. A non-empty series must always be aligned.
+        if h_wc:
+            if len(h_wc) != n_years:
+                raise ForecastValidationError(
+                    f"Length mismatch: historical_working_capital length ({len(h_wc)}) "
+                    f"must match historical_years length ({n_years})."
+                )
+        elif forecast_input.working_capital_pct_revenue_assumption is None:
+            raise ForecastConfigurationError(
+                "A working_capital_pct_revenue_assumption is required when "
+                "historical working-capital observations are unavailable."
+            )
         if h_tax:
             if len(h_tax) != n_years:
                 raise ForecastValidationError(

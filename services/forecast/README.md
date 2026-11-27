@@ -75,3 +75,16 @@ The precedence order is: validated management override, explicit analyst
 assumption, historical-derived assumption, then an explicitly configured
 statutory tax fallback where supported. The canonical execute path does not
 silently substitute generic 10% working-capital or 25% tax assumptions.
+
+
+### Canonical working-capital history fallback (F-10A.8)
+
+For `ForecastService.execute()`, historical working-capital observations may
+be omitted only when `working_capital_pct_revenue_assumption` is supplied
+as a finite explicit ratio. In that case, projected working capital is
+calculated from projected revenue multiplied by the supplied signed ratio.
+Negative ratios are supported. If historical working-capital observations
+are provided, they must still align with the historical-year sequence; an
+explicit ratio does not excuse a malformed non-empty history. If both
+historical working capital and the explicit ratio are absent, validation
+fails rather than introducing a default.
