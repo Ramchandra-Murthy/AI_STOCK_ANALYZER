@@ -61,6 +61,11 @@ class ForecastValidator:
                 "A working_capital_pct_revenue_assumption is required when "
                 "historical working-capital observations are unavailable."
             )
+        for val in h_wc:
+            if math.isnan(val) or math.isinf(val):
+                raise ForecastValidationError(
+                    f"Invalid numeric value (NaN or Inf) found in historical_working_capital: {val}"
+                )
         if h_tax:
             if len(h_tax) != n_years:
                 raise ForecastValidationError(
