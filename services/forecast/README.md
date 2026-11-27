@@ -88,3 +88,27 @@ are provided, they must still align with the historical-year sequence; an
 explicit ratio does not excuse a malformed non-empty history. If both
 historical working capital and the explicit ratio are absent, validation
 fails rather than introducing a default.
+
+
+### Explicit assumption independence (F-10A.10)
+
+In the canonical `ForecastService.execute()` path, an explicit assumption may
+supply its projection line when the corresponding historical observations are
+unavailable:
+
+- `ebit_margin_assumption` (or a management EBIT-margin override) permits an
+  empty `historical_margins` series.
+- `capex_pct_revenue_assumption` permits an empty `historical_capex` series.
+- A management revenue-growth override or `custom_growth_rate` is selected
+  before algorithm-derived growth is calculated, so an unnecessary regression
+  estimate cannot block a valid explicit growth rate.
+
+An explicit assumption does not excuse malformed history. Any non-empty
+historical margin or CapEx series must still match `historical_years` and
+contain finite values. When the relevant explicit assumption is absent, the
+corresponding historical observations remain required for derivation.
+
+The explicit CapEx/revenue ratio remains non-negative and forecasts CapEx as a
+positive expenditure magnitude. Negative EBIT margins remain supported.
+Working-capital fallback metadata uses the caller-independent source label
+`explicit_working_capital_pct_revenue_fallback`.
