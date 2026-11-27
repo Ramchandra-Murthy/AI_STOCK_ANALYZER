@@ -519,3 +519,149 @@ def test_execute_rejects_nonfinite_explicit_nwc_ratio_without_history(nwc_ratio:
     assert "working_capital_pct_revenue_assumption must be a finite number" in (
         result.error_message or ""
     )
+
+
+@pytest.mark.parametrize("growth_source", ("custom", "management"))
+def test_execute_explicit_growth_bypasses_invalid_regression_estimate(
+    growth_source: str,
+) -> None:
+    from services.forecast.algorithms.linear_regression import LinearRegressionForecastEngine
+    from services.forecast.assumption_engine import ManagementGuidance
+
+    kwargs = (
+        {"custom_growth_rate": 0.10}
+        if growth_source == "custom"
+        else {
+            "management_guidance": ManagementGuidance(
+                revenue_cagr_override=0.10,
+                source="approved plan",
+                reason="approved forecast",
+            )
+        }
+    )
+    forecast_input = ForecastInput(
+        ticker="EXPLICIT-GROWTH",
+        historical_years=(2024, 2025),
+        historical_revenue=(100.0, 1.0),
+        historical_margins=(0.10, 0.11),
+        historical_capex=(5.0, 0.5),
+        historical_depreciation=(2.0, 0.2),
+        historical_working_capital=(10.0, 0.1),
+        historical_taxes=(0.20, 0.21),
+        forecast_years=(2026,),
+        **kwargs,
+    )
+
+    result = ForecastService(LinearRegressionForecastEngine()).execute(forecast_input)
+
+    assert result.status == "SUCCESS"
+    assert result.package is not None
+    assert result.package.revenue.values == pytest.approx((1.1,))
+
+
+def test_execute_explicit_margin_and_capex_work_without_history() -> None:
+    forecast_input = ForecastInput(
+        ticker="EXPLICIT-MARGIN-CAPEX",
+        historical_years=(2024, 2025),
+        historical_revenue=(100.0, 110.0),
+        historical_margins=(),
+        historical_capex=(),
+        historical_depreciation=(2.0, 2.2),
+        historical_working_capital=(10.0, 11.0),
+        historical_taxes=(0.20, 0.21),
+        forecast_years=(2026,),
+        custom_growth_rate=0.10,
+        ebit_margin_assumption=0.18,
+        capex_pct_revenue_assumption=0.07,
+    )
+
+    result = ForecastService().execute(forecast_input)
+
+    assert result.status == "SUCCESS"
+    assert result.package is not None
+    assert result.package.ebit.values == pytest.approx((21.78,))
+    assert result.package.capex.values == pytest.approx((8.47,))
+    provenance = result.metadata["assumption_engine"]["provenance"]
+    assert provenance["ebit_margin"]["method"] == "explicit_input"
+    assert provenance["capex_pct_revenue"]["method"] == "explicit_input"
+
+
+def test_execute_management_margin_works_without_historical_margin() -> None:
+    from services.forecast.assumption_engine import ManagementGuidance
+
+    forecast_input = ForecastInput(
+        ticker="GUIDANCE-MARGIN-NO-HISTORY",
+        historical_years=(2024, 2025),
+        historical_revenue=(100.0, 110.0),
+        historical_margins=(),
+        historical_capex=(5.0, 5.5),
+        historical_depreciation=(2.0, 2.2),
+        historical_working_capital=(10.0, 11.0),
+        historical_taxes=(0.20, 0.21),
+        forecast_years=(2026,),
+        management_guidance=ManagementGuidance(
+            target_ebit_margin_override=0.20,
+            source="approved plan",
+            reason="approved margin target",
+        ),
+    )
+
+    result = ForecastService().execute(forecast_input)
+
+    assert result.status == "SUCCESS"
+    assert result.package is not None
+    assert result.package.ebit.values == pytest.approx((24.2,))
+
+
+@pytest.mark.parametrize(
+    ("field", "values", "assumptions"),
+    (
+        ("historical_margins", (0.1,), {"ebit_margin_assumption": 0.2}),
+        ("historical_capex", (5.0,), {"capex_pct_revenue_assumption": 0.05}),
+    ),
+)
+def test_execute_rejects_misaligned_nonempty_margin_and_capex_history(
+    field: str,
+    values: tuple[float, ...],
+    assumptions: dict[str, float],
+) -> None:
+    inputs = {
+        "ticker": "MISALIGNED-EXPLICIT-HISTORY",
+        "historical_years": (2024, 2025),
+        "historical_revenue": (100.0, 110.0),
+        "historical_margins": (0.1, 0.11),
+        "historical_capex": (5.0, 5.5),
+        "historical_depreciation": (2.0, 2.2),
+        "historical_working_capital": (10.0, 11.0),
+        "historical_taxes": (0.20, 0.21),
+        "forecast_years": (2026,),
+    }
+    inputs[field] = values
+    inputs.update(assumptions)
+
+    result = ForecastService().execute(ForecastInput(**inputs))
+
+    assert result.status == "FAILED"
+    assert field in (result.error_message or "")
+
+
+def test_execute_explicit_nwc_metadata_uses_caller_independent_source() -> None:
+    forecast_input = ForecastInput(
+        ticker="NWC-METADATA",
+        historical_years=(2024, 2025),
+        historical_revenue=(100.0, 110.0),
+        historical_margins=(0.10, 0.11),
+        historical_capex=(5.0, 5.5),
+        historical_depreciation=(2.0, 2.2),
+        historical_working_capital=(),
+        historical_taxes=(0.20, 0.21),
+        forecast_years=(2026,),
+        working_capital_pct_revenue_assumption=0.12,
+    )
+
+    result = ForecastService().execute(forecast_input)
+
+    assert result.status == "SUCCESS"
+    assert result.metadata["assumption_engine"]["working_capital"]["source"] == (
+        "explicit_working_capital_pct_revenue_fallback"
+    )
