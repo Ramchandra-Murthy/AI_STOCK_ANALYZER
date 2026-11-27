@@ -47,9 +47,8 @@ class ForecastValidator:
             "historical_depreciation": h_dep,
         }
         guidance = forecast_input.management_guidance
-        explicit_margin_available = (
-            forecast_input.ebit_margin_assumption is not None
-            or (guidance is not None and guidance.target_ebit_margin_override is not None)
+        explicit_margin_available = forecast_input.ebit_margin_assumption is not None or (
+            guidance is not None and guidance.target_ebit_margin_override is not None
         )
         if h_margins:
             if len(h_margins) != n_years:
