@@ -20,8 +20,8 @@ from services.forecast.models import (
     ForecastConfidence,
     ForecastLineItem,
     ForecastMethod,
-    ForecastPackage,
     ForecastAssumption,
+    ForecastPackage,
     ForecastScenario,
     MarginForecast,
     RevenueForecast,
@@ -54,7 +54,9 @@ class ForecastService:
                     explicit_tax_rate_fallback=forecast_input.tax_rate_assumption,
                     historical_years=forecast_input.historical_years,
                     management_guidance=forecast_input.management_guidance,
-                    working_capital_pct_revenue_fallback=forecast_input.working_capital_pct_revenue_assumption,
+                    working_capital_pct_revenue_fallback=(
+                        forecast_input.working_capital_pct_revenue_assumption
+                    ),
                 )
             )
 
@@ -157,11 +159,14 @@ class ForecastService:
                 metadata={
                     **derived.metadata,
                     "engine_version": "f10a-6",
-                    "margin_semantics": "EBIT margin; ebitda_margin retained as a legacy serialized field",
+                    "margin_semantics": (
+                        "EBIT margin; ebitda_margin retained as a legacy serialized field"
+                    ),
                     "provenance": provenance,
                     "management_guidance": (
                         {"source": guidance.source, "reason": guidance.reason}
-                        if guidance is not None and (guidance_growth is not None or guidance_margin is not None)
+                        if guidance is not None
+                        and (guidance_growth is not None or guidance_margin is not None)
                         else None
                     ),
                 },
