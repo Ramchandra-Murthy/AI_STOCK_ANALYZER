@@ -297,7 +297,9 @@ def test_execute_all_five_assumptions_drive_canonical_projection_lines() -> None
     assert result.package.ebit.values == pytest.approx(
         tuple(value * 0.18 for value in projected_revenue)
     )
-    assert result.package.capex.values == pytest.approx(tuple(v * 0.07 for v in projected_revenue))
+    assert result.package.capex.values == pytest.approx(
+        tuple(value * 0.07 for value in projected_revenue)
+    )
     assert result.package.working_capital.values == pytest.approx(
         tuple(value * -0.08 for value in projected_revenue)
     )
