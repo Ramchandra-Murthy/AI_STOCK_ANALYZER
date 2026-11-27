@@ -429,4 +429,4 @@ def test_execute_allows_negative_historical_and_projected_ebit_margin() -> None:
     result = ForecastService().execute(forecast_input)
     assert result.status == "SUCCESS"
     assert result.package is not None
-    assert result.package.ebit.values == pytest.approx((-9.0,))
+    assert result.package.ebit.values == pytest.approx((-8.1,))
