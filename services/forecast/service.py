@@ -79,9 +79,7 @@ class ForecastService:
             if explicit_growth is not None:
                 algorithm_growth = float(explicit_growth)
                 growth_method = (
-                    "management_override"
-                    if guidance_growth is not None
-                    else "explicit_input"
+                    "management_override" if guidance_growth is not None else "explicit_input"
                 )
             elif isinstance(self.algorithm, LinearRegressionForecastEngine):
                 history = forecast_input.historical_revenue
