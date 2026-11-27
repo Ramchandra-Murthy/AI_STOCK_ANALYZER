@@ -309,10 +309,16 @@ class ForecastAssumption:
         object.__setattr__(self, "working_capital_pct_revenue", float(working_capital_pct_revenue))
         object.__setattr__(self, "metadata", dict(metadata or {}))
 
+    @property
+    def ebit_margin(self) -> float:
+        """Canonical EBIT-margin meaning; ebitda_margin remains the legacy field."""
+        return self.ebitda_margin
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "revenue_growth_rate": self.revenue_growth_rate,
             "ebitda_margin": self.ebitda_margin,
+            "ebit_margin": self.ebitda_margin,
             "tax_rate": self.tax_rate,
             "capex_pct_revenue": self.capex_pct_revenue,
             "working_capital_pct_revenue": self.working_capital_pct_revenue,
@@ -321,17 +327,15 @@ class ForecastAssumption:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> ForecastAssumption:
+        margin = data.get("ebit_margin", data.get("ebitda_margin"))
+        if margin is None:
+            raise KeyError("Forecast assumption requires ebit_margin or legacy ebitda_margin")
         return cls(
-            **{
-                key: float(data[key])
-                for key in (
-                    "revenue_growth_rate",
-                    "ebitda_margin",
-                    "tax_rate",
-                    "capex_pct_revenue",
-                    "working_capital_pct_revenue",
-                )
-            },
+            revenue_growth_rate=float(data["revenue_growth_rate"]),
+            ebitda_margin=float(margin),
+            tax_rate=float(data["tax_rate"]),
+            capex_pct_revenue=float(data["capex_pct_revenue"]),
+            working_capital_pct_revenue=float(data["working_capital_pct_revenue"]),
             metadata=dict(data.get("metadata", {})),
         )
 

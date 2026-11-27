@@ -93,15 +93,67 @@ class ForecastValidator:
                     f"Historical revenue must be strictly positive, found: {val}"
                 )
 
-        for name, series in [("historical_margins", h_margins), ("historical_taxes", h_tax)]:
-            for val in series:
-                if not (0.0 <= val <= 1.0):
-                    raise ForecastValidationError(
-                        f"Value in {name} must be between 0.0 and 1.0, found: {val}"
-                    )
+        for val in h_margins:
+            if not math.isfinite(val):
+                raise ForecastValidationError(f"historical_margins must be finite, found: {val}")
+        for val in h_tax:
+            if not math.isfinite(val) or not (0.0 <= val <= 1.0):
+                raise ForecastValidationError(
+                    "historical_taxes must be finite decimal tax rates between 0.0 "
+                    f"and 1.0, found: {val}"
+                )
 
         if forecast_input.custom_growth_rate is not None:
-            if math.isnan(forecast_input.custom_growth_rate) or math.isinf(
-                forecast_input.custom_growth_rate
+            if (
+                not math.isfinite(forecast_input.custom_growth_rate)
+                or forecast_input.custom_growth_rate <= -1.0
             ):
-                raise ForecastValidationError("Custom growth rate must be a finite number.")
+                raise ForecastValidationError(
+                    "Custom growth rate must be finite and greater than -100%."
+                )
+        for name, value in (
+            ("ebit_margin_assumption", forecast_input.ebit_margin_assumption),
+            ("capex_pct_revenue_assumption", forecast_input.capex_pct_revenue_assumption),
+            (
+                "working_capital_pct_revenue_assumption",
+                forecast_input.working_capital_pct_revenue_assumption,
+            ),
+        ):
+            if value is not None and not math.isfinite(value):
+                raise ForecastValidationError(f"{name} must be a finite number.")
+        if (
+            forecast_input.capex_pct_revenue_assumption is not None
+            and forecast_input.capex_pct_revenue_assumption < 0.0
+        ):
+            raise ForecastValidationError("capex_pct_revenue_assumption must be non-negative.")
+        if forecast_input.tax_rate_assumption is not None and (
+            not math.isfinite(forecast_input.tax_rate_assumption)
+            or not 0.0 <= forecast_input.tax_rate_assumption <= 1.0
+        ):
+            raise ForecastValidationError("tax_rate_assumption must be finite and between 0 and 1.")
+        guidance = forecast_input.management_guidance
+        if guidance is not None:
+            for name in ("revenue_cagr_override", "target_ebit_margin_override"):
+                value = getattr(guidance, name, None)
+                if value is not None and not math.isfinite(float(value)):
+                    raise ForecastValidationError(f"management guidance {name} must be finite.")
+            if (
+                guidance.revenue_cagr_override is not None
+                and guidance.revenue_cagr_override <= -1.0
+            ):
+                raise ForecastValidationError(
+                    "management revenue growth override must be greater than -100%."
+                )
+            has_overrides = (
+                guidance.revenue_cagr_override is not None
+                or guidance.target_ebit_margin_override is not None
+            )
+            if has_overrides and (
+                not guidance.source
+                or not guidance.source.strip()
+                or not guidance.reason
+                or not guidance.reason.strip()
+            ):
+                raise ForecastValidationError(
+                    "management guidance overrides require source and reason."
+                )

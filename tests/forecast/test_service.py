@@ -152,7 +152,7 @@ def test_execute_exposes_revenue_times_margin_as_ebit() -> None:
     assert result.ebit_forecast == pytest.approx(expected_ebit)
     assert result.package.tax_rate.values == (0.25, 0.25)
     assert result.package.working_capital.values == pytest.approx((13.2733333333, 14.6006666667))
-    assert result.metadata["assumption_engine"]["engine_version"] == "f10a-1"
+    assert result.metadata["assumption_engine"]["engine_version"] == "f10a-6"
 
 
 def test_execute_uses_explicit_tax_rate_fallback_when_history_is_missing() -> None:
@@ -270,3 +270,161 @@ def test_scenario_partial_inputs_do_not_silently_use_legacy_defaults() -> None:
             periods=2,
             historical_tax_rates=(0.20, 0.24),
         )
+
+
+def test_execute_all_five_assumptions_drive_canonical_projection_lines() -> None:
+    forecast_input = ForecastInput(
+        ticker="ASSUMPTIONS",
+        historical_years=(2023, 2024, 2025),
+        historical_revenue=(100.0, 110.0, 121.0),
+        historical_margins=(0.10, 0.11, 0.12),
+        historical_capex=(-5.0, -5.5, -6.0),
+        historical_depreciation=(2.0, 2.2, 2.4),
+        historical_working_capital=(-10.0, -11.0, -12.0),
+        historical_taxes=(0.20, 0.21, 0.22),
+        forecast_years=(2026, 2027),
+        custom_growth_rate=0.05,
+        ebit_margin_assumption=0.18,
+        capex_pct_revenue_assumption=0.07,
+        working_capital_pct_revenue_assumption=-0.08,
+    )
+    result = ForecastService().execute(forecast_input)
+
+    assert result.status == "SUCCESS"
+    assert result.package is not None
+    projected_revenue = (121.0 * 1.05, 121.0 * 1.05**2)
+    assert result.package.revenue.values == pytest.approx(projected_revenue)
+    assert result.package.ebit.values == pytest.approx(
+        tuple(value * 0.18 for value in projected_revenue)
+    )
+    assert result.package.capex.values == pytest.approx(
+        tuple(value * 0.07 for value in projected_revenue)
+    )
+    assert result.package.working_capital.values == pytest.approx(
+        tuple(value * -0.08 for value in projected_revenue)
+    )
+    assert result.package.tax_rate.values == pytest.approx((0.21, 0.21))
+    provenance = result.metadata["assumption_engine"]["provenance"]
+    assert provenance["revenue_growth"]["method"] == "explicit_input"
+    assert provenance["ebit_margin"]["method"] == "explicit_input"
+    assert provenance["capex_pct_revenue"]["method"] == "explicit_input"
+    assert provenance["working_capital_pct_revenue"]["method"] == "explicit_input"
+    assert provenance["tax_rate"]["method"] == "historical_effective_tax_rate"
+
+
+def test_execute_management_guidance_overrides_explicit_revenue_and_margin() -> None:
+    from services.forecast.assumption_engine import ManagementGuidance
+
+    forecast_input = ForecastInput(
+        ticker="GUIDANCE",
+        historical_years=(2023, 2024),
+        historical_revenue=(100.0, 110.0),
+        historical_margins=(0.10, 0.11),
+        historical_capex=(5.0, 5.5),
+        historical_depreciation=(2.0, 2.2),
+        historical_working_capital=(10.0, 11.0),
+        historical_taxes=(0.20, 0.21),
+        forecast_years=(2025,),
+        custom_growth_rate=0.03,
+        ebit_margin_assumption=0.15,
+        management_guidance=ManagementGuidance(
+            revenue_cagr_override=0.12,
+            target_ebit_margin_override=0.25,
+            source="approved management plan",
+            reason="board-approved forecast",
+        ),
+    )
+    result = ForecastService().execute(forecast_input)
+
+    assert result.status == "SUCCESS"
+    assert result.package is not None
+    assert result.package.revenue.values == pytest.approx((110.0 * 1.12,))
+    assert result.package.ebit.values == pytest.approx((110.0 * 1.12 * 0.25,))
+    assert (
+        result.metadata["assumption_engine"]["provenance"]["revenue_growth"]["method"]
+        == "management_override"
+    )
+
+
+def test_execute_linear_regression_uses_slope_over_latest_revenue() -> None:
+    from services.forecast.algorithms.linear_regression import LinearRegressionForecastEngine
+
+    forecast_input = ForecastInput(
+        ticker="REGRESSION",
+        historical_years=(2023, 2024, 2025),
+        historical_revenue=(100.0, 120.0, 140.0),
+        historical_margins=(0.10, 0.11, 0.12),
+        historical_capex=(5.0, 6.0, 7.0),
+        historical_depreciation=(2.0, 2.2, 2.4),
+        historical_working_capital=(10.0, 12.0, 14.0),
+        historical_taxes=(0.20, 0.21, 0.22),
+        forecast_years=(2026,),
+    )
+    result = ForecastService(LinearRegressionForecastEngine()).execute(forecast_input)
+
+    assert result.status == "SUCCESS"
+    assert result.package is not None
+    # Regression slope is 20; scalar growth is 20 / latest revenue (140).
+    assert result.package.revenue.values == pytest.approx((140.0 * (1.0 + 20.0 / 140.0),))
+    assert (
+        result.metadata["assumption_engine"]["provenance"]["revenue_growth"]["method"]
+        == "linear_regression_slope_over_latest_revenue"
+    )
+
+
+def test_execute_rejects_management_override_without_provenance() -> None:
+    from services.forecast.assumption_engine import ManagementGuidance
+
+    forecast_input = ForecastInput(
+        ticker="INVALID-GUIDANCE",
+        historical_years=(2023, 2024),
+        historical_revenue=(100.0, 110.0),
+        historical_margins=(0.10, 0.11),
+        historical_capex=(5.0, 5.5),
+        historical_depreciation=(2.0, 2.2),
+        historical_working_capital=(10.0, 11.0),
+        historical_taxes=(0.20, 0.21),
+        forecast_years=(2025,),
+        management_guidance=ManagementGuidance(revenue_cagr_override=0.1),
+    )
+    result = ForecastService().execute(forecast_input)
+    assert result.status == "FAILED"
+    assert "source and reason" in (result.error_message or "")
+
+
+def test_forecast_assumption_ebit_margin_serialization_is_backward_compatible() -> None:
+    from services.forecast.models import ForecastAssumption
+
+    assumption = ForecastAssumption(
+        revenue_growth_rate=0.10,
+        ebitda_margin=0.18,
+        tax_rate=0.22,
+        capex_pct_revenue=0.05,
+        working_capital_pct_revenue=-0.08,
+    )
+    serialized = assumption.to_dict()
+    assert assumption.ebit_margin == pytest.approx(0.18)
+    assert serialized["ebit_margin"] == pytest.approx(0.18)
+    assert ForecastAssumption.from_dict(serialized) == assumption
+
+    legacy_payload = dict(serialized)
+    legacy_payload.pop("ebit_margin")
+    assert ForecastAssumption.from_dict(legacy_payload) == assumption
+
+
+def test_execute_allows_negative_historical_and_projected_ebit_margin() -> None:
+    forecast_input = ForecastInput(
+        ticker="NEGATIVE-EBIT",
+        historical_years=(2024, 2025),
+        historical_revenue=(100.0, 90.0),
+        historical_margins=(-0.05, -0.10),
+        historical_capex=(5.0, 4.5),
+        historical_depreciation=(2.0, 2.0),
+        historical_working_capital=(10.0, 9.0),
+        historical_taxes=(0.0, 0.0),
+        forecast_years=(2026,),
+    )
+    result = ForecastService().execute(forecast_input)
+    assert result.status == "SUCCESS"
+    assert result.package is not None
+    assert result.package.ebit.values == pytest.approx((-8.1,))
