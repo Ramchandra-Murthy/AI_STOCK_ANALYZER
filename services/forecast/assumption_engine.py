@@ -135,16 +135,12 @@ class AssumptionEngine:
             if values and len(values) != len(revenue):
                 raise ValueError(f"{name} must match historical_revenue length")
         if not margins and data.ebit_margin_fallback is None:
-            raise ValueError(
-                "historical_margins or an explicit ebit_margin_assumption is required"
-            )
+            raise ValueError("historical_margins or an explicit ebit_margin_assumption is required")
         if not capex and data.capex_pct_revenue_fallback is None:
             raise ValueError(
                 "historical_capex or an explicit capex_pct_revenue_assumption is required"
             )
-        if data.ebit_margin_fallback is not None and not isfinite(
-            float(data.ebit_margin_fallback)
-        ):
+        if data.ebit_margin_fallback is not None and not isfinite(float(data.ebit_margin_fallback)):
             raise ValueError("ebit_margin_assumption must be finite")
         if data.capex_pct_revenue_fallback is not None and (
             not isfinite(float(data.capex_pct_revenue_fallback))
@@ -212,11 +208,15 @@ class AssumptionEngine:
         else:
             raise ValueError("at least one finite historical margin is required")
 
-        capex_ratios = [
-            abs(capex[index]) / revenue[index]
-            for index in range(len(revenue))
-            if isfinite(capex[index]) and isfinite(revenue[index]) and revenue[index] > 0.0
-        ][-cfg.lookback_periods :]
+        capex_ratios = (
+            [
+                abs(capex[index]) / revenue[index]
+                for index in range(len(revenue))
+                if isfinite(capex[index]) and isfinite(revenue[index]) and revenue[index] > 0.0
+            ][-cfg.lookback_periods :]
+            if capex
+            else []
+        )
         if data.capex_pct_revenue_fallback is not None:
             capex_pct = float(data.capex_pct_revenue_fallback)
         elif capex_ratios:
