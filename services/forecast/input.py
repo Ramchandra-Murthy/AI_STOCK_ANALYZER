@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 from typing import Any
 
+from services.forecast.assumption_engine import ManagementGuidance
+
 
 @dataclass(frozen=True, slots=True)
 class ForecastInput:
@@ -23,4 +25,4 @@ class ForecastInput:
     ebit_margin_assumption: float | None = None
     capex_pct_revenue_assumption: float | None = None
     working_capital_pct_revenue_assumption: float | None = None
-    management_guidance: Any | None = None
+    management_guidance: ManagementGuidance | None = None
