@@ -67,6 +67,9 @@ class AssumptionDerivationInput:
     explicit_tax_rate_fallback: float | None = None
     # Appended for positional compatibility; used only when historical NWC is absent.
     working_capital_pct_revenue_fallback: float | None = None
+    # Explicit line assumptions allow derivation without the corresponding history.
+    ebit_margin_fallback: float | None = None
+    capex_pct_revenue_fallback: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -129,8 +132,21 @@ class AssumptionEngine:
             ("historical_margins", margins),
             ("historical_capex", capex),
         ):
-            if len(values) != len(revenue):
+            if values and len(values) != len(revenue):
                 raise ValueError(f"{name} must match historical_revenue length")
+        if not margins and data.ebit_margin_fallback is None:
+            raise ValueError("historical_margins or an explicit ebit_margin_assumption is required")
+        if not capex and data.capex_pct_revenue_fallback is None:
+            raise ValueError(
+                "historical_capex or an explicit capex_pct_revenue_assumption is required"
+            )
+        if data.ebit_margin_fallback is not None and not isfinite(float(data.ebit_margin_fallback)):
+            raise ValueError("ebit_margin_assumption must be finite")
+        if data.capex_pct_revenue_fallback is not None and (
+            not isfinite(float(data.capex_pct_revenue_fallback))
+            or float(data.capex_pct_revenue_fallback) < 0.0
+        ):
+            raise ValueError("capex_pct_revenue_assumption must be finite and non-negative")
         if nwc and len(nwc) != len(revenue):
             raise ValueError("historical_nwc must match historical_revenue length")
         if not nwc and working_capital_fallback is None:
@@ -185,18 +201,28 @@ class AssumptionEngine:
         valid_margin_indices = [index for index, value in enumerate(margins) if isfinite(value)][
             -cfg.lookback_periods :
         ]
-        if not valid_margin_indices:
+        if data.ebit_margin_fallback is not None:
+            ebitda_margin = float(data.ebit_margin_fallback)
+        elif valid_margin_indices:
+            ebitda_margin = margins[valid_margin_indices[-1]]
+        else:
             raise ValueError("at least one finite historical margin is required")
-        ebitda_margin = margins[valid_margin_indices[-1]]
 
-        capex_ratios = [
-            abs(capex[index]) / revenue[index]
-            for index in range(len(revenue))
-            if isfinite(capex[index]) and isfinite(revenue[index]) and revenue[index] > 0.0
-        ][-cfg.lookback_periods :]
-        if not capex_ratios:
+        capex_ratios = (
+            [
+                abs(capex[index]) / revenue[index]
+                for index in range(len(revenue))
+                if isfinite(capex[index]) and isfinite(revenue[index]) and revenue[index] > 0.0
+            ][-cfg.lookback_periods :]
+            if capex
+            else []
+        )
+        if data.capex_pct_revenue_fallback is not None:
+            capex_pct = float(data.capex_pct_revenue_fallback)
+        elif capex_ratios:
+            capex_pct = sum(capex_ratios) / len(capex_ratios)
+        else:
             raise ValueError("at least one valid CapEx/revenue observation is required")
-        capex_pct = sum(capex_ratios) / len(capex_ratios)
 
         nwc_ratios = (
             [
@@ -223,7 +249,7 @@ class AssumptionEngine:
                 "method": "explicit_input_fallback",
                 "observations_used": 0,
                 "fallback_used": True,
-                "source": "generate_scenario.working_capital_pct_revenue_assumption",
+                "source": "explicit_working_capital_pct_revenue_fallback",
             }
 
         valid_tax_indices = [

@@ -57,12 +57,31 @@ class ForecastService:
                     working_capital_pct_revenue_fallback=(
                         forecast_input.working_capital_pct_revenue_assumption
                     ),
+                    ebit_margin_fallback=(
+                        float(forecast_input.management_guidance.target_ebit_margin_override)
+                        if forecast_input.management_guidance is not None
+                        and forecast_input.management_guidance.target_ebit_margin_override
+                        is not None
+                        else forecast_input.ebit_margin_assumption
+                    ),
+                    capex_pct_revenue_fallback=forecast_input.capex_pct_revenue_assumption,
                 )
             )
 
-            # The selected algorithm determines the historical growth estimator.
-            # CAGR uses geometric CAGR; regression uses slope / latest revenue.
-            if isinstance(self.algorithm, LinearRegressionForecastEngine):
+            guidance = forecast_input.management_guidance
+            guidance_growth = getattr(guidance, "revenue_cagr_override", None)
+            guidance_margin = getattr(guidance, "target_ebit_margin_override", None)
+            explicit_growth = (
+                guidance_growth
+                if guidance_growth is not None
+                else forecast_input.custom_growth_rate
+            )
+            if explicit_growth is not None:
+                algorithm_growth = float(explicit_growth)
+                growth_method = (
+                    "management_override" if guidance_growth is not None else "explicit_input"
+                )
+            elif isinstance(self.algorithm, LinearRegressionForecastEngine):
                 history = forecast_input.historical_revenue
                 n = len(history)
                 mean_x = (n - 1) / 2.0
@@ -84,18 +103,7 @@ class ForecastService:
                 algorithm_growth = derived.revenue_growth_rate
                 growth_method = "historical_geometric_cagr"
 
-            guidance = forecast_input.management_guidance
-            guidance_growth = getattr(guidance, "revenue_cagr_override", None)
-            guidance_margin = getattr(guidance, "target_ebit_margin_override", None)
-            growth = (
-                float(guidance_growth)
-                if guidance_growth is not None
-                else (
-                    float(forecast_input.custom_growth_rate)
-                    if forecast_input.custom_growth_rate is not None
-                    else float(algorithm_growth)
-                )
-            )
+            growth = float(algorithm_growth)
             ebit_margin = (
                 float(guidance_margin)
                 if guidance_margin is not None
