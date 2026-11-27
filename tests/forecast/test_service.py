@@ -497,6 +497,7 @@ def test_execute_rejects_misaligned_nonempty_nwc_even_with_explicit_ratio() -> N
     assert result.status == "FAILED"
     assert "historical_working_capital length" in (result.error_message or "")
 
+
 @pytest.mark.parametrize("nwc_ratio", (float("nan"), float("inf"), float("-inf")))
 def test_execute_rejects_nonfinite_explicit_nwc_ratio_without_history(nwc_ratio: float) -> None:
     forecast_input = ForecastInput(
