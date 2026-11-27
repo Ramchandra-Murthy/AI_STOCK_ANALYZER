@@ -392,3 +392,41 @@ def test_execute_rejects_management_override_without_provenance() -> None:
     result = ForecastService().execute(forecast_input)
     assert result.status == "FAILED"
     assert "source and reason" in (result.error_message or "")
+
+
+def test_forecast_assumption_ebit_margin_serialization_is_backward_compatible() -> None:
+    from services.forecast.models import ForecastAssumption
+
+    assumption = ForecastAssumption(
+        revenue_growth_rate=0.10,
+        ebitda_margin=0.18,
+        tax_rate=0.22,
+        capex_pct_revenue=0.05,
+        working_capital_pct_revenue=-0.08,
+    )
+    serialized = assumption.to_dict()
+    assert assumption.ebit_margin == pytest.approx(0.18)
+    assert serialized["ebit_margin"] == pytest.approx(0.18)
+    assert ForecastAssumption.from_dict(serialized) == assumption
+
+    legacy_payload = dict(serialized)
+    legacy_payload.pop("ebit_margin")
+    assert ForecastAssumption.from_dict(legacy_payload) == assumption
+
+
+def test_execute_allows_negative_historical_and_projected_ebit_margin() -> None:
+    forecast_input = ForecastInput(
+        ticker="NEGATIVE-EBIT",
+        historical_years=(2024, 2025),
+        historical_revenue=(100.0, 90.0),
+        historical_margins=(-0.05, -0.10),
+        historical_capex=(5.0, 4.5),
+        historical_depreciation=(2.0, 2.0),
+        historical_working_capital=(10.0, 9.0),
+        historical_taxes=(0.0, 0.0),
+        forecast_years=(2026,),
+    )
+    result = ForecastService().execute(forecast_input)
+    assert result.status == "SUCCESS"
+    assert result.package is not None
+    assert result.package.ebit.values == pytest.approx((-9.0,))
