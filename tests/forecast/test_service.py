@@ -428,3 +428,94 @@ def test_execute_allows_negative_historical_and_projected_ebit_margin() -> None:
     assert result.status == "SUCCESS"
     assert result.package is not None
     assert result.package.ebit.values == pytest.approx((-8.1,))
+
+
+@pytest.mark.parametrize("nwc_ratio", (0.12, -0.08))
+def test_execute_uses_explicit_working_capital_ratio_without_history(nwc_ratio: float) -> None:
+    forecast_input = ForecastInput(
+        ticker="NO-NWC-HISTORY",
+        historical_years=(2024, 2025),
+        historical_revenue=(100.0, 110.0),
+        historical_margins=(0.10, 0.11),
+        historical_capex=(5.0, 5.5),
+        historical_depreciation=(2.0, 2.2),
+        historical_working_capital=(),
+        historical_taxes=(0.20, 0.21),
+        forecast_years=(2026, 2027),
+        working_capital_pct_revenue_assumption=nwc_ratio,
+    )
+
+    result = ForecastService().execute(forecast_input)
+
+    assert result.status == "SUCCESS"
+    assert result.package is not None
+    projected_revenue = (121.0, 133.1)
+    assert result.package.working_capital.values == pytest.approx(
+        tuple(value * nwc_ratio for value in projected_revenue)
+    )
+    assert (
+        result.metadata["assumption_engine"]["provenance"]["working_capital_pct_revenue"]["method"]
+        == "explicit_input"
+    )
+
+
+def test_execute_rejects_missing_nwc_history_without_explicit_ratio() -> None:
+    forecast_input = ForecastInput(
+        ticker="MISSING-NWC-SOURCE",
+        historical_years=(2024, 2025),
+        historical_revenue=(100.0, 110.0),
+        historical_margins=(0.10, 0.11),
+        historical_capex=(5.0, 5.5),
+        historical_depreciation=(2.0, 2.2),
+        historical_working_capital=(),
+        historical_taxes=(0.20, 0.21),
+        forecast_years=(2026,),
+    )
+
+    result = ForecastService().execute(forecast_input)
+
+    assert result.status == "FAILED"
+    assert "working_capital_pct_revenue_assumption is required" in (result.error_message or "")
+
+
+def test_execute_rejects_misaligned_nonempty_nwc_even_with_explicit_ratio() -> None:
+    forecast_input = ForecastInput(
+        ticker="MISALIGNED-NWC",
+        historical_years=(2024, 2025),
+        historical_revenue=(100.0, 110.0),
+        historical_margins=(0.10, 0.11),
+        historical_capex=(5.0, 5.5),
+        historical_depreciation=(2.0, 2.2),
+        historical_working_capital=(10.0,),
+        historical_taxes=(0.20, 0.21),
+        forecast_years=(2026,),
+        working_capital_pct_revenue_assumption=0.12,
+    )
+
+    result = ForecastService().execute(forecast_input)
+
+    assert result.status == "FAILED"
+    assert "historical_working_capital length" in (result.error_message or "")
+
+
+@pytest.mark.parametrize("nwc_ratio", (float("nan"), float("inf"), float("-inf")))
+def test_execute_rejects_nonfinite_explicit_nwc_ratio_without_history(nwc_ratio: float) -> None:
+    forecast_input = ForecastInput(
+        ticker="NONFINITE-NWC-RATIO",
+        historical_years=(2024, 2025),
+        historical_revenue=(100.0, 110.0),
+        historical_margins=(0.10, 0.11),
+        historical_capex=(5.0, 5.5),
+        historical_depreciation=(2.0, 2.2),
+        historical_working_capital=(),
+        historical_taxes=(0.20, 0.21),
+        forecast_years=(2026,),
+        working_capital_pct_revenue_assumption=nwc_ratio,
+    )
+
+    result = ForecastService().execute(forecast_input)
+
+    assert result.status == "FAILED"
+    assert "working_capital_pct_revenue_assumption must be a finite number" in (
+        result.error_message or ""
+    )
