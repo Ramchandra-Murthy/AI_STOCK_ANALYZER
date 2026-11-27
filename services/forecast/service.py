@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import time
+from math import isfinite
 
 from services.forecast.algorithms.base import BaseForecastAlgorithm
 from services.forecast.algorithms.cagr import CAGRForecastEngine
@@ -20,8 +21,8 @@ from services.forecast.models import (
     ForecastLineItem,
     ForecastMethod,
     ForecastPackage,
-    ForecastScenario,
     ForecastAssumption,
+    ForecastScenario,
     MarginForecast,
     RevenueForecast,
     TaxForecast,
@@ -71,6 +72,10 @@ class ForecastService:
                     if denominator else 0.0
                 )
                 algorithm_growth = slope / history[-1]
+                if not isfinite(algorithm_growth) or algorithm_growth <= -1.0:
+                    raise ForecastConfigurationError(
+                        "Linear-regression revenue growth must be finite and greater than -100%."
+                    )
                 growth_method = "linear_regression_slope_over_latest_revenue"
             else:
                 algorithm_growth = derived.revenue_growth_rate
@@ -105,25 +110,40 @@ class ForecastService:
 
             provenance = {
                 "revenue_growth": {
-                    "method": "management_override" if guidance_growth is not None else
-                              "explicit_input" if forecast_input.custom_growth_rate is not None else growth_method,
+                    "method": (
+                        "management_override"
+                        if guidance_growth is not None
+                        else "explicit_input"
+                        if forecast_input.custom_growth_rate is not None
+                        else growth_method
+                    ),
                     "value": growth,
                 },
                 "ebit_margin": {
-                    "method": "management_override" if guidance_margin is not None else
-                              "explicit_input" if forecast_input.ebit_margin_assumption is not None else
-                              "historical_ebit_margin",
+                    "method": (
+                        "management_override"
+                        if guidance_margin is not None
+                        else "explicit_input"
+                        if forecast_input.ebit_margin_assumption is not None
+                        else "historical_ebit_margin"
+                    ),
                     "value": ebit_margin,
                     "legacy_model_field": "ebitda_margin",
                 },
                 "capex_pct_revenue": {
-                    "method": "explicit_input" if forecast_input.capex_pct_revenue_assumption is not None else
-                              "historical_abs_capex_to_revenue",
+                    "method": (
+                        "explicit_input"
+                        if forecast_input.capex_pct_revenue_assumption is not None
+                        else "historical_abs_capex_to_revenue"
+                    ),
                     "value": capex_ratio,
                 },
                 "working_capital_pct_revenue": {
-                    "method": "explicit_input" if forecast_input.working_capital_pct_revenue_assumption is not None else
-                              "historical_nwc_to_revenue",
+                    "method": (
+                        "explicit_input"
+                        if forecast_input.working_capital_pct_revenue_assumption is not None
+                        else "historical_nwc_to_revenue"
+                    ),
                     "value": nwc_ratio,
                 },
                 "tax_rate": dict(derived.metadata["tax"]),
@@ -154,7 +174,10 @@ class ForecastService:
                 revenues.append(last_revenue)
             revenue_values = tuple(revenues)
             margins = tuple(ebit_margin for _ in years)
-            ebit = tuple(revenue * margin for revenue, margin in zip(revenue_values, margins, strict=True))
+            ebit = tuple(
+                revenue * margin
+                for revenue, margin in zip(revenue_values, margins, strict=True)
+            )
             # CapEx is represented as a positive expenditure magnitude. Downstream
             # cash-flow calculations apply the cash-outflow sign.
             capex = tuple(revenue * capex_ratio for revenue in revenue_values)
