@@ -429,6 +429,7 @@ def test_execute_allows_negative_historical_and_projected_ebit_margin() -> None:
     assert result.package is not None
     assert result.package.ebit.values == pytest.approx((-8.1,))
 
+
 @pytest.mark.parametrize("nwc_ratio", (0.12, -0.08))
 def test_execute_uses_explicit_working_capital_ratio_without_history(nwc_ratio: float) -> None:
     forecast_input = ForecastInput(
@@ -495,3 +496,27 @@ def test_execute_rejects_misaligned_nonempty_nwc_even_with_explicit_ratio() -> N
 
     assert result.status == "FAILED"
     assert "historical_working_capital length" in (result.error_message or "")
+
+
+
+@pytest.mark.parametrize("nwc_ratio", (float("nan"), float("inf"), float("-inf")))
+def test_execute_rejects_nonfinite_explicit_nwc_ratio_without_history(nwc_ratio: float) -> None:
+    forecast_input = ForecastInput(
+        ticker="NONFINITE-NWC-RATIO",
+        historical_years=(2024, 2025),
+        historical_revenue=(100.0, 110.0),
+        historical_margins=(0.10, 0.11),
+        historical_capex=(5.0, 5.5),
+        historical_depreciation=(2.0, 2.2),
+        historical_working_capital=(),
+        historical_taxes=(0.20, 0.21),
+        forecast_years=(2026,),
+        working_capital_pct_revenue_assumption=nwc_ratio,
+    )
+
+    result = ForecastService().execute(forecast_input)
+
+    assert result.status == "FAILED"
+    assert "working_capital_pct_revenue_assumption must be a finite number" in (
+        result.error_message or ""
+    )
