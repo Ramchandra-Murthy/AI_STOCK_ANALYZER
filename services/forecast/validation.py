@@ -93,12 +93,14 @@ class ForecastValidator:
                     f"Historical revenue must be strictly positive, found: {val}"
                 )
 
-        for name, series in [("historical_margins", h_margins), ("historical_taxes", h_tax)]:
-            for val in series:
-                if not (0.0 <= val <= 1.0):
-                    raise ForecastValidationError(
-                        f"Value in {name} must be between 0.0 and 1.0, found: {val}"
-                    )
+        for val in h_margins:
+            if not math.isfinite(val):
+                raise ForecastValidationError(f"historical_margins must be finite, found: {val}")
+        for val in h_tax:
+            if not math.isfinite(val) or not (0.0 <= val <= 1.0):
+                raise ForecastValidationError(
+                    f"historical_taxes must be finite decimal tax rates between 0.0 and 1.0, found: {val}"
+                )
 
         if forecast_input.custom_growth_rate is not None:
             if not math.isfinite(forecast_input.custom_growth_rate) or forecast_input.custom_growth_rate <= -1.0:
