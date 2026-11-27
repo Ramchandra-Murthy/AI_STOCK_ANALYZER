@@ -71,7 +71,8 @@ class ForecastService:
                 slope = (
                     sum((i - mean_x) * (value - mean_y) for i, value in enumerate(history))
                     / denominator
-                    if denominator else 0.0
+                    if denominator
+                    else 0.0
                 )
                 algorithm_growth = slope / history[-1]
                 if not isfinite(algorithm_growth) or algorithm_growth <= -1.0:
@@ -87,16 +88,22 @@ class ForecastService:
             guidance_growth = getattr(guidance, "revenue_cagr_override", None)
             guidance_margin = getattr(guidance, "target_ebit_margin_override", None)
             growth = (
-                float(guidance_growth) if guidance_growth is not None
-                else float(forecast_input.custom_growth_rate)
-                if forecast_input.custom_growth_rate is not None
-                else float(algorithm_growth)
+                float(guidance_growth)
+                if guidance_growth is not None
+                else (
+                    float(forecast_input.custom_growth_rate)
+                    if forecast_input.custom_growth_rate is not None
+                    else float(algorithm_growth)
+                )
             )
             ebit_margin = (
-                float(guidance_margin) if guidance_margin is not None
-                else float(forecast_input.ebit_margin_assumption)
-                if forecast_input.ebit_margin_assumption is not None
-                else float(derived.ebitda_margin)
+                float(guidance_margin)
+                if guidance_margin is not None
+                else (
+                    float(forecast_input.ebit_margin_assumption)
+                    if forecast_input.ebit_margin_assumption is not None
+                    else float(derived.ebitda_margin)
+                )
             )
             capex_ratio = (
                 float(forecast_input.capex_pct_revenue_assumption)
@@ -115,9 +122,11 @@ class ForecastService:
                     "method": (
                         "management_override"
                         if guidance_growth is not None
-                        else "explicit_input"
-                        if forecast_input.custom_growth_rate is not None
-                        else growth_method
+                        else (
+                            "explicit_input"
+                            if forecast_input.custom_growth_rate is not None
+                            else growth_method
+                        )
                     ),
                     "value": growth,
                 },
@@ -125,9 +134,11 @@ class ForecastService:
                     "method": (
                         "management_override"
                         if guidance_margin is not None
-                        else "explicit_input"
-                        if forecast_input.ebit_margin_assumption is not None
-                        else "historical_ebit_margin"
+                        else (
+                            "explicit_input"
+                            if forecast_input.ebit_margin_assumption is not None
+                            else "historical_ebit_margin"
+                        )
                     ),
                     "value": ebit_margin,
                     "legacy_model_field": "ebitda_margin",
@@ -180,8 +191,7 @@ class ForecastService:
             revenue_values = tuple(revenues)
             margins = tuple(ebit_margin for _ in years)
             ebit = tuple(
-                revenue * margin
-                for revenue, margin in zip(revenue_values, margins, strict=True)
+                revenue * margin for revenue, margin in zip(revenue_values, margins, strict=True)
             )
             # CapEx is represented as a positive expenditure magnitude. Downstream
             # cash-flow calculations apply the cash-outflow sign.
