@@ -138,6 +138,9 @@ class ForecastValidator:
         for val in h_margins:
             if not math.isfinite(val):
                 raise ForecastValidationError(f"historical_margins must be finite, found: {val}")
+        for val in h_capex:
+            if not math.isfinite(val):
+                raise ForecastValidationError(f"historical_capex must be finite, found: {val}")
         for val in h_tax:
             if not math.isfinite(val) or not (0.0 <= val <= 1.0):
                 raise ForecastValidationError(
