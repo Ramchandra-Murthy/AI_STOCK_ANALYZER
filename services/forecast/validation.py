@@ -44,10 +44,35 @@ class ForecastValidator:
         n_years = len(h_years)
         series_map = {
             "historical_revenue": h_rev,
-            "historical_margins": h_margins,
-            "historical_capex": h_capex,
             "historical_depreciation": h_dep,
         }
+        guidance = forecast_input.management_guidance
+        explicit_margin_available = (
+            forecast_input.ebit_margin_assumption is not None
+            or (guidance is not None and guidance.target_ebit_margin_override is not None)
+        )
+        if h_margins:
+            if len(h_margins) != n_years:
+                raise ForecastValidationError(
+                    f"Length mismatch: historical_margins length ({len(h_margins)}) "
+                    f"must match historical_years length ({n_years})."
+                )
+        elif not explicit_margin_available:
+            raise ForecastConfigurationError(
+                "An ebit_margin_assumption is required when historical margin observations "
+                "are unavailable."
+            )
+        if h_capex:
+            if len(h_capex) != n_years:
+                raise ForecastValidationError(
+                    f"Length mismatch: historical_capex length ({len(h_capex)}) "
+                    f"must match historical_years length ({n_years})."
+                )
+        elif forecast_input.capex_pct_revenue_assumption is None:
+            raise ForecastConfigurationError(
+                "A capex_pct_revenue_assumption is required when historical CapEx "
+                "observations are unavailable."
+            )
         # Historical NWC is optional only when an explicit NWC/revenue
         # assumption is supplied. A non-empty series must always be aligned.
         if h_wc:
