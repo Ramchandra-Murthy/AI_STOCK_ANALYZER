@@ -429,8 +429,6 @@ def test_execute_allows_negative_historical_and_projected_ebit_margin() -> None:
     assert result.package is not None
     assert result.package.ebit.values == pytest.approx((-8.1,))
 
-
-
 @pytest.mark.parametrize("nwc_ratio", (0.12, -0.08))
 def test_execute_uses_explicit_working_capital_ratio_without_history(nwc_ratio: float) -> None:
     forecast_input = ForecastInput(
@@ -455,9 +453,7 @@ def test_execute_uses_explicit_working_capital_ratio_without_history(nwc_ratio: 
         tuple(value * nwc_ratio for value in projected_revenue)
     )
     assert (
-        result.metadata["assumption_engine"]["provenance"]["working_capital_pct_revenue"][
-            "method"
-        ]
+        result.metadata["assumption_engine"]["provenance"]["working_capital_pct_revenue"]["method"]
         == "explicit_input"
     )
 
@@ -478,9 +474,7 @@ def test_execute_rejects_missing_nwc_history_without_explicit_ratio() -> None:
     result = ForecastService().execute(forecast_input)
 
     assert result.status == "FAILED"
-    assert "working_capital_pct_revenue_assumption is required" in (
-        result.error_message or ""
-    )
+    assert "working_capital_pct_revenue_assumption is required" in (result.error_message or "")
 
 
 def test_execute_rejects_misaligned_nonempty_nwc_even_with_explicit_ratio() -> None:
