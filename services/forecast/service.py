@@ -21,6 +21,7 @@ from services.forecast.models import (
     ForecastMethod,
     ForecastPackage,
     ForecastScenario,
+    ForecastAssumption,
     MarginForecast,
     RevenueForecast,
     TaxForecast,
@@ -42,11 +43,7 @@ class ForecastService:
         try:
             ForecastValidator.validate_input(forecast_input)
             years = forecast_input.forecast_years
-            revenues = self.algorithm.calculate_revenue(forecast_input)
-            margins = self.algorithm.calculate_margins(forecast_input)
-            capex = self.algorithm.calculate_capex(forecast_input)
-            depreciation = self.algorithm.calculate_depreciation(forecast_input)
-            derived_assumptions = AssumptionEngine.derive_from_financials(
+            derived = AssumptionEngine.derive_from_financials(
                 AssumptionDerivationInput(
                     historical_revenue=forecast_input.historical_revenue,
                     historical_margins=forecast_input.historical_margins,
@@ -55,17 +52,116 @@ class ForecastService:
                     historical_tax_rates=forecast_input.historical_taxes,
                     explicit_tax_rate_fallback=forecast_input.tax_rate_assumption,
                     historical_years=forecast_input.historical_years,
+                    management_guidance=forecast_input.management_guidance,
+                    working_capital_pct_revenue_fallback=forecast_input.working_capital_pct_revenue_assumption,
                 )
             )
-            working_capital = tuple(
-                revenue * derived_assumptions.working_capital_pct_revenue for revenue in revenues
+
+            # The selected algorithm determines the historical growth estimator.
+            # CAGR uses geometric CAGR; regression uses slope / latest revenue.
+            if isinstance(self.algorithm, LinearRegressionForecastEngine):
+                history = forecast_input.historical_revenue
+                n = len(history)
+                mean_x = (n - 1) / 2.0
+                mean_y = sum(history) / n
+                denominator = sum((i - mean_x) ** 2 for i in range(n))
+                slope = (
+                    sum((i - mean_x) * (value - mean_y) for i, value in enumerate(history))
+                    / denominator
+                    if denominator else 0.0
+                )
+                algorithm_growth = slope / history[-1]
+                growth_method = "linear_regression_slope_over_latest_revenue"
+            else:
+                algorithm_growth = derived.revenue_growth_rate
+                growth_method = "historical_geometric_cagr"
+
+            guidance = forecast_input.management_guidance
+            guidance_growth = getattr(guidance, "revenue_cagr_override", None)
+            guidance_margin = getattr(guidance, "target_ebit_margin_override", None)
+            growth = (
+                float(guidance_growth) if guidance_growth is not None
+                else float(forecast_input.custom_growth_rate)
+                if forecast_input.custom_growth_rate is not None
+                else float(algorithm_growth)
             )
-            taxes = tuple(derived_assumptions.tax_rate for _ in forecast_input.forecast_years)
-            ebit = tuple(r * m for r, m in zip(revenues, margins, strict=False))
+            ebit_margin = (
+                float(guidance_margin) if guidance_margin is not None
+                else float(forecast_input.ebit_margin_assumption)
+                if forecast_input.ebit_margin_assumption is not None
+                else float(derived.ebitda_margin)
+            )
+            capex_ratio = (
+                float(forecast_input.capex_pct_revenue_assumption)
+                if forecast_input.capex_pct_revenue_assumption is not None
+                else float(derived.capex_pct_revenue)
+            )
+            nwc_ratio = float(derived.working_capital_pct_revenue)
+            tax_rate = float(derived.tax_rate)
+
+            provenance = {
+                "revenue_growth": {
+                    "method": "management_override" if guidance_growth is not None else
+                              "explicit_input" if forecast_input.custom_growth_rate is not None else growth_method,
+                    "value": growth,
+                },
+                "ebit_margin": {
+                    "method": "management_override" if guidance_margin is not None else
+                              "explicit_input" if forecast_input.ebit_margin_assumption is not None else
+                              "historical_ebit_margin",
+                    "value": ebit_margin,
+                    "legacy_model_field": "ebitda_margin",
+                },
+                "capex_pct_revenue": {
+                    "method": "explicit_input" if forecast_input.capex_pct_revenue_assumption is not None else
+                              "historical_abs_capex_to_revenue",
+                    "value": capex_ratio,
+                },
+                "working_capital_pct_revenue": {
+                    "method": "explicit_input" if forecast_input.working_capital_pct_revenue_assumption is not None else
+                              "historical_nwc_to_revenue",
+                    "value": nwc_ratio,
+                },
+                "tax_rate": dict(derived.metadata["tax"]),
+            }
+            assumptions = ForecastAssumption(
+                revenue_growth_rate=growth,
+                ebitda_margin=ebit_margin,
+                tax_rate=tax_rate,
+                capex_pct_revenue=capex_ratio,
+                working_capital_pct_revenue=nwc_ratio,
+                metadata={
+                    **derived.metadata,
+                    "engine_version": "f10a-6",
+                    "margin_semantics": "EBIT margin; ebitda_margin retained as a legacy serialized field",
+                    "provenance": provenance,
+                    "management_guidance": (
+                        {"source": guidance.source, "reason": guidance.reason}
+                        if guidance is not None and (guidance_growth is not None or guidance_margin is not None)
+                        else None
+                    ),
+                },
+            )
+
+            revenues: list[float] = []
+            last_revenue = float(forecast_input.historical_revenue[-1])
+            for _ in years:
+                last_revenue *= 1.0 + growth
+                revenues.append(last_revenue)
+            revenue_values = tuple(revenues)
+            margins = tuple(ebit_margin for _ in years)
+            ebit = tuple(revenue * margin for revenue, margin in zip(revenue_values, margins, strict=True))
+            # CapEx is represented as a positive expenditure magnitude. Downstream
+            # cash-flow calculations apply the cash-outflow sign.
+            capex = tuple(revenue * capex_ratio for revenue in revenue_values)
+            depreciation = self.algorithm.calculate_depreciation(forecast_input)
+            working_capital = tuple(revenue * nwc_ratio for revenue in revenue_values)
+            taxes = tuple(tax_rate for _ in years)
+
             package = ForecastPackage(
                 ticker=forecast_input.ticker,
                 years=years,
-                revenue=ForecastLineItem("Revenue", revenues),
+                revenue=ForecastLineItem("Revenue", revenue_values),
                 ebit=ForecastLineItem("EBIT", ebit),
                 capex=ForecastLineItem("Capital Expenditures", capex),
                 depreciation=ForecastLineItem("Depreciation", depreciation),
@@ -79,7 +175,8 @@ class ForecastService:
                 status="SUCCESS",
                 metadata={
                     "algorithm": self.algorithm.__class__.__name__,
-                    "assumption_engine": derived_assumptions.metadata,
+                    "assumption_engine": assumptions.metadata,
+                    "assumptions": assumptions.to_dict(),
                 },
             )
         except (ForecastError, ValueError) as e:
